@@ -1,0 +1,64 @@
+# Environment variables (CRITICAL - contains passwords)
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+
+# Build outputs
+backend/target/
+frontend/dist/
+frontend/node_modules/
+node_modules/
+
+# Logs
+*.log
+logs/
+backend/logs/
+frontend/logs/
+
+# Maven
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# Test coverage
+backend/coverage/
+frontend/coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Credentials and secrets
+**/credentials.json
+**/secrets.json
+*.pem
+*.key
+
+# Docker
+docker-compose.override.yml
