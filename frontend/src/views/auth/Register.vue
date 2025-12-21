@@ -225,7 +225,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import userApi from '@/api/user'
+import authApi from '@/api/auth'
 import careerPathApi from '@/api/careerPath'
 
 const router = useRouter()
@@ -401,7 +401,7 @@ const handleRegister = async () => {
 
   try {
     // 调用注册 API
-    const response = await userApi.createUser({
+    const response = await authApi.register({
       username: registerForm.value.username,
       email: registerForm.value.email,
       password: registerForm.value.password || `google_${Date.now()}`, // 如果没设置密码，生成一个随机密码
@@ -411,14 +411,8 @@ const handleRegister = async () => {
 
     successMessage.value = '注册成功！正在为您登录...'
 
-    // 自动登录：保存用户状态
-    const user = response.data
-    login({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName
-    })
+    // 自动登录：保存用户状态和 token
+    login(response.user, response.token)
 
     // 1秒后跳转到仪表盘
     setTimeout(() => {

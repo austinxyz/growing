@@ -8,6 +8,7 @@ import com.growing.app.model.User;
 import com.growing.app.repository.CareerPathRepository;
 import com.growing.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CareerPathRepository careerPathRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -49,8 +51,8 @@ public class UserService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
-        // TODO: Hash password properly (use BCrypt in production)
-        user.setPasswordHash(request.getPassword());
+        // Hash password using BCrypt
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setAvatarUrl(request.getAvatarUrl());
         user.setBio(request.getBio());
@@ -108,7 +110,7 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    private UserDTO convertToDTO(User user) {
+    public UserDTO convertToDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
@@ -116,6 +118,7 @@ public class UserService {
         dto.setFullName(user.getFullName());
         dto.setAvatarUrl(user.getAvatarUrl());
         dto.setBio(user.getBio());
+        dto.setRole(user.getRole());
         dto.setCareerPaths(user.getCareerPaths());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());

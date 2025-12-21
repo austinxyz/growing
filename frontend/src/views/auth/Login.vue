@@ -130,7 +130,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import userApi from '@/api/user'
+import authApi from '@/api/auth'
 
 const router = useRouter()
 const { login } = useAuth()
@@ -197,34 +197,14 @@ const handleLogin = async () => {
   isLoading.value = true
 
   try {
-    // TODO: 实际的登录 API - 目前使用模拟查询
-    // 通过用户名或邮箱查找用户
-    const response = await userApi.getUsers()
-    const users = response.data || []
-
-    const user = users.find(u =>
-      u.username === loginForm.value.username ||
-      u.email === loginForm.value.username
-    )
-
-    if (!user) {
-      errorMessage.value = '用户名或邮箱不存在'
-      return
-    }
-
-    // TODO: 实际应该验证密码，这里先跳过密码验证
-    // if (!verifyPassword(loginForm.value.password, user.password)) {
-    //   errorMessage.value = '密码错误'
-    //   return
-    // }
-
-    // 保存用户状态
-    login({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName
+    // 调用登录 API
+    const response = await authApi.login({
+      username: loginForm.value.username,
+      password: loginForm.value.password
     })
+
+    // 保存用户状态和 token
+    login(response.user, response.token)
 
     // 登录成功后跳转到首页
     router.push('/dashboard')
@@ -270,35 +250,17 @@ const initializeGoogleSignIn = () => {
 // 处理 Google 回调
 const handleGoogleCallback = async (response) => {
   try {
-    // 解码 JWT token 获取用户信息
-    const payload = JSON.parse(atob(response.credential.split('.')[1]))
-    const googleEmail = payload.email
+    // 调用 Google 登录 API
+    const authResponse = await authApi.googleLogin(response.credential)
 
-    // 查找是否已有此邮箱的用户
-    const usersResponse = await userApi.getUsers()
-    const users = usersResponse.data || []
+    // 保存用户状态和 token
+    login(authResponse.user, authResponse.token)
 
-    const existingUser = users.find(u => u.email === googleEmail)
-
-    if (existingUser) {
-      // 用户已存在，直接登录
-      login({
-        id: existingUser.id,
-        username: existingUser.username,
-        email: existingUser.email,
-        fullName: existingUser.fullName
-      })
-      router.push('/dashboard')
-    } else {
-      // 用户不存在，跳转到注册页面并预填信息
-      errorMessage.value = '此 Google 账号尚未注册，请先注册'
-      setTimeout(() => {
-        router.push('/register')
-      }, 2000)
-    }
+    // 登录成功后跳转到首页
+    router.push('/dashboard')
   } catch (error) {
     console.error('Google Sign-In 错误:', error)
-    errorMessage.value = 'Google 登录失败，请重试'
+    errorMessage.value = error.response?.data?.message || 'Google 登录失败，请重试'
   }
 }
 

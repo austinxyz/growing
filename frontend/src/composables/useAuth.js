@@ -38,17 +38,27 @@ export const useAuth = () => {
     return currentUser.value.fullName || currentUser.value.username
   })
 
+  // 用户角色
+  const role = computed(() => currentUser.value?.role || 'user')
+
+  // 是否为管理员
+  const isAdmin = computed(() => role.value === 'admin')
+
   // 登录
-  const login = (userData) => {
+  const login = (userData, token) => {
     currentUser.value = userData
     // 保存到 localStorage
     localStorage.setItem('currentUser', JSON.stringify(userData))
+    if (token) {
+      localStorage.setItem('token', token)
+    }
   }
 
   // 登出
   const logout = () => {
     currentUser.value = null
     localStorage.removeItem('currentUser')
+    localStorage.removeItem('token')
     router.push('/login')
   }
 
@@ -64,6 +74,8 @@ export const useAuth = () => {
     username,
     fullName,
     displayName,
+    role,
+    isAdmin,
     login,
     logout,
     updateUser

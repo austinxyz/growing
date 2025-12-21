@@ -10,7 +10,12 @@
             </span>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-foreground truncate">{{ displayName }}</p>
+            <div class="flex items-center gap-1">
+              <p class="text-sm font-medium text-foreground truncate">{{ displayName }}</p>
+              <span v-if="isAdmin" class="px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary rounded">
+                管理员
+              </span>
+            </div>
             <p class="text-xs text-muted-foreground truncate">{{ username }}</p>
           </div>
         </div>
@@ -119,7 +124,8 @@
 
       <!-- 设置类菜单 -->
       <template v-if="activeTopTab === 'settings'">
-        <div class="space-y-1">
+        <!-- 用户管理（仅管理员可见） -->
+        <div v-if="isAdmin" class="space-y-1">
           <div class="nav-section-title">用户管理</div>
           <router-link
             to="/settings/users"
@@ -129,6 +135,11 @@
             <Users class="w-5 h-5" />
             <span>用户管理</span>
           </router-link>
+        </div>
+
+        <!-- 个人设置 -->
+        <div class="space-y-1">
+          <div class="nav-section-title">个人设置</div>
           <router-link
             to="/settings/profile"
             class="nav-item"
@@ -171,7 +182,7 @@ const route = useRoute();
 const activeTopTab = ref('learning');
 
 // 用户认证状态
-const { displayName, username, logout } = useAuth();
+const { displayName, username, isAdmin, logout } = useAuth();
 
 // 登出处理
 const handleLogout = () => {

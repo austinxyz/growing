@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 const routes = [
   {
@@ -32,11 +33,12 @@ const routes = [
     name: 'LearningProgress',
     component: () => import('../views/skills/LearningProgress.vue')
   },
-  // 设置模块 - 用户管理
+  // 设置模块 - 用户管理（仅管理员）
   {
     path: '/settings/users',
     name: 'UserManagement',
-    component: () => import('../views/settings/UserManagement.vue')
+    component: () => import('../views/settings/UserManagement.vue'),
+    meta: { requiresAdmin: true }
   },
   {
     path: '/settings/profile',
@@ -48,6 +50,29 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由守卫：检查管理员权限
+router.beforeEach((to, from, next) => {
+  const { isAuthenticated, isAdmin } = useAuth()
+
+  // 如果路由需要管理员权限
+  if (to.meta.requiresAdmin) {
+    if (!isAuthenticated.value) {
+      // 未登录，重定向到登录页
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+    } else if (!isAdmin.value) {
+      // 已登录但不是管理员，显示无权限提示并返回
+      alert('您没有访问此页面的权限')
+      next(false)
+    } else {
+      // 是管理员，允许访问
+      next()
+    }
+  } else {
+    // 不需要管理员权限，直接放行
+    next()
+  }
 })
 
 export default router

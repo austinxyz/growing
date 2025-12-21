@@ -18,6 +18,7 @@ public class UserDTO {
     private String fullName;
     private String avatarUrl;
     private String bio;
+    private String role;
     private Set<CareerPath> careerPaths;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

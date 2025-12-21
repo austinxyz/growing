@@ -2,7 +2,7 @@
   <div class="p-8">
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-foreground">仪表盘</h1>
-      <p class="text-muted-foreground mt-2">欢迎使用 Growing 个人成长管理系统</p>
+      <p class="text-muted-foreground mt-2">欢迎回来，{{ displayName }}！</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -43,12 +43,14 @@
           <p class="text-sm text-muted-foreground mt-1">查看和管理你的技能体系</p>
         </router-link>
 
+        <!-- 仅管理员可见 -->
         <router-link
+          v-if="isAdmin"
           to="/settings/users"
           class="bg-card border border-border rounded-lg p-4 hover:bg-accent transition-colors"
         >
           <h3 class="font-semibold text-card-foreground">用户管理</h3>
-          <p class="text-sm text-muted-foreground mt-1">管理系统用户</p>
+          <p class="text-sm text-muted-foreground mt-1">管理系统用户（仅管理员）</p>
         </router-link>
       </div>
     </div>
@@ -56,5 +58,7 @@
 </template>
 
 <script setup>
-// Dashboard component
+import { useAuth } from '@/composables/useAuth'
+
+const { displayName, isAdmin } = useAuth()
 </script>

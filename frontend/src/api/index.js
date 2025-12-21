@@ -11,11 +11,11 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
-    // 可以在这里添加 token
-    // const token = localStorage.getItem('token')
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    // 添加 JWT token
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -33,8 +33,13 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // 未授权,跳转到登录页
+          // 未授权,清除token并跳转到登录页
           console.error('未授权,请登录')
+          localStorage.removeItem('token')
+          localStorage.removeItem('currentUser')
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login'
+          }
           break
         case 403:
           console.error('没有权限')
