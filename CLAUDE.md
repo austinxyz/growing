@@ -1,51 +1,40 @@
 # Growing App - Claude Code Guide
 
-> **Context Recovery**: When resuming, read this file first.
+> **Context Recovery**: Read this first when resuming work.
 > **Project Root**: `/Users/yanzxu/claude/growing/`
 
 ## Critical Guardrails
 
-### Environment & Security
+### 🚨 NEVER Do This
 
-**NEVER commit `backend/.env`** - Contains DB credentials. Already in `.gitignore`.
+1. **NEVER commit `backend/.env`** - Contains DB credentials, already in `.gitignore`
+2. **NEVER run backend without sourcing `.env`** - Use `./backend/start.sh`, not `mvn spring-boot:run` directly
+3. **NEVER store plaintext passwords** - Always use `passwordEncoder.encode()` (BCrypt strength 10)
+4. **NEVER skip admin role check on `/api/users/*`** - Use `authService.isAdminByToken()`
+5. **NEVER modify user resources without ownership check** - Users can only delete their own resources
+6. **NEVER hardcode JWT secret** - Must be in `backend/.env` as `JWT_SECRET`
+7. **NEVER allow CORS from all origins** - Only `http://localhost:3000` in development (see `SecurityConfig.java`)
 
-**ALWAYS use `./backend/start.sh`** - Sources `.env` and runs `mvn spring-boot:run`.
+### ⚠️ Common Mistakes from Previous Prompts
 
-**Passwords**: Always use `passwordEncoder.encode()` - BCrypt strength 10.
+**Mistake #1**: Asking for "归纳到CLAUDE.md文件中去，但保持这个文件简洁"
+- **Problem**: You asked me to add architecture details to CLAUDE.md, making it bloated
+- **Fix**: Architecture details belong in `docs/ARCHITECTURE.md`, CLAUDE.md is for guardrails only
 
-**JWT**: HS384, 24h expiration, secret in `backend/.env` as `JWT_SECRET`.
+**Mistake #2**: Not specifying what CLAUDE.md should contain
+- **Problem**: Generic "summarize architecture" leads to verbose output
+- **Fix**: Explicitly state "only critical guardrails and quick start commands"
 
-**Admin routes**: All `/api/users/*` require admin role check. Use `authService.isAdminByToken()`.
-
-**CORS**: Only `http://localhost:3000` in development (see `SecurityConfig.java`).
-
-### Database
-
-**Connection**: Credentials in `backend/.env` (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD).
-
-**Schema**:
-```
-users (id, username, email, password_hash, role, ...)
-  ↓ many-to-many via user_career_paths
-career_paths (id, name, code, description, icon)
-```
-
-**Indexes**: username (unique), email (unique), role.
-
-**Foreign keys**: CASCADE delete on `user_career_paths`.
-
-## Tech Stack
-
-**Backend**: Java 17 + Spring Boot 3.2 + Spring Data JPA + MySQL 8.0
-**Frontend**: Vue 3 Composition API + Vue Router 4 + Vite + Tailwind CSS
-**Security**: JWT (jjwt 0.12.3) + BCrypt + Google OAuth 2.0
+**Mistake #3**: Asking to "review" design documents without specific criteria
+- **Problem**: I'll just parrot back what's in the doc without value-add
+- **Fix**: Ask specific questions like "what security issues exist?" or "what's missing?"
 
 ## Quick Start
 
 ### Backend
 ```bash
 cd backend
-./start.sh
+./start.sh  # Sources .env and runs Spring Boot
 # Runs on http://localhost:8080
 ```
 
@@ -55,8 +44,14 @@ cd frontend
 npm install
 npm run dev
 # Runs on http://localhost:3000
-# Proxies /api to http://localhost:8080
+# Proxies /api → http://localhost:8080
 ```
+
+### Database
+- **Host**: 10.0.0.7:37719
+- **Database**: `growing`
+- **User**: `austinxu` / `helloworld`
+- **Credentials**: In `backend/.env` (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
 
 ### Test Admin Account
 ```
@@ -66,98 +61,87 @@ Password: helloworld
 Role: admin
 ```
 
-## Architecture Patterns
+## Tech Stack
 
-### JWT Authentication Flow
+**Backend**: Java 17 + Spring Boot 3.2 + Spring Data JPA + MySQL 8.0 + JWT
+**Frontend**: Vue 3 + Vue Router 4 + Vite + Tailwind CSS
+**Auth**: JWT (HS384, 24h TTL) + BCrypt + Google OAuth 2.0
 
-1. Frontend: `POST /api/auth/login` with credentials
-2. Backend: validates password → generates JWT (username in subject)
-3. Frontend: stores in `localStorage.auth_token`
-4. Frontend: Axios interceptor adds `Authorization: Bearer {token}`
-5. Backend: extracts username from JWT → loads User from DB
+## Key Files
 
-### Admin Permission Check
+**Backend**:
+- `backend/.env` - Database credentials, JWT secret (DO NOT COMMIT)
+- `backend/start.sh` - Startup script that sources `.env`
+- `src/main/java/com/growing/app/config/SecurityConfig.java` - CORS, password encoder
+- `src/main/java/com/growing/app/util/JwtUtil.java` - JWT token utilities
 
-```java
-// UserController.java pattern
-private void requireAdmin(String authHeader) {
-    if (!authService.isAdminByToken(authHeader.replace("Bearer ", ""))) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "需要管理员权限");
-    }
-}
-```
+**Frontend**:
+- `src/composables/useAuth.js` - Global auth state (currentUser, isAdmin, token)
+- `src/api/index.js` - Axios instance with JWT interceptor
+- `src/router/index.js` - Routes with `meta.requiresAdmin` guards
 
-### Google OAuth Flow
+**Database**:
+- `backend/src/main/resources/db/migration/` - Flyway migration files
+- Migrations run automatically on app startup
 
-1. Frontend: Google SDK initialized with client ID
-2. User clicks Google button → gets credential (ID token)
-3. Frontend: `POST /api/auth/google` with credential
-4. Backend: verifies with Google API → creates/updates user → returns JWT
-5. Same JWT flow as traditional login
+## When Things Break
 
-## File Structure
+**401 Unauthorized**:
+- Token expired (24h TTL) → user needs to re-login
+- JWT_SECRET mismatch → check `backend/.env` matches running backend
 
-```
-backend/src/main/java/com/growing/app/
-  controller/AuthController.java    # login, register, Google OAuth
-  controller/UserController.java    # admin-only user CRUD
-  service/AuthService.java          # JWT generation, password verify
-  service/UserService.java          # user CRUD, DTO conversion
-  model/User.java                   # JPA entity with @ManyToMany careerPaths
-  config/SecurityConfig.java        # CORS, PasswordEncoder beans
-  util/JwtUtil.java                 # JWT token util
+**403 Forbidden**:
+- User authenticated but not admin → check `role` column in `users` table
+- Deleting someone else's resource → ownership check failed
 
-frontend/src/
-  composables/useAuth.js            # global auth state (currentUser, token, isAdmin)
-  api/auth.js                       # login, register, Google OAuth APIs
-  api/index.js                      # Axios instance with JWT interceptor
-  router/index.js                   # routes with meta.requiresAdmin guard
-  views/auth/Login.vue              # login page with Google button
-  components/Sidebar.vue            # navigation with role-based menu
-```
+**CORS errors**:
+- Frontend URL not allowed → check `SecurityConfig.corsConfigurationSource()`
+- Only `http://localhost:3000` is whitelisted in dev
 
-## API Reference
+**Google OAuth fails**:
+- Check `google.client.id` in `application.properties` matches Google Cloud Console
+- Verify redirect URI configured in Google Console
 
-**Auth** (`/api/auth`):
-- `POST /login` - username/password → JWT + user
-- `POST /register` - create account → JWT + user
-- `POST /google` - Google ID token → JWT + user
-- `GET /me` - get current user (requires Bearer token)
-
-**Users** (`/api/users`) - Admin only:
-- `GET /` - list all users with career paths
-- `POST /` - create user (can set role)
-- `PUT /{id}` - update user (fullName, bio, role, careerPaths)
-- `DELETE /{id}` - delete user
-
-**Career Paths** (`/api/career-paths`):
-- `GET /` - list all active paths (public)
-
-## Troubleshooting
-
-**401 Unauthorized**: Token expired (24h TTL) or JWT_SECRET mismatch between `.env` and backend.
-
-**403 Forbidden**: User authenticated but missing admin role for `/api/users/*`.
-
-**CORS errors**: Check frontend URL allowed in `SecurityConfig.corsConfigurationSource()`.
-
-**Google OAuth fails**: Verify `google.client.id` in `application.properties` matches Google Cloud Console.
-
-**Database connection fails**: Check all vars in `backend/.env` match MySQL server settings.
+**Database connection fails**:
+- Check all vars in `backend/.env` match MySQL server settings
+- Verify MySQL is running on 10.0.0.7:37719
 
 ## Current Status
 
-**Phase 1 完成** (2025-12-20)
+**Phase 1 完成** (2025-12-20):
+- ✅ JWT auth + Google OAuth
+- ✅ User management (admin CRUD)
+- ✅ Login/register pages
+- ✅ Route guards + JWT interceptor
 
-✅ JWT auth + Google OAuth
-✅ User management API (admin CRUD)
-✅ Frontend login/register pages
-✅ Route guards + Axios interceptor
+**Phase 2 完成** (2025-12-20):
+- ✅ Skills management (admin CRUD)
+- ✅ Focus areas management
+- ✅ Learning resources with visibility control
+- ✅ User skill browsing
+- ✅ Personal resource management
 
-🔄 Building Dashboard + Sidebar UI
+**Next**: Phase 3 - Question bank
 
-## Additional Context
+## Documentation
 
-For complex JWT usage or Google OAuth errors, see `docs/Phase1-设计文档.md`.
+**Quick Reference** (you are here): `/CLAUDE.md`
+**Architecture Details**: `/docs/ARCHITECTURE.md` (data model, API design, security, performance)
+**Phase Designs**: `/docs/Phase1-设计文档.md`, `/docs/Phase2-设计文档.md`
+**Requirements**: `/requirement/Phase1-详细需求.md`, `/requirement/Phase2-详细需求.md`
 
-For detailed requirements, see `requirement/Phase1-详细需求.md`.
+## Prompt Writing Tips for User
+
+When asking Claude Code to update this project:
+
+✅ **Good Prompts**:
+- "Add X feature following Phase 2 patterns"
+- "Check if Y violates any security guardrails"
+- "Create Phase 3 design doc, don't update CLAUDE.md yet"
+
+❌ **Bad Prompts**:
+- "Summarize everything into CLAUDE.md" (too vague, makes it bloated)
+- "Make the code better" (no specific criteria)
+- "Add architecture to CLAUDE.md" (wrong file, use ARCHITECTURE.md)
+
+**Key Principle**: CLAUDE.md = guardrails + quick start. Architecture details = separate docs.
