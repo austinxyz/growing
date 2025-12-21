@@ -77,24 +77,16 @@
 
       <!-- 学习类菜单 -->
       <template v-if="activeTopTab === 'learning'">
-        <!-- 技能管理 -->
+        <!-- 职业路径 -->
         <div class="space-y-1">
-          <div class="nav-section-title">技能管理</div>
+          <div class="nav-section-title">职业路径</div>
           <router-link
-            to="/skills/tree"
+            to="/skills/career-paths"
             class="nav-item"
-            :class="isActive('/skills/tree')"
+            :class="isActive('/skills/career-paths')"
           >
-            <Network class="w-5 h-5" />
-            <span>技能树</span>
-          </router-link>
-          <router-link
-            to="/skills/progress"
-            class="nav-item"
-            :class="isActive('/skills/progress')"
-          >
-            <TrendingUp class="w-5 h-5" />
-            <span>学习进度</span>
+            <Briefcase class="w-5 h-5" />
+            <span>职业技能</span>
           </router-link>
         </div>
 
@@ -124,6 +116,19 @@
 
       <!-- 设置类菜单 -->
       <template v-if="activeTopTab === 'settings'">
+        <!-- 内容管理（仅管理员可见） -->
+        <div v-if="isAdmin" class="space-y-1">
+          <div class="nav-section-title">内容管理</div>
+          <router-link
+            to="/admin/skills"
+            class="nav-item"
+            :class="isActive('/admin/skills')"
+          >
+            <BookOpen class="w-5 h-5" />
+            <span>技能管理</span>
+          </router-link>
+        </div>
+
         <!-- 用户管理（仅管理员可见） -->
         <div v-if="isAdmin" class="space-y-1">
           <div class="nav-section-title">用户管理</div>
@@ -198,8 +203,10 @@ const topLevelTabs = [
 
 // 根据当前路由自动切换顶级tab
 watch(() => route.path, (newPath) => {
-  if (newPath.startsWith('/settings')) {
+  if (newPath.startsWith('/settings') || newPath.startsWith('/admin')) {
     activeTopTab.value = 'settings';
+  } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard')) {
+    activeTopTab.value = 'learning';
   } else if (newPath.startsWith('/career') || newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
     activeTopTab.value = 'career';
   } else {

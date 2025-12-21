@@ -176,4 +176,20 @@ public class AuthService {
 
         return userService.convertToDTO(user);
     }
+
+    /**
+     * 从 token 中获取用户名
+     */
+    public String getUsernameFromToken(String token) {
+        return jwtUtil.getUsernameFromToken(token);
+    }
+
+    /**
+     * 根据用户名获取用户ID
+     */
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        return user.getId();
+    }
 }

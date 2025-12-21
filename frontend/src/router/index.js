@@ -22,7 +22,23 @@ const routes = [
     name: 'Dashboard',
     component: () => import('../views/Dashboard.vue')
   },
+  // 职业技能
+  {
+    path: '/skills/career-paths',
+    name: 'MyCareerPaths',
+    component: () => import('../views/careerPaths/MyCareerPaths.vue')
+  },
   // 学习模块 - 技能管理
+  {
+    path: '/skills',
+    name: 'SkillList',
+    component: () => import('../views/skills/SkillList.vue')
+  },
+  {
+    path: '/skills/:id',
+    name: 'SkillDetail',
+    component: () => import('../views/skills/SkillDetail.vue')
+  },
   {
     path: '/skills/tree',
     name: 'SkillTree',
@@ -32,6 +48,19 @@ const routes = [
     path: '/skills/progress',
     name: 'LearningProgress',
     component: () => import('../views/skills/LearningProgress.vue')
+  },
+  // 管理员 - 技能管理
+  {
+    path: '/admin/skills',
+    name: 'SkillManagement',
+    component: () => import('../views/skills/admin/SkillManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/skills/:id',
+    name: 'SkillDetailAdmin',
+    component: () => import('../views/skills/admin/SkillDetailAdmin.vue'),
+    meta: { requiresAdmin: true }
   },
   // 设置模块 - 用户管理（仅管理员）
   {
