@@ -142,7 +142,7 @@
           </div>
 
           <div v-if="!selectedFocusAreaId" class="text-center text-gray-400 py-8">
-            请先选择 Focus Area
+            请先选择专注领域
           </div>
 
           <div v-else-if="loading.questions" class="text-center text-gray-500 py-8">
@@ -410,7 +410,8 @@ const loadQuestions = async () => {
   loading.value.questions = true
   try {
     const response = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
-    questions.value = response.data || []
+    // response已经是data数组（axios拦截器已处理）
+    questions.value = response || []
   } catch (error) {
     console.error('Failed to load questions:', error)
     alert('加载试题失败')
@@ -428,7 +429,8 @@ const selectQuestion = async (id) => {
   // 加载完整的试题详情（包含用户笔记）
   try {
     const response = await questionApi.getQuestionById(id)
-    const fullQuestion = response.data
+    // response已经是data对象（axios拦截器已处理）
+    const fullQuestion = response
     // 更新questions数组中的对应项
     const index = questions.value.findIndex(q => q.id === id)
     if (index > -1) {

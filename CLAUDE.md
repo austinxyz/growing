@@ -14,6 +14,17 @@
 5. **NEVER modify user resources without ownership check** - Users can only delete their own resources
 6. **NEVER hardcode JWT secret** - Must be in `backend/.env` as `JWT_SECRET`
 7. **NEVER allow CORS from all origins** - Only `http://localhost:3000` in development (see `SecurityConfig.java`)
+8. **NEVER use `response.data` when axios interceptor is configured** - Interceptor already returns `response.data`, use `response` directly
+   ```javascript
+   // ❌ WRONG - response.data is undefined!
+   const response = await questionApi.getQuestions()
+   items.value = response.data || []
+
+   // ✅ CORRECT
+   const data = await questionApi.getQuestions()
+   items.value = data || []
+   ```
+9. **NEVER forget to populate nested objects in Service DTOs** - Check `SkillService.getSkillsByCareerPathId()` includes `focusAreas`
 
 ### ⚠️ Common Mistakes from Previous Prompts
 
@@ -28,6 +39,27 @@
 **Mistake #3**: Asking to "review" design documents without specific criteria
 - **Problem**: I'll just parrot back what's in the doc without value-add
 - **Fix**: Ask specific questions like "what security issues exist?" or "what's missing?"
+
+**Mistake #4 (Phase 3)**: Not understanding axios interceptor behavior
+- **Problem**: Axios response interceptor returns `response.data`, but code used `response.data` again → `undefined`
+- **What Happened**: Bug appeared TWICE in Phase 3 (QuestionManagement.vue, MyQuestionBank.vue)
+- **Root Cause**: `/frontend/src/api/index.js:27-29` has interceptor that auto-unwraps
+- **Fix**: Always use `response` directly, not `response.data` (see Guardrail #8)
+- **Lesson**: When debugging "data not showing", check interceptors first
+
+**Mistake #5 (Phase 3)**: Incomplete DTO conversion in Service layer
+- **Problem**: `SkillService.getSkillsByCareerPathId()` didn't populate `focusAreas` list
+- **What Happened**: Frontend couldn't display Focus Area tree because backend returned empty array
+- **Root Cause**: DTO conversion only set `focusAreaCount`, forgot to add actual `focusAreas` list
+- **Fix**: Added `dto.setFocusAreas(focusAreaRepository.find...)`
+- **Lesson**: When adding new fields to DTOs, update ALL methods that return that DTO
+
+**Mistake #6 (Phase 3)**: Poor UX from not considering user context
+- **Problem**: User already viewing Focus Area X, but modal still asked "which Focus Area?"
+- **What Happened**: Required user to re-select Focus Area when adding question
+- **Root Cause**: Modal didn't receive current context as prop
+- **Fix**: Pass `currentFocusAreaId` and `currentFocusAreaName` props, conditionally render read-only field
+- **Lesson**: Before implementing forms, think about user's current context and pre-fill what you can
 
 ## Quick Start
 
@@ -77,7 +109,7 @@ Role: admin
 
 **Frontend**:
 - `src/composables/useAuth.js` - Global auth state (currentUser, isAdmin, token)
-- `src/api/index.js` - Axios instance with JWT interceptor
+- `src/api/index.js` - Axios instance with JWT interceptor + response unwrapper (⚠️ returns `response.data`)
 - `src/router/index.js` - Routes with `meta.requiresAdmin` guards
 
 **Database**:
@@ -106,6 +138,11 @@ Role: admin
 - Check all vars in `backend/.env` match MySQL server settings
 - Verify MySQL is running on 10.0.0.7:37719
 
+**Frontend data not showing** (Phase 3 bug):
+- Check browser console for `undefined` errors
+- Verify axios response handling: use `response` not `response.data` (interceptor already unwrapped)
+- Check backend Service methods populate all DTO fields (especially nested objects like `focusAreas`)
+
 ## Current Status
 
 **Phase 1 完成** (2025-12-20):
@@ -121,21 +158,24 @@ Role: admin
 - ✅ User skill browsing
 - ✅ Personal resource management
 
-**Phase 3 设计完成** (2025-12-21):
-- ✅ 详细需求文档（`requirement/Phase3-详细需求.md`）
-- ✅ 设计文档（`docs/Phase3-设计文档.md`）
-- 🔄 待实施：试题库基础功能
-  - questions表 + user_question_notes表
-  - 基于Focus Area的试题管理
-  - 用户笔记功能（UPSERT逻辑）
-  - 单页面三栏布局UI
+**Phase 3 完成** (2025-12-21):
+- ✅ 试题库基础功能
+  - questions表 + user_question_notes表 (V5 migration)
+  - 基于Focus Area的试题管理（公共试题 + 用户私有试题）
+  - 用户笔记功能（UPSERT逻辑 - 一个用户对一个试题只能有一条笔记）
+  - 管理员页面：两栏布局 (QuestionManagement.vue)
+  - 用户页面：三栏布局 (MyQuestionBank.vue) - 职业路径Tab + 技能树 + 试题列表 + 详情+笔记
+  - Markdown渲染支持（问题描述、答案要求、笔记）
+  - Red Flags JSON序列化存储
+  - 8道初始试题导入（Python脚本）
+  - 4个bug修复（axios响应处理 × 2、DTO不完整、UX优化）
 
 ## Documentation
 
 **Quick Reference** (you are here): `/CLAUDE.md`
-**Architecture Details**: `/docs/ARCHITECTURE.md` (data model, API design, security, performance)
-**Phase Designs**: `/docs/Phase1-设计文档.md`, `/docs/Phase2-设计文档.md`
-**Requirements**: `/requirement/Phase1-详细需求.md`, `/requirement/Phase2-详细需求.md`
+**Architecture Details**: `/docs/ARCHITECTURE.md` (data model, API design, security, performance, Phase 3 patterns)
+**Phase Designs**: `/docs/Phase1-设计文档.md`, `/docs/Phase2-设计文档.md`, `/docs/Phase3-设计文档.md`
+**Requirements**: `/requirement/Phase1-详细需求.md`, `/requirement/Phase2-详细需求.md`, `/requirement/Phase3-详细需求.md`
 
 ## Prompt Writing Tips for User
 

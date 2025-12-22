@@ -122,6 +122,10 @@ public class SkillService {
                     // 添加统计信息
                     dto.setFocusAreaCount(focusAreaRepository.countBySkillId(skill.getId()));
                     dto.setResourceCount(learningResourceRepository.countBySkillId(skill.getId()));
+                    // 添加Focus Areas列表
+                    dto.setFocusAreas(focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skill.getId()).stream()
+                            .map(this::convertToDTO)
+                            .collect(Collectors.toList()));
                     return dto;
                 })
                 .collect(Collectors.toList());

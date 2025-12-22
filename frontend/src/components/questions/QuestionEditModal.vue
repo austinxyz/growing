@@ -23,17 +23,25 @@
 
         <!-- 表单 -->
         <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
-          <!-- 所属 Focus Area -->
-          <div>
+          <!-- 所属 Focus Area（如果有预设则显示，否则显示选择器） -->
+          <div v-if="currentFocusAreaName">
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              所属 Focus Area <span class="text-red-500">*</span>
+              所属专注领域
+            </label>
+            <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-700">
+              {{ currentFocusAreaName }}
+            </div>
+          </div>
+          <div v-else>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              所属专注领域 <span class="text-red-500">*</span>
             </label>
             <select
               v-model="form.focusAreaId"
               required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">请选择 Focus Area</option>
+              <option value="">请选择专注领域</option>
               <option
                 v-for="fa in focusAreas"
                 :key="fa.id"
@@ -189,6 +197,14 @@ const props = defineProps({
   focusAreas: {
     type: Array,
     default: () => []
+  },
+  currentFocusAreaId: {
+    type: Number,
+    default: null
+  },
+  currentFocusAreaName: {
+    type: String,
+    default: ''
   }
 })
 
@@ -232,7 +248,7 @@ watch(() => props.question, (newQuestion) => {
   } else {
     isEdit.value = false
     form.value = {
-      focusAreaId: '',
+      focusAreaId: props.currentFocusAreaId || '',  // 使用当前选中的Focus Area
       questionText: '',
       difficulty: 'EASY',
       answerRequirement: '',

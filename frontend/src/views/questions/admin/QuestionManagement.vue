@@ -64,7 +64,7 @@
 
           <!-- Focus Area 列表 -->
           <div v-if="selectedSkill">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Focus Areas</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">专注领域</h3>
 
             <div v-if="selectedSkill.focusAreas && selectedSkill.focusAreas.length > 0" class="space-y-1">
               <button
@@ -83,7 +83,7 @@
             </div>
 
             <div v-else class="text-center text-gray-400 py-4 text-sm">
-              该技能暂无 Focus Areas
+              该技能暂无专注领域
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@
       <section class="flex-1 bg-gray-50 overflow-y-auto">
         <div class="p-6">
           <div v-if="!selectedFocusAreaId" class="text-center text-gray-400 py-12">
-            请先选择 Focus Area
+            请先选择专注领域
           </div>
 
           <div v-else>
@@ -147,6 +147,8 @@
       :is-open="showEditModal"
       :question="editingQuestion"
       :focus-areas="allFocusAreas"
+      :current-focus-area-id="selectedFocusAreaId"
+      :current-focus-area-name="selectedFocusAreaName"
       @save="saveQuestion"
       @cancel="closeEditModal"
     />
@@ -229,7 +231,8 @@ const loadQuestions = async () => {
     const response = await adminQuestionApi.getAllQuestions({
       focusAreaId: selectedFocusAreaId.value
     })
-    questions.value = response.data || []
+    // response已经是data数组（axios拦截器已处理）
+    questions.value = response || []
   } catch (error) {
     console.error('Failed to load questions:', error)
     alert('加载试题失败')

@@ -1,8 +1,8 @@
 # Phase 3 - 试题库基础功能设计文档
 
-> **版本**: v1.0
+> **版本**: v1.0 (正式版)
 > **日期**: 2025-12-21
-> **状态**: 设计阶段
+> **状态**: ✅ 已完成
 
 ## 一、总体架构
 
@@ -1170,17 +1170,56 @@ CREATE INDEX idx_user_id ON user_question_notes(user_id);
 
 `backend/.env`: 无需新增环境变量，使用已有配置
 
-## 十一、已知限制和未来优化
+## 十一、实施状态
 
-### 11.1 已知限制
+### 11.1 已完成功能 ✅
+
+**后端实现**:
+- [x] 数据库Schema设计（V5 migration）
+- [x] Question实体和UserQuestionNote实体
+- [x] QuestionRepository和UserQuestionNoteRepository
+- [x] QuestionService和UserQuestionNoteService（含UPSERT逻辑）
+- [x] QuestionController和AdminQuestionController
+- [x] Red Flags JSON序列化/反序列化
+- [x] 权限控制（管理员/用户）
+- [x] 可见性规则（公共/私有试题）
+
+**前端实现**:
+- [x] QuestionManagement.vue（管理员页面）- 两栏布局
+- [x] MyQuestionBank.vue（用户页面）- 三栏布局
+- [x] QuestionCard.vue（试题卡片组件）
+- [x] QuestionEditModal.vue（试题编辑弹窗）
+- [x] UserNoteEditor.vue（笔记编辑器）
+- [x] DifficultyBadge.vue（难度标签）
+- [x] RedFlagList.vue（Red Flags编辑组件）
+- [x] Markdown渲染（marked库）
+- [x] 难度筛选器（ALL/EASY/MEDIUM/HARD）
+- [x] 中文本地化（"Focus Area" → "专注领域"）
+
+**数据导入**:
+- [x] Python导入脚本（import_questions.py）
+- [x] 8道初始试题导入成功
+- [x] 覆盖5个Focus Area
+
+### 11.2 Bug修复记录
+
+| Bug | 原因 | 修复方案 | 状态 |
+|-----|------|----------|------|
+| Focus Area列表不显示 | SkillService未返回focusAreas | 添加focusAreas查询 | ✅ 已修复 |
+| 试题列表不显示（管理员页） | 前端使用`response.data.data` | 改为`response` | ✅ 已修复 |
+| 试题列表不显示（用户页） | 同上，axios拦截器已解包 | 改为`response` | ✅ 已修复 |
+| 添加试题时Focus Area重复选择 | 未自动填充当前Focus Area | 传入currentFocusAreaId | ✅ 已修复 |
+
+### 11.3 已知限制
 
 1. **试题搜索**: Phase 3暂不实现全文搜索（Phase 5考虑）
 2. **试题版本历史**: 暂不支持修改历史回溯
-3. **批量导入**: 暂不支持CSV/JSON批量导入（Phase 4考虑）
+3. **批量导入UI**: 暂不支持CSV/JSON批量导入UI（已有Python脚本）
 4. **试题标签**: 暂不支持跨Focus Area的标签系统
 5. **协作功能**: 暂不支持试题评论/讨论
+6. **Markdown编辑器**: 暂无实时预览功能
 
-### 11.2 未来优化方向
+### 11.4 未来优化方向
 
 1. **Phase 4 - 核心技能模块**:
    - 编程题扩展（LeetCode链接、代码、复杂度）
@@ -1197,6 +1236,87 @@ CREATE INDEX idx_user_id ON user_question_notes(user_id);
    - AI生成试题
    - 资源评分和评论
    - 智能推荐
+   - Markdown编辑器实时预览
+   - 试题导出（PDF/Markdown）
+
+## 十二、关键代码实现
+
+### 12.1 后端UPSERT逻辑（笔记）
+
+```java
+@Transactional
+public UserQuestionNoteDTO saveOrUpdateNote(Long questionId,
+                                            String noteContent,
+                                            Long userId) {
+    Question question = questionRepository.findById(questionId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    // UPSERT逻辑：如果存在则更新，不存在则创建
+    Optional<UserQuestionNote> existingNote =
+        noteRepository.findByQuestionIdAndUserId(questionId, userId);
+
+    UserQuestionNote note;
+    if (existingNote.isPresent()) {
+        note = existingNote.get();
+        note.setNoteContent(noteContent);
+    } else {
+        note = new UserQuestionNote();
+        note.setQuestion(question);
+        note.setUser(user);
+        note.setNoteContent(noteContent);
+    }
+
+    return convertToDTO(noteRepository.save(note));
+}
+```
+
+### 12.2 前端Axios响应处理
+
+```javascript
+// ❌ 错误写法（axios拦截器已解包response.data）
+const response = await questionApi.getQuestionsByFocusArea(focusAreaId)
+questions.value = response.data || []  // response.data = undefined!
+
+// ✅ 正确写法
+const response = await questionApi.getQuestionsByFocusArea(focusAreaId)
+questions.value = response || []  // response已经是数据数组
+```
+
+**原因**: `/frontend/src/api/index.js:27-29` 定义了拦截器：
+```javascript
+api.interceptors.response.use(
+  (response) => {
+    return response.data  // 自动解包！
+  },
+  // ...
+)
+```
+
+### 12.3 Focus Area自动填充
+
+```vue
+<!-- QuestionEditModal.vue -->
+<div v-if="currentFocusAreaName">
+  <label>所属专注领域</label>
+  <div class="px-3 py-2 bg-gray-50 border rounded-md">
+    {{ currentFocusAreaName }}
+  </div>
+</div>
+<div v-else>
+  <label>所属专注领域 <span class="text-red-500">*</span></label>
+  <select v-model="form.focusAreaId" required>
+    <option value="">请选择专注领域</option>
+    <option v-for="fa in focusAreas" :key="fa.id" :value="fa.id">
+      {{ fa.name }}
+    </option>
+  </select>
+</div>
+```
+
+**逻辑**: 当有`currentFocusAreaName`时显示为只读，否则显示下拉选择器。
 
 ---
 
