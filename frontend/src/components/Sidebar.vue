@@ -93,17 +93,14 @@
         <!-- 学习模块 -->
         <div class="space-y-1">
           <div class="nav-section-title">学习模块</div>
-          <div class="text-sm text-muted-foreground px-3 py-2">
-            即将推出...
-          </div>
-        </div>
-
-        <!-- 试题库 -->
-        <div class="space-y-1">
-          <div class="nav-section-title">试题库</div>
-          <div class="text-sm text-muted-foreground px-3 py-2">
-            即将推出...
-          </div>
+          <router-link
+            to="/my-questions"
+            class="nav-item"
+            :class="isActive('/my-questions')"
+          >
+            <BookOpen class="w-5 h-5" />
+            <span>我的试题库</span>
+          </router-link>
         </div>
       </template>
 
@@ -126,6 +123,14 @@
           >
             <BookOpen class="w-5 h-5" />
             <span>技能管理</span>
+          </router-link>
+          <router-link
+            to="/admin/questions"
+            class="nav-item"
+            :class="isActive('/admin/questions')"
+          >
+            <BookOpen class="w-5 h-5" />
+            <span>试题管理</span>
           </router-link>
         </div>
 

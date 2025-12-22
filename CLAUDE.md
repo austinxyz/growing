@@ -121,7 +121,14 @@ Role: admin
 - ✅ User skill browsing
 - ✅ Personal resource management
 
-**Next**: Phase 3 - Question bank
+**Phase 3 设计完成** (2025-12-21):
+- ✅ 详细需求文档（`requirement/Phase3-详细需求.md`）
+- ✅ 设计文档（`docs/Phase3-设计文档.md`）
+- 🔄 待实施：试题库基础功能
+  - questions表 + user_question_notes表
+  - 基于Focus Area的试题管理
+  - 用户笔记功能（UPSERT逻辑）
+  - 单页面三栏布局UI
 
 ## Documentation
 

@@ -73,6 +73,19 @@ const routes = [
     path: '/settings/profile',
     name: 'Profile',
     component: () => import('../views/settings/Profile.vue')
+  },
+  // 试题库模块
+  {
+    path: '/my-questions',
+    name: 'MyQuestionBank',
+    component: () => import('../views/questions/MyQuestionBank.vue')
+  },
+  // 管理员 - 试题管理
+  {
+    path: '/admin/questions',
+    name: 'QuestionManagement',
+    component: () => import('../views/questions/admin/QuestionManagement.vue'),
+    meta: { requiresAdmin: true }
   }
 ]
 

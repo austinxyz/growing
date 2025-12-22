@@ -97,4 +97,111 @@
 
 很好，结合第二部分的设计文档，总结一些架构信息，包含前端和后端的，归纳到CLAUDE.md文件中去，但保持这个文件简洁，并符合claude-code-guide.txt的建议
 
-好，现在继续需求实现，3. 试题库基础功能，细化需求，包含数据库设计，和UI页面，我会review提出我的建议
+出一个架构指导的单独文档，review一下我之前的prompt，看看到底犯了哪些错误，按照claude-code-guide的建议，更改CLAUDE.md,要更多体现如何避免犯错
+
+通过git commit的信息，帮我对这个项目的phase 1和2做一个统计，
+**时间分布**：
+- 需求完善和架构设计：~？%
+- 快速迭代开发（15-20分钟/小功能）：~？%
+- 测试和体验优化：~？%
+- 文档和部署：~？%
+
+  调整后:
+  - 快速开发: 64% (从62%提升)
+  - 需求+架构: 18% (从20%降低)
+  - 测试优化: 11% (符合标准)
+  - 文档部署: 7%
+
+  Phase 3建议已更新
+
+  - 预估实际开发时间: 3.5小时 (210分钟)
+  - 测试占比目标: 17% (从11%提升)
+  - 效率目标: 1,000+ lines/hour
+  - 预期产出: 3,500+ lines代码
+
+  现在的数据更加真实准确，效率指标也更加亮眼！6小时产出7,141行代码的效率确实非常出色。
+
+12/21 2:06
+好，现在继续需求实现，3. 试题库基础功能，我有这些想法
+1. 试题库是基于Focus Area的，主要内容包含，问题，难度（Easy，Mid，Peak），期望的答案（如果有标准答案可以提供标准答案sample，如果没标准答案提供关键点，同样问题，针对职位，level，可能要求点不一样），哪些是red flag
+2. 对于一些重要技能，比如编程，系统设计，behavior，针对试题可能有不同的扩展，比如编程，可能需要提供Leet Code的链接，我自己的代码，核心要点，复杂度，这个我可以在核心技能模块设计中再扩展。
+3. admin可以导入一些公共试题，每个用户可以加入自己的一些试题，别的用户不需要看到。admin和用户还是根据-职位-技能-focus area来浏览试题库。差别是用户只看到自己关联的职位。
+4. 在求职部分，针对不同公司，可能他也有一些自己的试题，并且有针对某个公司的回答要点，以后用户可以针对，公司职位来关键对应的技能/focus area来看试题（这些都可以在求职模块的时候实现）
+先写文档，细化需求，如果数据设计，UI页面有想法也可以包括，我会review提出我的建议
+
+✅ 已创建 requirement/Phase3-详细需求.md
+
+好的，我在需求文档中加了我的comment
+<Austin>目前管理员有技能管理页面，列出职业-对应技能，然后是专注领域，可以新加试题管理页面，类似左侧职业-对应技能，右侧列出所有试题（按照专注领域来过滤），可以弹出窗口添加修改删除，添加的时候可以选专注领域
+<Austin> 目前学习-职业路径下有职业技能页面，可以加试题库页面，不同的职业为tab，左侧技能-focus area tree，选focus area可以列出对应的试题。可以添加编辑我的试题。对于公共试题，可以加入自己的答案，以及comment。
+<Austin> 浏览部分已经在2.1/2.2 cover
+<Austin> 暂时不考虑 (搜索功能)
+
+用户笔记功能讨论:
+- 问：Should user answers/comments be one table or two?
+- 答：一张表，针对特定模块，以后再扩展
+- 问：Visibility?
+- 答：简单期间，只有自己可见
+- 问：Include in Phase 3 or Phase 4?
+- 答：Phase 3，Phase 4我会实现编程技能的学习模块
+
+✅ 已更新 Phase3-详细需求.md，完成用户笔记功能整合:
+1. 新增 2.3 用户笔记管理 功能需求
+2. 新增 user_question_notes 表设计 (UNIQUE constraint: question_id + user_id)
+3. 更新数据关系图，包含用户笔记
+4. 更新级联删除规则
+5. 新增 3 个笔记API:
+   - GET /api/questions/{id}/note - 获取笔记
+   - POST /api/questions/{id}/note - 创建/更新笔记 (UPSERT)
+   - DELETE /api/questions/{id}/note - 删除笔记
+6. 更新 GET /api/questions/{id} 响应包含 userNote 字段
+7. 更新验收标准，包含笔记功能测试
+8. 新增可复用组件 UserNoteEditor.vue
+9. 新增技术实现 6.4 用户笔记UPSERT逻辑示例代码
+
+12/21 2:30
+✅ 完成 Phase3-详细需求.md UI设计优化:
+1. 更新 Section 5.2 MyQuestionBank.vue - 从多页面导航改为单页面三栏布局:
+   - 左侧面板 (25%): 技能-Focus Area树形结构
+   - 中间面板 (35%): 试题列表 + 难度筛选
+   - 右侧面板 (40%): 试题详情 + 我的笔记
+   - 优点: 无页面跳转，类似邮件客户端
+2. 移除独立的QuestionDetail.vue布局描述（已整合到右侧面板）
+3. 更新 Section 5.1 路由设计 - 用户端只有一个路由 `/my-questions`
+4. 更新 QuestionEditModal.vue 表单字段 - 反映简化数据模型:
+   - 移除"答案部分"的多答案设计
+   - 改为单一"答案要求"字段（answer_requirement）
+   - 明确target_position和target_level为单选
+5. 更新 QuestionManagement.vue 右侧面板布局 - 添加试题列表UI示例
+6. 更新 Section 5.3 可复用组件 - 移除AnswerForm.vue（不再需要）
+7. 更新 Section 6.3 试题创建代码 - 反映简化数据模型（无级联表）
+8. 更新 Section 6.5 性能优化 - 移除"懒加载答案和Red Flags"（已在questions表中）
+
+3:00 - 4:30 out
+
+4:30 - Resume
+
+✅ 创建 docs/Phase3-设计文档.md:
+1. 总体架构 - Phase 3基于Focus Area的试题库系统
+2. 数据模型设计:
+   - questions表（包含answer_requirement和red_flags字段）
+   - user_question_notes表（UNIQUE约束）
+   - 级联删除规则
+   - 可见性规则（公共+私有）
+3. 后端API设计 - 用户端8个API + 管理员4个API
+4. 前端路由和组件设计:
+   - MyQuestionBank.vue（单页面三栏布局）
+   - QuestionManagement.vue（两栏布局）
+   - 5个可复用组件（QuestionCard、QuestionEditModal、RedFlagList、UserNoteEditor、DifficultyBadge）
+5. 后端Service层设计:
+   - QuestionService（CRUD + 可见性过滤）
+   - UserQuestionNoteService（UPSERT逻辑）
+6. 关键技术实现:
+   - Red Flags JSON序列化
+   - Markdown编辑器（marked + highlight.js）
+   - 权限控制（用户只能删除自己的试题）
+   - 性能优化（索引 + 前端缓存）
+7. 安全性设计 - 数据隔离 + 输入验证
+8. 测试策略 - 后端单元测试 + 前端组件测试
+9. 部署配置 - Flyway迁移文件V5__create_questions_tables.sql
+10. 已知限制和未来优化方向
