@@ -20,7 +20,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">资源类型 *</label>
           <select
-            v-model="form.type"
+            v-model="form.resourceType"
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
@@ -114,7 +114,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success'])
 
 const form = ref({
-  type: '',
+  resourceType: '',
   title: '',
   url: '',
   author: '',
