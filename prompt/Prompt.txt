@@ -436,3 +436,103 @@ Prompt: "更新prompt文件，包含核心prompt和response"
 **Context**: Section 2.3 数据关联规则 - 级联删除规则
 **Issue**: 实际场景中不会删除大分类和Focus Area
 **Solution**: 简化级联删除说明，明确这些是理论上的规则，实际很少触发
+
+10:55 休息
+
+---
+
+## Phase 4 Requirements Review Comments (2025-12-22)
+
+### Comment 1 (Requirements Line 334):
+> <Austin> 目前不需要配置界面，直接数据库插入编程和数据结构的三个阶段信息
+
+**Context**: F1 学习阶段配置 - 原设计为完整的CRUD UI管理界面
+**Decision**: 移除UI配置界面，改为通过Migration V7直接插入3个学习阶段
+**Impact**:
+- 简化Phase 4开发范围
+- 减少管理端功能复杂度
+- 初始阶段：基础原理 (theory)、实现代码 (implementation)、实战题目 (practice)
+- 未来如需其他Skill的阶段配置，可在后续Phase添加UI
+
+**Implementation**:
+```sql
+INSERT INTO learning_stages (skill_id, stage_name, stage_type, description, sort_order) VALUES
+(1, '基础原理', 'theory', '数据结构的基本概念、特点、适用场景', 1),
+(1, '实现代码', 'implementation', '数据结构的代码实现、API设计、算法技巧', 2),
+(1, '实战题目', 'practice', 'LeetCode题目练习、算法应用', 3);
+```
+
+---
+
+### Comment 2 (Requirements Line 415):
+> <Austin> 不是用卡片，而是每个学习阶段显示为tab呢？点tab看内容
+
+**Context**: F5.3 学习阶段展示 - 原设计为卡片式布局
+**Decision**: 改为Tab切换式界面
+**Impact**:
+- 用户体验：更符合内容分类浏览的习惯
+- UI组件：使用Tab组件替代Card组件
+- 交互逻辑：点击Tab切换内容，而非滚动查看卡片
+
+**Modified Design**:
+- 右侧显示学习阶段Tab切换（基础原理、实现代码、实战题目）
+- 点击Tab加载该阶段的内容列表
+- 内容列表显示：类型图标、标题、作者
+- Tab默认激活第一个阶段（基础原理）
+
+---
+
+## Phase 4 Design Decisions (2025-12-22)
+
+### Decision 1 (Requirements Line 717):
+> <Austin> 好，选项B
+
+**Context**: 算法模版的组织方式 - 选项A vs 选项B
+**Question**: 算法模版应该作为Focus Area还是独立板块？
+**Decision**: 选项B - 作为独立板块，不关联Focus Area
+**Rationale**:
+- 算法模版是快速参考工具，不属于某个具体Focus Area
+- 独立组织更清晰，便于用户快速查找
+**Implementation**:
+- learning_contents表中: content_type = 'template' AND focus_area_id = NULL
+- 前端单独展示"算法模版"板块
+
+---
+
+### Decision 2 (Requirements Line 723):
+> <Austin> 好，不实现
+
+**Context**: 学习进度跟踪功能
+**Question**: Phase 4是否实现学习进度功能？
+**Decision**: Phase 4不实现学习进度跟踪
+**Rationale**:
+- 学习进度需要复杂的状态管理和业务逻辑
+- 超出Phase 4范围
+- 可在后续Phase实现
+**Future Scope**:
+- 用户学习进度追踪
+- 内容完成状态标记
+- 学习时长统计
+- 学习路径推荐
+
+---
+
+### Decision 3 (Requirements Line 729):
+> <Austin> 学习笔记啊都是user自己加的，自己看，管理员不会加笔记
+
+**Context**: 内容可见性控制 - public vs private
+**Question**: learning_contents表的visibility字段如何使用？
+**Decision**: 区分管理员内容和用户笔记，各自实现私有性
+**Clarification**:
+- **管理员内容** (learning_contents表):
+  - visibility = 'public' - 所有用户可见
+  - created_by = admin用户ID
+  - 管理员不会添加私有学习笔记
+- **用户笔记** (user_question_notes表):
+  - 用户为题目添加的个人笔记
+  - 只有笔记所有者可见（通过user_id关联）
+  - 不使用visibility字段
+**Impact**:
+- learning_contents表暂时只使用'public'值
+- 'private'值预留给未来用户自定义学习资源功能
+
