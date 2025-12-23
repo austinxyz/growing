@@ -413,11 +413,21 @@ const loadSkills = async () => {
 
   loading.value.skills = true
   try {
-    const response = await getSkillsByCareerPath(selectedCareerPathId.value)
-    skills.value = response.data || response || []
+    const data = await getSkillsByCareerPath(selectedCareerPathId.value)
+    skills.value = data || []
+    console.log('Loaded skills:', skills.value)
+    console.log('Skills count:', skills.value.length)
+    if (skills.value.length > 0) {
+      console.log('First skill:', skills.value[0])
+      console.log('First skill focusAreas:', skills.value[0].focusAreas)
+      console.log('FocusAreas length:', skills.value[0].focusAreas?.length)
+      if (skills.value[0].focusAreas?.length > 0) {
+        console.log('First focusArea:', skills.value[0].focusAreas[0])
+      }
+    }
   } catch (error) {
     console.error('Failed to load skills:', error)
-    alert('加载技能失败')
+    alert('加载技能失败: ' + (error.message || '未知错误'))
   } finally {
     loading.value.skills = false
   }
@@ -444,9 +454,12 @@ const loadQuestions = async () => {
 
   loading.value.questions = true
   try {
+    console.log('Loading questions for focusAreaId:', selectedFocusAreaId.value)
     const response = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
     // response已经是data数组（axios拦截器已处理）
     questions.value = response || []
+    console.log('Loaded questions:', questions.value)
+    console.log('Questions count:', questions.value.length)
   } catch (error) {
     console.error('Failed to load questions:', error)
     alert('加载试题失败')
