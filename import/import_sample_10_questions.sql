@@ -434,7 +434,7 @@ FROM questions WHERE title = '[96] Unique Binary Search Trees';
 
 -- 笔记 1: [5] Longest Palindromic Substring
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '找到i，j往外扩展的palindrom string，然后遍历数组。',
 '## 解题步骤
 
@@ -457,7 +457,7 @@ FROM questions WHERE title = '[5] Longest Palindromic Substring';
 
 -- 笔记 2: [15] 3Sum
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '排序，去除重复的，转化为2sum的问题。',
 '## 解题步骤
 
@@ -481,7 +481,7 @@ FROM questions WHERE title = '[15] 3Sum';
 
 -- 笔记 3: [30] Substring with Concatenation of All Words
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '记录单词长度，总长度（单词长度×word length），从0-word 长度都可以开始，用一个hashmap记录target word count，slide window map，如果发现当前的word count大于target word count，缩小window（left+word count），如果count == target count，记录left，否则增加right长度，如果当前word没在target中，那么left = right，清除slide window map，count为0。',
 '## 解题步骤
 
@@ -505,7 +505,7 @@ FROM questions WHERE title = '[30] Substring with Concatenation of All Words';
 
 -- 笔记 4: [47] Permutations II
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '1，n，通过i>0 && nums[i-1]==nums[i] && !used[i-1]来剪枝，用used来剪枝，visit',
 '## 关键剪枝条件
 
@@ -536,7 +536,7 @@ FROM questions WHERE title = '[47] Permutations II';
 
 -- 笔记 5: [55] Jump Game
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '确保 i < max(nums[i] + i)',
 '## 解题步骤
 
@@ -563,7 +563,7 @@ FROM questions WHERE title = '[55] Jump Game';
 
 -- 笔记 6: [61] Rotate List
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '先reverse整个list，然后找到分别reverse前K个，和后K个，链接起来',
 '## 解题步骤
 
@@ -591,7 +591,7 @@ FROM questions WHERE title = '[61] Rotate List';
 
 -- 笔记 7: [64] Minimum Path Sum
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 'dp[i][j] = min(dp[i-1][j], dp[i][j-1]) + grid[i][j]',
 '## 状态定义
 
@@ -623,7 +623,7 @@ FROM questions WHERE title = '[64] Minimum Path Sum';
 
 -- 笔记 8: [82] Remove Duplicates from Sorted List II
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '快慢指针，记得要记下prev，或者用两个list，一个dup，一个noDup',
 '## 解题步骤
 
@@ -651,7 +651,7 @@ FROM questions WHERE title = '[82] Remove Duplicates from Sorted List II';
 
 -- 笔记 9: [92] Reverse Linked List II
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '用递归，先前进到m，触发反转逻辑',
 '## 方法一：递归
 
@@ -679,7 +679,7 @@ FROM questions WHERE title = '[92] Reverse Linked List II';
 
 -- 笔记 10: [96] Unique Binary Search Trees
 INSERT INTO user_question_notes (question_id, user_id, core_strategy, note_content, created_at, updated_at)
-SELECT id, 2,
+SELECT id, 3,
 '构造[left, right]的树list，然后 lefts × rights',
 '## 数学推导
 
