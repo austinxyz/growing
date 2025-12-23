@@ -187,14 +187,18 @@ public class LearningContentService {
      */
     @Transactional
     public LearningContentDTO createContent(LearningContentDTO dto, Long adminUserId) {
-        LearningStage stage = learningStageRepository.findById(dto.getStageId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习阶段不存在"));
-
         User admin = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
 
         LearningContent content = new LearningContent();
-        content.setStage(stage);
+
+        // 设置Stage（算法模版时为null）
+        if (dto.getStageId() != null) {
+            LearningStage stage = learningStageRepository.findById(dto.getStageId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习阶段不存在"));
+            content.setStage(stage);
+        }
+
         content.setContentType(dto.getContentType());
         content.setTitle(dto.getTitle());
         content.setDescription(dto.getDescription());
@@ -284,13 +288,34 @@ public class LearningContentService {
         }
     }
 
+    // ==================== 算法模版管理 ====================
+
+    /**
+     * 获取所有算法模版（管理员）
+     * API: GET /api/admin/learning-contents/templates
+     */
+    public List<LearningContentDTO> getTemplates() {
+        // 查询 content_type='template' 且 focus_area_id IS NULL 的记录
+        List<LearningContent> templates = learningContentRepository
+                .findByContentTypeAndFocusAreaIsNullOrderBySortOrderAsc(LearningContent.ContentType.template);
+
+        return templates.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     // ==================== DTO转换 ====================
 
     private LearningContentDTO convertToDTO(LearningContent content) {
         LearningContentDTO dto = new LearningContentDTO();
         dto.setId(content.getId());
-        dto.setStageId(content.getStage().getId());
-        dto.setStageName(content.getStage().getStageName());
+
+        // 设置Stage信息（算法模版可能为null）
+        if (content.getStage() != null) {
+            dto.setStageId(content.getStage().getId());
+            dto.setStageName(content.getStage().getStageName());
+        }
+
         dto.setContentType(content.getContentType());
         dto.setTitle(content.getTitle());
         dto.setDescription(content.getDescription());

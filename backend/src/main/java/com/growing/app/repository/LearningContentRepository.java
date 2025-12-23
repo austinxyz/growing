@@ -68,4 +68,9 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
             Long focusAreaId, LearningContent.ContentType contentType, Pageable pageable);
     Page<LearningContent> findByStageIdAndContentTypeOrderBySortOrderAsc(
             Long stageId, LearningContent.ContentType contentType, Pageable pageable);
+
+    /**
+     * 查询所有算法模版（focus_area IS NULL）
+     */
+    List<LearningContent> findByContentTypeAndFocusAreaIsNullOrderBySortOrderAsc(LearningContent.ContentType contentType);
 }

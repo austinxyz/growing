@@ -187,6 +187,42 @@ public class AdminLearningContentController {
         return ResponseEntity.noContent().build();
     }
 
+    // ============ 算法模版管理 ============
+
+    /**
+     * 获取所有算法模版
+     * GET /api/admin/learning-contents/templates
+     */
+    @GetMapping("/learning-contents/templates")
+    public ResponseEntity<List<LearningContentDTO>> getTemplates(
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+        List<LearningContentDTO> templates = learningContentService.getTemplates();
+        return ResponseEntity.ok(templates);
+    }
+
+    /**
+     * 创建算法模版
+     * POST /api/admin/learning-contents/templates
+     */
+    @PostMapping("/learning-contents/templates")
+    public ResponseEntity<LearningContentDTO> createTemplate(
+            @RequestBody LearningContentDTO dto,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+        Long adminUserId = getUserIdFromToken(authHeader);
+
+        // 确保是模版类型且不关联Focus Area
+        dto.setContentType(LearningContent.ContentType.template);
+        dto.setFocusAreaId(null);
+        dto.setStageId(null);
+
+        LearningContentDTO created = learningContentService.createContent(dto, adminUserId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
     /**
      * 批量调整排序
      * PUT /api/admin/learning-contents/reorder

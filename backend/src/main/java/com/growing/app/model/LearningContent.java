@@ -26,8 +26,8 @@ public class LearningContent {
     private FocusArea focusArea; // NULL for algorithm templates
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stage_id", nullable = false)
-    private LearningStage stage;
+    @JoinColumn(name = "stage_id")
+    private LearningStage stage; // NULL for algorithm templates
 
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type", nullable = false)
