@@ -104,8 +104,8 @@ const props = defineProps({
     default: false
   },
   questionId: {
-    type: Number,
-    required: true
+    type: [Number, null],
+    default: null
   },
   initialNote: {
     type: Object,
