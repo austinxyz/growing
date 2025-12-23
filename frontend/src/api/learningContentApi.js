@@ -85,3 +85,34 @@ export const deleteContent = (id) => {
 export const reorderContents = (data) => {
   return api.put('/admin/learning-contents/reorder', data)
 }
+
+/**
+ * 获取所有算法模版（管理端使用）
+ * @returns {Promise} LearningContentDTO[]
+ */
+export const getTemplates = () => {
+  return api.get('/admin/learning-contents/templates')
+}
+
+/**
+ * 创建算法模版
+ * @param {Object} data - 模版数据
+ * @returns {Promise} LearningContentDTO
+ */
+export const createTemplate = (data) => {
+  return api.post('/admin/learning-contents/templates', data)
+}
+
+export default {
+  getContentsByFocusArea,
+  getContentById,
+  getAlgorithmTemplates,
+  getAlgorithmTemplateById,
+  getContentsForAdmin,
+  createContent,
+  updateContent,
+  deleteContent,
+  reorderContents,
+  getTemplates,
+  createTemplate
+}

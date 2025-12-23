@@ -156,6 +156,14 @@
             <Code class="w-5 h-5" />
             <span>算法与数据结构</span>
           </router-link>
+          <router-link
+            to="/admin/algorithm-templates"
+            class="nav-item"
+            :class="isActive('/admin/algorithm-templates')"
+          >
+            <FileCode class="w-5 h-5" />
+            <span>算法模版管理</span>
+          </router-link>
         </div>
 
         <!-- 用户管理（仅管理员可见） -->

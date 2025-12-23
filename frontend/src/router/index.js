@@ -105,6 +105,13 @@ const routes = [
     path: '/algorithm-templates',
     name: 'AlgorithmTemplates',
     component: () => import('../views/AlgorithmTemplates.vue')
+  },
+  // 管理员 - 算法模版管理（Phase 4）
+  {
+    path: '/admin/algorithm-templates',
+    name: 'AlgorithmTemplateManagement',
+    component: () => import('../views/admin/AlgorithmTemplateManagement.vue'),
+    meta: { requiresAdmin: true }
   }
 ]
 
