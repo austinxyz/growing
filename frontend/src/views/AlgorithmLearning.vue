@@ -1,473 +1,409 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- 顶部标题和职业路径tabs -->
+  <div class="h-screen flex flex-col bg-gray-50">
+    <!-- 顶部标题栏 -->
     <div class="bg-white border-b border-gray-200">
-      <div class="max-w-full px-6 py-4">
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">算法学习</h1>
+      <div class="px-6 py-4">
+        <h1 class="text-2xl font-bold text-gray-900">算法学习</h1>
+        <p class="text-sm text-gray-600 mt-1">浏览算法与数据结构学习内容</p>
+      </div>
+    </div>
 
-        <!-- 职业路径 Tabs -->
-        <div class="flex space-x-2 overflow-x-auto">
-          <button
-            v-for="cp in careerPaths"
-            :key="cp.id"
-            @click="selectCareerPath(cp.id)"
-            :class="[
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
-              selectedCareerPathId === cp.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            ]"
-          >
-            {{ cp.icon }} {{ cp.name }}
-          </button>
+    <!-- 两栏布局 -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- 左侧：大分类 + Focus Area树 -->
+      <div class="w-96 bg-white border-r border-gray-200 flex flex-col">
+        <!-- 大分类Tab -->
+        <div class="border-b border-gray-200">
+          <div class="flex overflow-x-auto">
+            <button
+              v-for="category in majorCategories"
+              :key="category.id"
+              @click="selectCategory(category.id)"
+              :class="[
+                'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+                selectedCategoryId === category.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ]"
+            >
+              {{ category.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Focus Area列表 -->
+        <div class="flex-1 overflow-y-auto p-4">
+          <div v-if="loading.focusAreas" class="text-center text-gray-500 py-8">
+            加载中...
+          </div>
+
+          <div v-else-if="filteredFocusAreas.length === 0" class="text-center text-gray-400 py-8">
+            该分类下暂无学习主题
+          </div>
+
+          <div v-else class="space-y-1">
+            <button
+              v-for="fa in filteredFocusAreas"
+              :key="fa.id"
+              @click="selectFocusArea(fa)"
+              :class="[
+                'w-full text-left px-4 py-3 rounded-md transition-colors',
+                selectedFocusArea?.id === fa.id
+                  ? 'bg-blue-50 text-blue-700 font-medium border-l-4 border-blue-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              ]"
+            >
+              {{ fa.name }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：学习阶段Tab + 内容列表 -->
+      <div class="flex-1 overflow-y-auto bg-gray-50">
+        <!-- 未选中Focus Area -->
+        <div v-if="!selectedFocusArea" class="flex items-center justify-center h-full">
+          <div class="text-center text-gray-400">
+            <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="mt-4 text-sm">请从左侧选择一个学习主题</p>
+          </div>
+        </div>
+
+        <!-- 学习内容区域 -->
+        <div v-else class="p-6">
+          <div class="max-w-4xl mx-auto">
+            <!-- Focus Area标题 -->
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">{{ selectedFocusArea.name }}</h2>
+              <p v-if="selectedFocusArea.categoryName" class="text-sm text-gray-500 mt-1">
+                {{ selectedFocusArea.categoryName }}
+              </p>
+            </div>
+
+            <!-- 学习阶段Tab -->
+            <div class="bg-white rounded-lg shadow mb-6">
+              <div class="border-b border-gray-200">
+                <div class="flex">
+                  <button
+                    v-for="stage in learningStages"
+                    :key="stage.id"
+                    @click="selectStage(stage.id)"
+                    :class="[
+                      'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
+                      selectedStageId === stage.id
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ]"
+                  >
+                    {{ stage.stageName }}
+                    <span class="ml-2 text-xs text-gray-400">({{ stage.contents ? stage.contents.length : 0 }})</span>
+                  </button>
+                  <!-- 试题库Tab -->
+                  <button
+                    @click="selectStage('questions')"
+                    :class="[
+                      'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
+                      selectedStageId === 'questions'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ]"
+                  >
+                    试题库
+                    <span class="ml-2 text-xs text-gray-400">({{ questionCount }})</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 阶段内容区域 -->
+              <div class="p-6">
+                <!-- Loading状态 -->
+                <div v-if="loading.contents" class="text-center text-gray-500 py-12">
+                  <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p class="mt-2 text-sm">加载中...</p>
+                </div>
+
+                <!-- 学习内容列表 -->
+                <div v-else-if="selectedStageId !== 'questions' && currentStageContents.length === 0" class="text-center text-gray-400 py-12">
+                  该阶段暂无学习内容
+                </div>
+
+                <div v-else-if="selectedStageId !== 'questions'" class="space-y-4">
+                  <div
+                    v-for="(content, index) in currentStageContents"
+                    :key="content.id"
+                    class="border border-gray-200 rounded-lg p-5 bg-white hover:shadow-md transition-shadow"
+                  >
+                    <!-- 内容标题 -->
+                    <div class="flex items-start justify-between mb-3">
+                      <h3 class="text-base font-semibold text-gray-900 flex-1">
+                        {{ index + 1 }}. {{ content.title }}
+                      </h3>
+                      <span v-if="content.author" class="text-xs text-gray-500 ml-2">
+                        作者: {{ content.author }}
+                      </span>
+                    </div>
+
+                    <!-- 描述 -->
+                    <p v-if="content.description" class="text-sm text-gray-600 mb-3">
+                      {{ content.description }}
+                    </p>
+
+                    <!-- 链接 -->
+                    <div v-if="content.url" class="flex items-center space-x-2">
+                      <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      <a
+                        :href="content.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        查看详情
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 试题库列表 -->
+                <div v-else>
+                  <div v-if="questions.length === 0" class="text-center text-gray-400 py-12">
+                    该Focus Area暂无试题
+                  </div>
+
+                  <div v-else class="space-y-2">
+                    <div
+                      v-for="question in questions"
+                      :key="question.id"
+                      @click="openQuestionModal(question)"
+                      class="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <!-- 紧凑显示：LeetCode链接(题目) + 难度图标 + 核心思路 -->
+                      <div class="flex items-start gap-3">
+                        <!-- 题目标题（作为LeetCode链接） -->
+                        <a
+                          v-if="question.programmingDetails?.leetcodeUrl"
+                          :href="question.programmingDetails.leetcodeUrl"
+                          @click.stop
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline w-72 flex-shrink-0"
+                        >
+                          {{ question.title }}
+                        </a>
+                        <h3 v-else class="text-sm font-semibold text-gray-900 w-72 flex-shrink-0">
+                          {{ question.title }}
+                        </h3>
+
+                        <!-- 难度图标 -->
+                        <span :class="getDifficultyIconClass(question.difficulty)" class="flex-shrink-0 mt-0.5" :title="question.difficulty">
+                          {{ getDifficultyIcon(question.difficulty) }}
+                        </span>
+
+                        <!-- 核心思路（自动换行） -->
+                        <p class="text-sm text-gray-600 flex-1 leading-relaxed">
+                          {{ question.note?.coreStrategy || '暂无核心思路' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 三栏布局 -->
-    <div class="flex h-[calc(100vh-140px)]">
-      <!-- 左侧：技能-Focus Area树 (25%) -->
-      <aside class="w-1/4 bg-white border-r border-gray-200 overflow-y-auto">
-        <div class="p-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">技能与专注领域</h3>
-
-          <div v-if="loading.skills" class="text-center text-gray-500 py-4">
-            加载中...
-          </div>
-
-          <div v-else-if="skills.length === 0" class="text-center text-gray-400 py-4">
-            暂无技能
-          </div>
-
-          <div v-else class="space-y-2">
-            <div v-for="skill in skills" :key="skill.id">
-              <!-- 技能节点 -->
-              <button
-                @click="toggleSkill(skill.id)"
-                class="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-md"
-              >
-                <span class="text-sm font-medium text-gray-900">
-                  {{ skill.icon }} {{ skill.name }}
-                </span>
-                <svg
-                  :class="['w-4 h-4 transition-transform', expandedSkills.includes(skill.id) ? 'rotate-90' : '']"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              <!-- Focus Areas (展开时显示) -->
-              <div v-if="expandedSkills.includes(skill.id)" class="ml-4 mt-1 space-y-1">
-                <button
-                  v-for="fa in skill.focusAreas"
-                  :key="fa.id"
-                  @click="selectFocusArea(fa.id, fa.name)"
-                  :class="[
-                    'w-full text-left px-3 py-2 text-sm rounded-md transition-colors',
-                    selectedFocusAreaId === fa.id
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  ]"
-                >
-                  • {{ fa.name }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- 中间：学习阶段列表 (30%) -->
-      <section class="w-[30%] bg-gray-50 border-r border-gray-200 overflow-y-auto">
-        <div class="p-4">
-          <div v-if="!selectedFocusAreaId" class="text-center text-gray-400 py-8">
-            请先选择专注领域
-          </div>
-
-          <div v-else-if="loading.contents" class="text-center text-gray-500 py-8">
-            加载学习内容中...
-          </div>
-
-          <div v-else-if="learningData.stages.length === 0" class="text-center text-gray-400 py-8">
-            该专注领域暂无学习内容
-          </div>
-
-          <div v-else>
-            <!-- Focus Area 标题 -->
-            <div class="mb-4">
-              <h2 class="text-lg font-semibold text-gray-900">{{ selectedFocusAreaName }}</h2>
-              <p class="text-xs text-gray-500 mt-1">选择学习阶段查看内容</p>
-            </div>
-
-            <!-- 学习阶段列表 -->
-            <div class="space-y-2">
-              <button
-                v-for="stage in learningData.stages"
-                :key="stage.stageId"
-                @click="selectStage(stage)"
-                :class="[
-                  'w-full text-left px-4 py-3 rounded-lg border transition-all',
-                  selectedStageId === stage.stageId
-                    ? 'bg-blue-50 border-blue-500 shadow-sm'
-                    : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow'
-                ]"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h3 class="font-medium text-gray-900">{{ stage.stageName }}</h3>
-                    <p class="text-xs text-gray-500 mt-1">{{ stage.stageDescription }}</p>
-                    <div class="flex items-center mt-2 text-xs text-gray-600">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      {{ stage.contents.length }} 个学习内容
-                    </div>
-                  </div>
-                  <svg
-                    v-if="selectedStageId === stage.stageId"
-                    class="w-5 h-5 text-blue-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 右侧：学习内容详情 (45%) -->
-      <main class="flex-1 bg-white overflow-y-auto">
-        <div class="p-6">
-          <div v-if="!selectedStageId" class="text-center text-gray-400 py-12">
-            请先选择学习阶段
-          </div>
-
-          <div v-else-if="selectedStage">
-            <!-- 阶段标题 -->
-            <div class="mb-6 pb-4 border-b border-gray-200">
-              <h2 class="text-2xl font-bold text-gray-900">{{ selectedStage.stageName }}</h2>
-              <p class="text-sm text-gray-600 mt-2">{{ selectedStage.stageDescription }}</p>
-            </div>
-
-            <!-- 学习内容列表 -->
-            <div v-if="selectedStage.contents.length === 0" class="text-center text-gray-400 py-8">
-              该阶段暂无学习内容
-            </div>
-
-            <div v-else class="space-y-6">
-              <div
-                v-for="content in selectedStage.contents"
-                :key="content.id"
-                class="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
-              >
-                <!-- 内容标题和类型 -->
-                <div class="flex items-start justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ content.title }}</h3>
-                  <span :class="getContentTypeBadgeClass(content.contentType)">
-                    {{ getContentTypeLabel(content.contentType) }}
-                  </span>
-                </div>
-
-                <!-- 内容主体 -->
-                <div class="prose prose-sm max-w-none">
-                  <!-- 文本内容 (Markdown) -->
-                  <div
-                    v-if="content.contentType === 'text' && content.contentText"
-                    v-html="renderMarkdown(content.contentText)"
-                    class="text-gray-700"
-                  ></div>
-
-                  <!-- 代码内容 (Markdown with code block) -->
-                  <div
-                    v-else-if="(content.contentType === 'code' || content.contentType === 'algorithm_template') && content.contentText"
-                    v-html="renderMarkdown(content.contentText)"
-                    class="text-gray-700"
-                  ></div>
-
-                  <!-- 链接内容 -->
-                  <div v-else-if="content.contentType === 'link' && content.linkUrl" class="flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    <a
-                      :href="content.linkUrl"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      {{ content.linkUrl }}
-                    </a>
-                  </div>
-                </div>
-
-                <!-- 时间信息 -->
-                <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  创建时间: {{ formatDate(content.createdAt) }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <!-- 试题详情Modal -->
+    <QuestionDetailModal
+      v-if="showQuestionModal"
+      :question="selectedQuestion"
+      :focus-area-id="selectedFocusArea?.id"
+      :focus-area-name="selectedFocusArea?.name"
+      @close="closeQuestionModal"
+      @note-saved="handleNoteSaved"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
-import { getAllCareerPaths } from '@/api/careerPaths'
-import { getSkillsByCareerPath } from '@/api/skills'
-import { getContentsByFocusArea } from '@/api/learningContentApi'
+import { ref, computed, onMounted } from 'vue'
+import majorCategoryApi from '@/api/majorCategoryApi'
+import learningContentApi from '@/api/learningContentApi'
+import { questionApi } from '@/api/questionApi'
+import QuestionDetailModal from '@/components/questions/QuestionDetailModal.vue'
 
-// Configure marked for code highlighting
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-  highlight: function(code, lang) {
-    // Basic syntax highlighting would go here
-    // For now, just return the code wrapped in a pre/code block
-    return `<pre><code class="language-${lang}">${code}</code></pre>`
-  }
-})
+// 算法与数据结构的skillId（根据实际数据调整）
+const ALGORITHM_SKILL_ID = 1
 
 // State
-const careerPaths = ref([])
-const selectedCareerPathId = ref(null)
-const skills = ref([])
-const expandedSkills = ref([])
-const selectedFocusAreaId = ref(null)
-const selectedFocusAreaName = ref('')
-const learningData = ref({
-  focusAreaId: null,
-  focusAreaName: '',
-  stages: []
-})
-const selectedStageId = ref(null)
-const selectedStage = ref(null)
-
 const loading = ref({
-  skills: false,
+  focusAreas: false,
   contents: false
 })
 
+const majorCategories = ref([])
+const selectedCategoryId = ref(null)
+const allFocusAreas = ref([])
+const selectedFocusArea = ref(null)
+const learningData = ref(null)
+const selectedStageId = ref(null)
+const questions = ref([])
+const showQuestionModal = ref(false)
+const selectedQuestion = ref(null)
+
+// Computed
+const filteredFocusAreas = computed(() => {
+  if (!selectedCategoryId.value) return allFocusAreas.value
+  return allFocusAreas.value.filter(fa =>
+    fa.categoryIds && fa.categoryIds.includes(selectedCategoryId.value)
+  )
+})
+
+const learningStages = computed(() => {
+  return learningData.value?.stages || []
+})
+
+const currentStageContents = computed(() => {
+  if (!selectedStageId.value || selectedStageId.value === 'questions') return []
+  const stage = learningStages.value.find(s => s.id === selectedStageId.value)
+  return stage?.contents || []
+})
+
+const questionCount = computed(() => questions.value.length)
+
 // Methods
-const selectCareerPath = async (id) => {
-  selectedCareerPathId.value = id
-  selectedFocusAreaId.value = null
-  selectedFocusAreaName.value = ''
-  selectedStageId.value = null
-  selectedStage.value = null
-  expandedSkills.value = []
-  learningData.value = { focusAreaId: null, focusAreaName: '', stages: [] }
-  await loadSkills()
-}
-
-const loadSkills = async () => {
-  if (!selectedCareerPathId.value) return
-
-  loading.value.skills = true
+const loadMajorCategories = async () => {
   try {
-    const response = await getSkillsByCareerPath(selectedCareerPathId.value)
-    skills.value = response.data || response || []
+    const data = await majorCategoryApi.getAllMajorCategories()
+    majorCategories.value = data || []
+
+    // 默认选中第一个分类
+    if (majorCategories.value.length > 0) {
+      selectedCategoryId.value = majorCategories.value[0].id
+    }
   } catch (error) {
-    console.error('Failed to load skills:', error)
-    alert('加载技能失败')
+    console.error('加载大分类失败:', error)
+    alert('加载大分类失败: ' + (error.message || '未知错误'))
+  }
+}
+
+const loadFocusAreas = async () => {
+  loading.value.focusAreas = true
+  try {
+    const data = await majorCategoryApi.getFocusAreasWithCategories(ALGORITHM_SKILL_ID)
+    allFocusAreas.value = data || []
+  } catch (error) {
+    console.error('加载Focus Areas失败:', error)
+    alert('加载学习主题失败: ' + (error.message || '未知错误'))
   } finally {
-    loading.value.skills = false
+    loading.value.focusAreas = false
   }
 }
 
-const toggleSkill = (skillId) => {
-  const index = expandedSkills.value.indexOf(skillId)
-  if (index > -1) {
-    expandedSkills.value.splice(index, 1)
-  } else {
-    expandedSkills.value.push(skillId)
-  }
-}
-
-const selectFocusArea = async (id, name) => {
-  selectedFocusAreaId.value = id
-  selectedFocusAreaName.value = name
+const selectCategory = (categoryId) => {
+  selectedCategoryId.value = categoryId
+  // 清空选中的Focus Area
+  selectedFocusArea.value = null
+  learningData.value = null
   selectedStageId.value = null
-  selectedStage.value = null
+  questions.value = []
+}
+
+const selectFocusArea = async (focusArea) => {
+  selectedFocusArea.value = focusArea
   await loadLearningContents()
+  await loadQuestions()
+
+  // 默认选中第一个学习阶段
+  if (learningStages.value.length > 0) {
+    selectedStageId.value = learningStages.value[0].id
+  }
 }
 
 const loadLearningContents = async () => {
-  if (!selectedFocusAreaId.value) return
+  if (!selectedFocusArea.value) return
 
   loading.value.contents = true
   try {
-    const response = await getContentsByFocusArea(selectedFocusAreaId.value)
-    learningData.value = response || { focusAreaId: null, focusAreaName: '', stages: [] }
+    const data = await learningContentApi.getContentsByFocusArea(selectedFocusArea.value.id)
+    learningData.value = data || { stages: [] }
   } catch (error) {
-    console.error('Failed to load learning contents:', error)
-    alert('加载学习内容失败')
-    learningData.value = { focusAreaId: null, focusAreaName: '', stages: [] }
+    console.error('加载学习内容失败:', error)
+    alert('加载学习内容失败: ' + (error.message || '未知错误'))
+    learningData.value = { stages: [] }
   } finally {
     loading.value.contents = false
   }
 }
 
-const selectStage = (stage) => {
-  selectedStageId.value = stage.stageId
-  selectedStage.value = stage
+const loadQuestions = async () => {
+  if (!selectedFocusArea.value) return
+
+  try {
+    const data = await questionApi.getQuestionsByFocusArea(selectedFocusArea.value.id)
+    questions.value = data || []
+  } catch (error) {
+    console.error('加载试题失败:', error)
+    questions.value = []
+  }
 }
 
-const getContentTypeBadgeClass = (type) => {
+const selectStage = (stageId) => {
+  selectedStageId.value = stageId
+}
+
+const getDifficultyClass = (difficulty) => {
   const classes = {
-    text: 'px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700',
-    code: 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-700',
-    link: 'px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700',
-    algorithm_template: 'px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700'
+    EASY: 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-700',
+    MEDIUM: 'px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700',
+    HARD: 'px-2 py-1 text-xs rounded-full bg-red-100 text-red-700'
   }
-  return classes[type] || 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700'
+  return classes[difficulty] || 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700'
 }
 
-const getContentTypeLabel = (type) => {
-  const labels = {
-    text: '文本',
-    code: '代码',
-    link: '链接',
-    algorithm_template: '算法模版'
+const getDifficultyIcon = (difficulty) => {
+  const icons = {
+    EASY: '●',
+    MEDIUM: '●●',
+    HARD: '●●●'
   }
-  return labels[type] || type
+  return icons[difficulty] || '●'
 }
 
-const renderMarkdown = (text) => {
-  if (!text) return ''
-  const html = marked(text)
-  return DOMPurify.sanitize(html)
+const getDifficultyIconClass = (difficulty) => {
+  const classes = {
+    EASY: 'text-green-500 text-base',
+    MEDIUM: 'text-yellow-500 text-base',
+    HARD: 'text-red-500 text-base'
+  }
+  return classes[difficulty] || 'text-gray-500 text-base'
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+const openQuestionModal = (question) => {
+  selectedQuestion.value = question
+  showQuestionModal.value = true
+}
+
+const closeQuestionModal = () => {
+  showQuestionModal.value = false
+  selectedQuestion.value = null
+}
+
+const handleNoteSaved = () => {
+  // 笔记保存成功后的处理（如果需要）
+  console.log('笔记已保存')
 }
 
 // Initialize
 onMounted(async () => {
-  try {
-    const response = await getAllCareerPaths()
-    careerPaths.value = response.data || response || []
-    if (careerPaths.value.length > 0) {
-      await selectCareerPath(careerPaths.value[0].id)
-    }
-  } catch (error) {
-    console.error('Failed to load career paths:', error)
-  }
+  await loadMajorCategories()
+  await loadFocusAreas()
 })
 </script>
-
-<style scoped>
-/* Markdown prose styling */
-:deep(.prose) {
-  color: #374151;
-}
-
-:deep(.prose h1),
-:deep(.prose h2),
-:deep(.prose h3),
-:deep(.prose h4) {
-  color: #111827;
-  font-weight: 600;
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-}
-
-:deep(.prose p) {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  line-height: 1.6;
-}
-
-:deep(.prose code) {
-  background-color: #f3f4f6;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-
-:deep(.prose pre) {
-  background-color: #1f2937;
-  color: #f9fafb;
-  padding: 1em;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-
-:deep(.prose pre code) {
-  background-color: transparent;
-  padding: 0;
-  color: #f9fafb;
-  font-size: 0.875em;
-}
-
-:deep(.prose ul),
-:deep(.prose ol) {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding-left: 1.5em;
-}
-
-:deep(.prose li) {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
-
-:deep(.prose a) {
-  color: #2563eb;
-  text-decoration: none;
-}
-
-:deep(.prose a:hover) {
-  text-decoration: underline;
-}
-
-:deep(.prose blockquote) {
-  border-left: 4px solid #e5e7eb;
-  padding-left: 1em;
-  color: #6b7280;
-  font-style: italic;
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-
-:deep(.prose table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-
-:deep(.prose th),
-:deep(.prose td) {
-  border: 1px solid #e5e7eb;
-  padding: 0.5em;
-  text-align: left;
-}
-
-:deep(.prose th) {
-  background-color: #f9fafb;
-  font-weight: 600;
-}
-</style>
