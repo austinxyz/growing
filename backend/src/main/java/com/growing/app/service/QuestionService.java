@@ -45,12 +45,21 @@ public class QuestionService {
     private ObjectMapper objectMapper;
 
     /**
-     * 获取Focus Area下的试题（用户可见）
+     * 获取Focus Area下的试题（用户可见，含编程题详情和用户笔记）
      */
     public List<QuestionDTO> getQuestionsByFocusAreaId(Long focusAreaId, Long userId) {
         return questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId)
                 .stream()
-                .map(this::convertToDTO)
+                .map(question -> {
+                    // 转换为DTO并加载编程题详情
+                    QuestionDTO dto = convertToDTOWithDetails(question);
+
+                    // 加载用户笔记
+                    Optional<UserQuestionNote> note = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
+                    note.ifPresent(n -> dto.setNote(convertNoteToDTO(n)));
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -194,6 +203,7 @@ public class QuestionService {
         dto.setFocusAreaId(question.getFocusArea().getId());
         dto.setFocusAreaName(question.getFocusArea().getName());
         dto.setTitle(question.getTitle());
+        dto.setQuestionDescription(question.getQuestionDescription());
         dto.setQuestionText(question.getQuestionText());
         dto.setDifficulty(question.getDifficulty());
         dto.setAnswerRequirement(question.getAnswerRequirement());

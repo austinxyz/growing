@@ -28,6 +28,9 @@ public class Question {
     @Column(name = "title", length = 500, nullable = false)
     private String title;  // 题目标题
 
+    @Column(name = "question_description", columnDefinition = "TEXT")
+    private String questionDescription;  // 问题描述（Markdown格式）
+
     @Column(name = "question_text", columnDefinition = "TEXT")
     private String questionText;  // 详细描述
 
