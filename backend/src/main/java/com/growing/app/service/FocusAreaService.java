@@ -1,9 +1,13 @@
 package com.growing.app.service;
 
 import com.growing.app.dto.FocusAreaDTO;
+import com.growing.app.dto.FocusAreaWithCategoryDTO;
 import com.growing.app.model.FocusArea;
+import com.growing.app.model.FocusAreaCategory;
 import com.growing.app.model.Skill;
+import com.growing.app.repository.FocusAreaCategoryRepository;
 import com.growing.app.repository.FocusAreaRepository;
+import com.growing.app.repository.MajorCategoryRepository;
 import com.growing.app.repository.SkillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,10 +27,25 @@ public class FocusAreaService {
     @Autowired
     private SkillRepository skillRepository;
 
+    @Autowired
+    private FocusAreaCategoryRepository focusAreaCategoryRepository;
+
+    @Autowired
+    private MajorCategoryRepository majorCategoryRepository;
+
     // 获取技能下的所有Focus Areas
     public List<FocusAreaDTO> getFocusAreasBySkillId(Long skillId) {
         return focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skillId).stream()
                 .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 获取技能下的所有Focus Areas（包含分类信息）
+    public List<FocusAreaWithCategoryDTO> getFocusAreasWithCategoriesBySkillId(Long skillId) {
+        List<FocusArea> focusAreas = focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skillId);
+
+        return focusAreas.stream()
+                .map(this::convertToWithCategoryDTO)
                 .collect(Collectors.toList());
     }
 
@@ -79,6 +98,34 @@ public class FocusAreaService {
         dto.setDisplayOrder(focusArea.getDisplayOrder());
         dto.setCreatedAt(focusArea.getCreatedAt());
         dto.setUpdatedAt(focusArea.getUpdatedAt());
+        return dto;
+    }
+
+    // DTO转换（包含分类信息）
+    private FocusAreaWithCategoryDTO convertToWithCategoryDTO(FocusArea focusArea) {
+        FocusAreaWithCategoryDTO dto = new FocusAreaWithCategoryDTO();
+        dto.setId(focusArea.getId());
+        dto.setName(focusArea.getName());
+        dto.setDescription(focusArea.getDescription());
+        dto.setSkillId(focusArea.getSkill().getId());
+
+        // 获取关联的大分类
+        List<FocusAreaCategory> categories = focusAreaCategoryRepository.findByFocusAreaId(focusArea.getId());
+
+        List<Long> categoryIds = categories.stream()
+                .map(FocusAreaCategory::getCategoryId)
+                .collect(Collectors.toList());
+
+        List<String> categoryNames = categories.stream()
+                .map(fac -> majorCategoryRepository.findById(fac.getCategoryId())
+                        .map(mc -> mc.getName())
+                        .orElse(""))
+                .filter(name -> !name.isEmpty())
+                .collect(Collectors.toList());
+
+        dto.setCategoryIds(categoryIds);
+        dto.setCategoryNames(categoryNames);
+
         return dto;
     }
 }

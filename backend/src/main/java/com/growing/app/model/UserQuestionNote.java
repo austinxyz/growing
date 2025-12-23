@@ -31,6 +31,9 @@ public class UserQuestionNote {
     @Column(name = "note_content", nullable = false, columnDefinition = "TEXT")
     private String noteContent;
 
+    @Column(name = "core_strategy", columnDefinition = "TEXT")
+    private String coreStrategy;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

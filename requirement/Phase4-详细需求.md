@@ -150,14 +150,17 @@ Focus Area: 分布式存储
 #### 故事2: 为Focus Area添加分阶段学习内容
 
 **角色**: 管理员
-**目标**: 为"数组"Focus Area添加三个阶段的学习内容
+**目标**: 为"数组"Focus Area添加三个阶段的学习内容和题目
 
 **场景**:
 1. 在左侧选中"数组"Focus Area
-2. 右侧显示三个阶段的Tab：
-   - 基础原理
-   - 实现代码
-   - 实战题目
+2. 右侧显示**4个Tab**：
+   - **基础原理** (学习内容管理)
+   - **实现代码** (学习内容管理)
+   - **实战题目** (学习内容管理 - 题解链接等)
+   - **题目管理** (题目CRUD - questions + programming_question_details)
+
+**Tab 1-3: 学习内容管理** (基础原理、实现代码、实战题目)
 3. 点击"基础原理"Tab
 4. 点击"添加内容"按钮
 5. 选择内容类型：
@@ -170,14 +173,35 @@ Focus Area: 分布式存储
    - 作者: labuladong
    - 描述: 介绍数组的基本特性、时间复杂度等
 7. 保存后，内容出现在"基础原理"阶段列表中
-8. 切换到"实现代码"Tab，重复上述步骤添加代码示例
-9. 切换到"实战题目"Tab，从题库中选择题目关联
+8. 切换到"实战题目"Tab，可以添加题解链接、参考资料等（learning_contents）
+
+**Tab 4: 题目管理** (独立的题目CRUD)
+9. 切换到"题目管理"Tab
+10. 显示当前Focus Area下的所有题目列表（questions表）
+11. 点击"新建题目"按钮，填写：
+    - **通用字段** (questions表):
+      - 题目标题: "[26] 删除有序数组中的重复项"
+      - 问题描述: (Markdown)
+      - 难度: EASY/MEDIUM/HARD
+      - 答案要求: (可选)
+      - Red Flags: (可选)
+    - **编程题扩展字段** (programming_question_details表):
+      - LeetCode链接: https://leetcode.com/problems/remove-duplicates-from-sorted-array/
+      - labuladong题解: (可选)
+      - Hello Interview题解: (可选)
+      - 是否重要题目: (勾选框)
+      - 算法标签: ["双指针", "数组"]
+      - 复杂度: "时间O(n), 空间O(1)"
+      - 类似题目: (多选)
+12. 保存后，题目出现在题目列表中
+13. 题目自动关联到当前Focus Area和"实战题目"阶段
 
 **验收标准**:
-- 支持按学习阶段组织内容
-- 每个阶段的内容类型可以不同
-- 支持拖拽排序内容
-- 题目关联时自动设置stage_id
+- 支持按学习阶段组织学习内容（Tab 1-3）
+- 题目管理独立在"题目管理"Tab中
+- 题目创建时同时填写通用字段和编程题扩展字段
+- 题目自动关联到当前Focus Area
+- 支持拖拽排序内容和题目
 
 #### 故事3: 创建算法模版内容
 
@@ -319,20 +343,22 @@ Focus Area: 分布式存储
   - 实战题目 (practice)
 - 未来如需要其他Skill（如系统设计）的阶段配置，可在后续Phase添加UI管理界面
 
-#### F2: 分阶段内容管理
+#### F2: 学习内容管理 (Learning Contents)
 
-**功能描述**: 管理员可以为Focus Area的每个学习阶段添加内容
+**功能描述**: 管理员可以为Focus Area的每个学习阶段添加学习资源（文章、视频、代码、题解链接等）
+
+**适用阶段**: 基础原理、实现代码、实战题目（3个学习阶段Tab）
 
 **子功能**:
-- F2.1 浏览分阶段内容
-  - 按Tab切换学习阶段
-  - 每个阶段显示内容列表
+- F2.1 浏览学习内容
+  - 按Tab切换学习阶段（基础原理/实现代码/实战题目）
+  - 每个阶段显示learning_contents列表
 
 - F2.2 添加学习内容
-  - 选择内容类型（article/video/code_example/template/case_study）
+  - 选择内容类型（article/video/code_example）
   - 填写通用字段（标题、URL、作者、描述）
   - 填写扩展数据（JSON，根据类型不同）
-  - 设置可见性（public/private）
+  - 设置可见性（默认public）
 
 - F2.3 编辑学习内容
   - 修改所有字段
@@ -340,24 +366,56 @@ Focus Area: 分布式存储
 
 - F2.4 删除学习内容
   - 二次确认
-  - 级联删除用户笔记（如果是题目）
+  - 不影响题目数据（learning_contents ≠ questions）
 
-#### F3: 题目关联到学习阶段
+**说明**: 学习内容是辅助资源，不是题目本身。"实战题目"阶段的学习内容通常是题解链接、学习笔记等。
 
-**功能描述**: 管理员可以将题目关联到"实战题目"阶段
+---
+
+#### F3: 题目管理 (Questions + Programming Question Details)
+
+**功能描述**: 管理员可以在Focus Area下直接创建/编辑题目（包含通用字段和编程题扩展字段）
+
+**独立Tab**: 题目管理（第4个Tab，与学习阶段Tab并列）
 
 **子功能**:
-- F3.1 关联现有题目
-  - 从题库中搜索题目
-  - 选择后自动设置stage_id为"实战题目"阶段ID
+- F3.1 查看题目列表
+  - 显示当前Focus Area下的所有题目
+  - 支持按难度、标签筛选
+  - 显示题目编号、标题、难度、标签
 
-- F3.2 创建新题目并关联
-  - 直接在界面创建题目
-  - 自动关联到当前Focus Area和"实战题目"阶段
+- F3.2 创建新题目
+  - **通用字段** (questions表):
+    - 题目标题
+    - 问题描述 (Markdown)
+    - 难度 (EASY/MEDIUM/HARD)
+    - 答案要求 (可选)
+    - Red Flags (可选)
+  - **编程题扩展字段** (programming_question_details表):
+    - LeetCode链接 (必填)
+    - labuladong题解链接 (可选)
+    - Hello Interview题解链接 (可选)
+    - 是否重要题目 (勾选框)
+    - 算法标签 (多选: 双指针、滑动窗口等)
+    - 复杂度 (文本输入: "时间O(n), 空间O(1)")
+    - 类似题目 (多选其他题目)
+  - 自动关联到当前Focus Area
+  - 自动设置stage_id为"实战题目"阶段
 
-- F3.3 批量关联题目
-  - 支持批量选择题目
-  - 一键关联到当前阶段
+- F3.3 编辑题目
+  - 修改所有字段（通用 + 扩展）
+  - 不可更改所属Focus Area（如需更改，删除后重建）
+
+- F3.4 删除题目
+  - 二次确认
+  - 级联删除 programming_question_details
+  - 级联删除用户笔记 (user_question_notes)
+
+- F3.5 题目排序
+  - 拖拽调整题目顺序
+  - 通过display_order字段控制
+
+**说明**: 题目管理独立于学习内容管理，题目创建后会自动出现在用户端的"实战题目"阶段列表中。
 
 #### F4: 算法模版管理
 
@@ -423,171 +481,155 @@ Focus Area: 分布式存储
 
 #### F7: 个人笔记管理
 
-**功能描述**: 用户可以为题目添加笔记
+**功能描述**: 用户可以为题目添加笔记（复用Phase 3的user_question_notes表，扩展编程题专属字段）
 
 **子功能**:
 - F7.1 添加笔记
   - 在题目详情Modal中编辑笔记
   - 支持Markdown格式
   - 一个用户对一道题只能有一条笔记（UPSERT）
+  - **编程题额外字段**:
+    - 核心思路 (core_strategy) - 用户提供的解题核心思路（Markdown格式）
+    - 个人笔记 (note_content) - 补充说明、心得体会等
 
 - F7.2 查看笔记
   - 在题目详情Modal中显示笔记
   - Markdown正确渲染
+  - 编程题显示核心思路和笔记两个部分
 
 - F7.3 编辑/删除笔记
-  - 支持编辑已有笔记
+  - 支持编辑已有笔记（包括核心思路和个人笔记）
   - 支持删除笔记
 
 ---
 
 ## 5. 数据需求
 
-### 5.1 数据库设计
+### 5.1 数据实体概览
 
-#### 表1: learning_stages (学习阶段定义表)
+#### 实体1: learning_stages (学习阶段定义)
 
-```sql
-CREATE TABLE learning_stages (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  skill_id BIGINT NOT NULL COMMENT '所属技能',
-  stage_name VARCHAR(50) NOT NULL COMMENT '阶段名称，如"基础原理"',
-  stage_type VARCHAR(50) NOT NULL COMMENT '阶段类型标识，如"theory"',
-  description TEXT COMMENT '阶段说明',
-  sort_order INT DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-  UNIQUE KEY uk_skill_stage (skill_id, stage_name),
-  INDEX idx_skill_order (skill_id, sort_order)
-) COMMENT='学习阶段定义表（Skill级别配置）';
-```
+**用途**: 为每个Skill定义自定义的学习阶段序列
+
+**关键字段**:
+- 所属技能 (skill_id)
+- 阶段名称 (stage_name) - 如"基础原理"
+- 阶段类型标识 (stage_type) - 如"theory"，用于前端识别渲染方式
+- 阶段说明 (description)
+- 排序 (sort_order)
 
 **初始数据（编程与数据结构）**:
-```sql
-INSERT INTO learning_stages (skill_id, stage_name, stage_type, description, sort_order) VALUES
-(1, '基础原理', 'theory', '数据结构的基本概念、特点、适用场景', 1),
-(1, '实现代码', 'implementation', '数据结构的代码实现、API设计、算法技巧', 2),
-(1, '实战题目', 'practice', 'LeetCode题目练习、算法应用', 3);
+- 阶段1: 基础原理 (theory) - 数据结构的基本概念、特点、适用场景
+- 阶段2: 实现代码 (implementation) - 数据结构的代码实现、API设计、算法技巧
+- 阶段3: 实战题目 (practice) - LeetCode题目练习、算法应用
+
+#### 实体2: learning_contents (学习内容统一表)
+
+**用途**: 统一管理所有类型的学习内容（文章、视频、代码、模版等）
+
+**关键字段**:
+- 所属Focus Area (focus_area_id) - 算法模版时为NULL
+- 所属学习阶段 (stage_id)
+- 内容类型 (content_type) - article/video/code_example/template/case_study
+- 标题 (title)
+- 描述 (description)
+- 外部资源链接 (url)
+- 作者 (author)
+- 扩展数据 (content_data) - JSON格式，根据类型不同存储不同信息
+- 排序 (sort_order)
+- 可见性 (visibility) - public/private
+
+**内容类型说明**:
+- **article**: 文章/博客（如labuladong文章）
+- **video**: 视频教程
+- **code_example**: 代码示例
+- **template**: 算法模版（不关联Focus Area）
+- **case_study**: 案例分析（系统设计用）
+
+**扩展数据用途**:
+- 代码示例：存储language、code、complexity、notes
+- 算法模版：存储template、notes、complexity、relatedResources、practiceQuestions
+- 案例分析：存储systemName、requirements、architectureDiagram、keyComponents、tradeoffs
+
+#### 实体3: questions (题目表 - 保持通用)
+
+**说明**:
+- questions表保持通用字段，适用于所有Skill（编程、系统设计、运维等）
+- 通过`focus_area_id`关联到Focus Area
+- 编程题的专属字段存储在独立表 `programming_question_details`
+
+#### 实体4: programming_question_details (编程题专属字段)
+
+**用途**: 存储编程题的专属信息（LeetCode链接、算法标签等）
+
+**关键字段**:
+- 关联的题目ID (question_id) - 一对一关系
+- LeetCode题目链接 (leetcode_url)
+- labuladong题解链接 (labuladong_url)
+- Hello Interview题解链接 (hellointerview_url)
+- 是否重要题目 (is_important) - ⭐标记
+- 算法技巧标签 (tags) - 如["双指针", "滑动窗口"]
+- 算法复杂度 (complexity) - 如"时间O(n), 空间O(1)"
+- 类似题目 (similar_questions) - 如[{"id": 15, "title": "3Sum"}]
+
+**设计理由**:
+- ✅ questions表保持简洁，适用于所有类型题目
+- ✅ 编程题的额外信息独立管理，避免NULL字段浪费
+- ✅ 未来可为其他Skill创建类似的专属字段表
+- ✅ 核心思路(core_strategy)存储在user_question_notes，支持用户个性化
+
+#### 实体5: user_question_notes (用户笔记 - 扩展编程题字段)
+
+**说明**:
+- 复用 Phase 3 的 user_question_notes 表
+- 为编程题扩展 `core_strategy` 字段（其他类型题目该字段为空）
+
+**关键字段**:
+- 关联的题目ID (question_id)
+- 创建者ID (user_id)
+- 笔记内容 (note_content) - Phase 3已有，通用笔记
+- **核心思路 (core_strategy)** - Phase 4新增，编程题专用
+
+**字段使用说明**:
+- **note_content** - 补充说明、心得体会、注意事项等（所有题目类型）
+- **core_strategy** - 用户的解题核心思路（仅编程题使用）
+  - 不同用户对同一道题可以有不同的解法
+  - 支持Markdown格式
+
+**设计理由**:
+- ✅ 核心思路是用户个人的解题方法，不是题目的公共属性
+- ✅ 支持多样性 - 不同用户有不同解法
+- ✅ 隐私性 - 笔记只有创建者可见
+- ✅ 复用Phase 3表结构，向后兼容
+
+#### 实体6: major_categories (大分类 - 调整为4个)
+
+**修改**:
+- 删除"核心刷题框架"和"基础篇"
+- 保留4个大分类：数据结构、搜索、动规、其他
+
+### 5.2 数据关联规则
+
+**层级关系**:
+```
+Skill (编程与数据结构)
+  → Learning Stages (3个阶段)
+    → Learning Contents (文章、视频、代码)
+      ← Focus Areas (25个主题)
+        ← Major Categories (4个大分类)
+
+Questions (题目)
+  → Focus Areas
+  → Learning Stages (实战题目阶段)
+  → Programming Question Details (1:1)
+  → User Question Notes (1:N)
 ```
 
-#### 表2: learning_contents (学习内容统一表)
-
-```sql
-CREATE TABLE learning_contents (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  focus_area_id BIGINT COMMENT 'Focus Area ID（算法模版为NULL）',
-  stage_id BIGINT NOT NULL COMMENT '所属学习阶段',
-  content_type ENUM('article', 'video', 'code_example', 'template', 'case_study') NOT NULL,
-
-  -- 通用字段
-  title VARCHAR(500) NOT NULL,
-  description TEXT,
-  url VARCHAR(1000) COMMENT '外部资源链接',
-  author VARCHAR(100),
-
-  -- 扩展内容（JSON存储，根据content_type不同）
-  content_data JSON COMMENT '扩展数据，如代码、模版、案例详情等',
-
-  -- 元信息
-  sort_order INT DEFAULT 0,
-  visibility ENUM('public', 'private') DEFAULT 'public',
-  created_by BIGINT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (focus_area_id) REFERENCES focus_areas(id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES learning_stages(id) ON DELETE CASCADE,
-  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-  INDEX idx_focus_stage (focus_area_id, stage_id, sort_order),
-  INDEX idx_stage_type (stage_id, content_type)
-) COMMENT='学习内容统一表';
-```
-
-**content_data JSON示例**:
-
-```json
-// content_type = 'code_example'
-{
-  "language": "java",
-  "code": "public class ArrayList<E> {...}",
-  "complexity": {"time": "O(1)", "space": "O(n)"},
-  "notes": "动态扩容策略：每次扩容为原来的1.5倍"
-}
-
-// content_type = 'template'
-{
-  "language": "java",
-  "template": "public int binarySearch(...) {...}",
-  "notes": "注意边界条件...",
-  "complexity": {"time": "O(log n)", "space": "O(1)"},
-  "relatedResources": [
-    {"title": "二分搜索核心模板", "url": "https://..."}
-  ],
-  "practiceQuestions": [704, 35, 33]
-}
-
-// content_type = 'case_study'（系统设计用）
-{
-  "systemName": "Instagram Feed",
-  "requirements": ["支持10亿用户", "Feed刷新延迟<500ms"],
-  "architectureDiagramUrl": "https://...",
-  "keyComponents": [
-    {"name": "Feed Service", "description": "..."}
-  ],
-  "tradeoffs": [
-    {"decision": "Push vs Pull", "chosen": "Hybrid", "reasoning": "..."}
-  ]
-}
-```
-
-#### 表3: questions (题目表 - 增加stage_id)
-
-```sql
-ALTER TABLE questions
-ADD COLUMN stage_id BIGINT COMMENT '所属学习阶段（实战题目阶段）',
-ADD FOREIGN KEY (stage_id) REFERENCES learning_stages(id) ON DELETE SET NULL;
-```
-
-#### 表4: major_categories (大分类表 - 调整为4个)
-
-```sql
--- Migration中删除"核心刷题框架"和"基础篇"
-DELETE FROM major_categories WHERE name IN ('核心刷题框架', '基础篇');
-
--- 保留4个大分类
--- 1. 数据结构
--- 2. 搜索
--- 3. 动规
--- 4. 其他
-```
-
-### 5.2 数据关联
-
-```
-skills (编程与数据结构)
-  ↓ 1:N
-learning_stages (基础原理、实现代码、实战题目)
-  ↓ 1:N
-learning_contents (文章、视频、代码、模版)
-  ↑ N:1
-focus_areas (数组、链表、二叉树...)
-  ↑ N:1
-major_categories (数据结构、搜索、动规、其他)
-
-questions (题目表)
-  ↓ N:1
-learning_stages (关联到"实战题目"阶段)
-```
-
-### 5.3 数据迁移
-
-**Migration V7 需要完成**:
-1. 创建 `learning_stages` 表
-2. 创建 `learning_contents` 表
-3. `questions` 表增加 `stage_id` 字段
-4. 删除 `major_categories` 表中的"核心刷题框架"和"基础篇"
-5. 初始化"编程与数据结构"的3个学习阶段
-6. （可选）将现有的 `resources` 数据迁移到 `learning_contents`
+**关键规则**:
+- 每个Skill可以有多个Learning Stages（编程3个，系统设计可能4个）
+- Learning Contents可以关联Focus Area（文章、代码）或不关联（算法模版）
+- Questions同时关联Focus Area和Learning Stage
+- Programming Question Details与Question是一对一关系
 
 ---
 
@@ -621,25 +663,136 @@ learning_stages (关联到"实战题目"阶段)
 
 ## 7. UI/UX需求
 
-### 7.1 视觉设计
+### 7.1 管理员页面布局
 
-- 延续现有风格（Tailwind CSS）
-- 大分类Tab使用蓝色高亮
-- 学习阶段卡片使用渐变色区分
-- 不同类型内容使用不同图标（📄文章、🎥视频、💻代码、🎯题目）
-- 难度标签颜色区分（EASY绿色、MEDIUM黄色、HARD红色）
+**路径**: `/admin/programming-ds`（编程与数据结构内容管理）
 
-### 7.2 交互设计
+**整体布局**: 两栏布局
+```
+┌────────────────────────────────────────────────────────────┐
+│  编程与数据结构 - 内容管理                                  │
+├───────────────┬────────────────────────────────────────────┤
+│ 左侧面板(25%) │ 右侧面板(75%)                               │
+│               │                                            │
+│ [数据结构Tab] │ ┌──────────────────────────────────────┐ │
+│ [搜索Tab]     │ │ 数组 - 内容管理                       │ │
+│ [动规Tab]     │ ├──────────────────────────────────────┤ │
+│ [其他Tab]     │ │ Tab1 │ Tab2 │ Tab3 │ [题目管理] │    │ │
+│               │ │ 基础原理 实现代码 实战题目  (第4个Tab) │ │
+│ Focus Area列表│ ├──────────────────────────────────────┤ │
+│ ☑ 数组        │ │                                      │ │
+│ □ 链表        │ │ [+ 添加内容] 或 [+ 新建题目]         │ │
+│ □ 栈和队列    │ │                                      │ │
+│ □ 哈希表      │ │ 内容/题目列表                        │ │
+│ ...           │ │                                      │ │
+└───────────────┴──┴──────────────────────────────────────┴─┘
+```
 
-- 学习阶段卡片默认展开，可折叠
-- 拖拽排序提供视觉反馈
-- 外部链接点击在新窗口打开
+**右侧面板Tab说明**:
+1. **Tab 1-3: 学习阶段Tab** (基础原理、实现代码、实战题目)
+   - 管理 learning_contents 表的数据
+   - 添加文章、视频、代码示例、题解链接等
+   - 点击"添加内容"弹出 LearningContentModal
+
+2. **Tab 4: 题目管理Tab**
+   - 管理 questions + programming_question_details 表的数据
+   - 显示当前Focus Area的所有题目
+   - 点击"新建题目"弹出 QuestionEditModal (包含通用字段 + 编程题扩展字段)
+
+**Tab切换逻辑**:
+- Tab 1-3切换时，加载对应阶段的learning_contents数据
+- 切换到Tab 4时，加载当前Focus Area的questions数据
+- Tab状态独立，不互相干扰
+
+---
+
+### 7.2 Modal需求
+
+#### 7.2.1 学习内容编辑Modal
+
+**触发时机**: Tab 1-3点击"添加内容"或编辑现有内容
+
+**必需字段**:
+- 内容类型选择: article (文章) / video (视频) / code_example (代码示例)
+- 标题
+- URL (外部资源链接)
+- 作者
+
+**可选字段**:
+- 描述
+- 扩展数据 (根据内容类型不同)
+
+**需求**:
+- 支持创建和编辑两种模式
+- 表单验证：标题、URL、作者为必填
+- 保存后立即在列表中显示
+
+#### 7.2.2 题目编辑Modal
+
+**触发时机**: Tab 4点击"新建题目"或编辑现有题目
+
+**通用字段** (所有题目类型):
+- 题目标题 (必填)
+- 问题描述 (Markdown格式，必填)
+- 难度: EASY / MEDIUM / HARD (必填)
+- 答案要求 (可选)
+- Red Flags (可选)
+
+**编程题扩展字段**:
+- LeetCode链接 (必填)
+- labuladong题解链接 (可选)
+- Hello Interview题解链接 (可选)
+- 是否重要题目 (勾选框，默认false)
+- 算法标签 (多选：双指针、滑动窗口等)
+- 复杂度 (可选，如"时间O(n), 空间O(1)")
+- 类似题目 (可选，多选其他题目)
+
+**需求**:
+- 表单分为"通用字段"和"编程题扩展字段"两个区域
+- Markdown编辑器支持实时预览
+- 算法标签支持多选和自定义输入
+- 类似题目支持搜索和选择
+- 保存时同时创建questions记录和programming_question_details记录
+
+---
+
+### 7.3 视觉需求
+
+**颜色规范**:
+- 大分类Tab: 蓝色高亮（激活状态）
+- 学习阶段Tab (1-3): 浅灰背景
+- 题目管理Tab (4): 橙色高亮（区分学习内容Tab）
+- 难度标签: EASY绿色 / MEDIUM黄色 / HARD红色
+- 重要题目: ⭐标记
+
+**图标规范**:
+- 📄 文章
+- 🎥 视频
+- 💻 代码示例
+- 🎯 题目
+
+### 7.4 交互需求
+
+**Tab切换**:
+- Tab切换时显示加载状态
+- 切换不同Tab时加载对应数据
+- Tab状态独立，互不干扰
+
+**列表操作**:
+- 支持拖拽排序（保存后更新sort_order）
+- 外部链接在新窗口打开
+- 题目列表支持按难度、标签筛选
+
+**表单交互**:
 - Markdown编辑器提供实时预览
+- 算法标签支持多选和自定义输入
+- 类似题目支持搜索选择
 
-### 7.3 响应式设计
+### 7.5 响应式需求
 
 - 支持桌面端（最小宽度1280px）
-- 三栏布局在小屏幕上自适应为上下布局
+- 两栏布局在小屏幕(<1024px)自适应为上下布局
+- Modal在移动端全屏显示
 
 ---
 
@@ -731,8 +884,11 @@ INSERT INTO learning_contents (focus_area_id, stage_id, content_type, title, con
 
 ---
 
-**文档版本**: v2.0
+**文档版本**: v2.2 (管理员UI改进 - 题目管理独立Tab)
 **创建时间**: 2025-12-21
 **最后更新**: 2025-12-22
-**状态**: v2.0架构重构 - 待Review ✅
-**下一步**: 撰写设计文档 (Phase4-设计文档.md)
+**状态**: ✅ v2.2 设计定稿
+**重要更新**:
+- v2.1: 将core_strategy从programming_question_details移至user_question_notes (详见: docs/Phase4-core_strategy-字段修正.md)
+- v2.2: 管理员页面增加第4个Tab "题目管理",区分学习内容和题目管理 (详见: docs/Phase4-管理员UI改进-题目管理独立Tab.md)
+**下一步**: Review完成后开始实施 Migration V7

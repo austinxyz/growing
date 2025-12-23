@@ -24,7 +24,15 @@
    const data = await questionApi.getQuestions()
    items.value = data || []
    ```
-9. **NEVER forget to populate nested objects in Service DTOs** - Check `SkillService.getSkillsByCareerPathId()` includes `focusAreas`
+9. **NEVER add `/api` prefix in API calls** - Axios baseURL is already `/api` (see `/frontend/src/api/index.js:4`)
+   ```javascript
+   // ❌ WRONG - results in /api/api/major-categories
+   apiClient.get('/api/major-categories')
+
+   // ✅ CORRECT
+   apiClient.get('/major-categories')
+   ```
+10. **NEVER forget to populate nested objects in Service DTOs** - Check `SkillService.getSkillsByCareerPathId()` includes `focusAreas`
 
 ### ⚠️ Common Mistakes from Previous Prompts
 
@@ -60,6 +68,13 @@
 - **Root Cause**: Modal didn't receive current context as prop
 - **Fix**: Pass `currentFocusAreaId` and `currentFocusAreaName` props, conditionally render read-only field
 - **Lesson**: Before implementing forms, think about user's current context and pre-fill what you can
+
+**Mistake #7 (Phase 4)**: Adding `/api` prefix when axios baseURL already includes it
+- **Problem**: API calls like `apiClient.get('/api/major-categories')` resulted in `/api/api/major-categories` (404)
+- **What Happened**: Created `majorCategoryApi.js` with `/api/` prefix, but axios baseURL is already `/api`
+- **Root Cause**: Forgot that `/frontend/src/api/index.js:4` sets `baseURL: '/api'`
+- **Fix**: API calls should NEVER include `/api` prefix - just use `apiClient.get('/major-categories')`
+- **Lesson**: ALWAYS check axios config before writing API calls. Frontend axios baseURL = `/api`, so endpoint paths start with `/` (e.g., `/users`, `/skills`)
 
 ## Quick Start
 

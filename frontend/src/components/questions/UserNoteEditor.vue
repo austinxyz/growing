@@ -24,6 +24,30 @@
 
         <!-- 表单 -->
         <div class="p-6 space-y-4">
+          <!-- 核心思路（仅编程题） -->
+          <div v-if="questionType === 'programming'" class="border-b border-gray-200 pb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              核心思路 <span class="text-xs text-gray-500">(编程题专用)</span>
+            </label>
+            <textarea
+              v-model="coreStrategy"
+              placeholder="记录解题的核心思路和算法要点...&#10;&#10;例如：&#10;1. 使用双指针从两端向中间移动&#10;2. 时间复杂度 O(n)，空间复杂度 O(1)&#10;3. 注意边界条件...&#10;&#10;支持 Markdown 格式"
+              rows="8"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            ></textarea>
+            <p class="mt-1 text-xs text-gray-500">记录算法思路、时间/空间复杂度、关键要点</p>
+
+            <!-- 核心思路预览 -->
+            <div v-if="coreStrategy" class="mt-3 border-t border-gray-200 pt-3">
+              <h4 class="text-xs font-medium text-gray-700 mb-2">核心思路预览</h4>
+              <div
+                class="prose prose-sm max-w-none bg-green-50 rounded-md p-3 text-sm"
+                v-html="renderedStrategy"
+              ></div>
+            </div>
+          </div>
+
+          <!-- 笔记内容 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               笔记内容
@@ -31,7 +55,7 @@
             <textarea
               v-model="noteContent"
               placeholder="记录你的答案思路、补充说明、心得...&#10;&#10;支持 Markdown 格式"
-              rows="15"
+              :rows="questionType === 'programming' ? 10 : 15"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             ></textarea>
             <p class="mt-1 text-xs text-gray-500">支持 Markdown 格式</p>
@@ -39,7 +63,7 @@
 
           <!-- Markdown 预览 -->
           <div v-if="noteContent" class="border-t border-gray-200 pt-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-2">预览</h3>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">笔记预览</h3>
             <div
               class="prose prose-sm max-w-none bg-gray-50 rounded-md p-4"
               v-html="renderedMarkdown"
@@ -58,7 +82,7 @@
             <button
               @click="handleSave"
               type="button"
-              :disabled="!noteContent.trim()"
+              :disabled="!noteContent.trim() && !coreStrategy.trim()"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               保存
@@ -86,16 +110,22 @@ const props = defineProps({
   initialNote: {
     type: Object,
     default: null
+  },
+  questionType: {
+    type: String,
+    default: 'behavioral'
   }
 })
 
 const emit = defineEmits(['save', 'cancel'])
 
 const noteContent = ref('')
+const coreStrategy = ref('')
 
 // 监听 initialNote 变化
 watch(() => props.initialNote, (newNote) => {
   noteContent.value = newNote?.noteContent || ''
+  coreStrategy.value = newNote?.coreStrategy || ''
 }, { immediate: true })
 
 // Markdown 渲染
@@ -112,14 +142,34 @@ const renderedMarkdown = computed(() => {
   }
 })
 
+// Markdown 渲染 - 核心思路
+const renderedStrategy = computed(() => {
+  if (!coreStrategy.value) return ''
+  try {
+    return marked(coreStrategy.value, {
+      breaks: true,
+      gfm: true
+    })
+  } catch (error) {
+    console.error('Markdown parsing error:', error)
+    return coreStrategy.value
+  }
+})
+
 const handleSave = () => {
-  if (!noteContent.value.trim()) {
+  // 至少填写一个字段
+  if (!noteContent.value.trim() && !coreStrategy.value.trim()) {
+    alert('笔记内容或核心思路至少填写一项')
     return
   }
-  emit('save', {
+
+  const data = {
     questionId: props.questionId,
-    noteContent: noteContent.value
-  })
+    noteContent: noteContent.value,
+    coreStrategy: coreStrategy.value
+  }
+
+  emit('save', data)
 }
 </script>
 

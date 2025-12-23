@@ -11,6 +11,7 @@ public class UserQuestionNoteDTO {
     private Long questionId;
     private Long userId;
     private String noteContent;
+    private String coreStrategy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

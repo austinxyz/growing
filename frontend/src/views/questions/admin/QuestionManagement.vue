@@ -258,17 +258,29 @@ const editQuestion = (question) => {
 
 const saveQuestion = async (formData) => {
   try {
+    const data = {
+      ...formData,
+      focusAreaId: formData.focusAreaId || selectedFocusAreaId.value
+    }
+
+    // Phase 4更新：根据questionType选择API
+    const isProgramming = formData.questionType === 'programming'
+
     if (editingQuestion.value) {
       // 更新
-      await adminQuestionApi.updateQuestion(editingQuestion.value.id, formData)
+      if (isProgramming && formData.programmingDetails) {
+        await adminQuestionApi.updateQuestionWithDetails(editingQuestion.value.id, data)
+      } else {
+        await adminQuestionApi.updateQuestion(editingQuestion.value.id, data)
+      }
       alert('试题更新成功')
     } else {
       // 新建
-      const data = {
-        ...formData,
-        focusAreaId: formData.focusAreaId || selectedFocusAreaId.value
+      if (isProgramming && formData.programmingDetails) {
+        await adminQuestionApi.createQuestionWithDetails(data)
+      } else {
+        await adminQuestionApi.createQuestion(data)
       }
-      await adminQuestionApi.createQuestion(data)
       alert('试题创建成功')
     }
     closeEditModal()

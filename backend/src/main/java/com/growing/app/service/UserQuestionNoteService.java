@@ -38,9 +38,21 @@ public class UserQuestionNoteService {
 
     /**
      * 创建或更新笔记（UPSERT逻辑）
+     * @deprecated 使用 saveOrUpdateNote(Long questionId, UserQuestionNoteDTO dto, Long userId) 替代
      */
+    @Deprecated
     @Transactional
     public UserQuestionNoteDTO saveOrUpdateNote(Long questionId, String noteContent, Long userId) {
+        UserQuestionNoteDTO dto = new UserQuestionNoteDTO();
+        dto.setNoteContent(noteContent);
+        return saveOrUpdateNote(questionId, dto, userId);
+    }
+
+    /**
+     * 创建或更新笔记（UPSERT逻辑，支持noteContent和coreStrategy）
+     */
+    @Transactional
+    public UserQuestionNoteDTO saveOrUpdateNote(Long questionId, UserQuestionNoteDTO dto, Long userId) {
         Question question = questionRepository.findById(questionId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
 
@@ -55,13 +67,15 @@ public class UserQuestionNoteService {
         if (existingNote.isPresent()) {
             // 更新现有笔记
             note = existingNote.get();
-            note.setNoteContent(noteContent);
+            note.setNoteContent(dto.getNoteContent());
+            note.setCoreStrategy(dto.getCoreStrategy());
         } else {
             // 创建新笔记
             note = new UserQuestionNote();
             note.setQuestion(question);
             note.setUser(user);
-            note.setNoteContent(noteContent);
+            note.setNoteContent(dto.getNoteContent());
+            note.setCoreStrategy(dto.getCoreStrategy());
         }
 
         return convertToDTO(noteRepository.save(note));
@@ -92,6 +106,7 @@ public class UserQuestionNoteService {
         dto.setQuestionId(note.getQuestion().getId());
         dto.setUserId(note.getUser().getId());
         dto.setNoteContent(note.getNoteContent());
+        dto.setCoreStrategy(note.getCoreStrategy());
         dto.setCreatedAt(note.getCreatedAt());
         dto.setUpdatedAt(note.getUpdatedAt());
         return dto;

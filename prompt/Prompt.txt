@@ -536,3 +536,62 @@ INSERT INTO learning_stages (skill_id, stage_name, stage_type, description, sort
 - learning_contents表暂时只使用'public'值
 - 'private'值预留给未来用户自定义学习资源功能
 
+8:05 开始实现
+
+> 好，现在根据phase 4 的设计进行实现，做一个计划，一步步实现
+
+Phase 4 实施计划
+
+  📋 总体策略
+
+  Phase 4 将分为4个大阶段:
+
+  1. 数据库层 (2个任务)
+  2. 后端开发 (10个任务)
+  3. 前端开发 (8个任务)
+  4. 测试和文档 (3个任务)
+
+  🎯 核心特性
+
+  Phase 4实现的核心功能:
+  - ✅ Skill级别自定义学习阶段 - 不同技能可以定义不同的学习路径
+  - ✅ 统一内容管理框架 - 文章、视频、代码、题目统一管理
+  - ✅ 三段式学习路径 - 基础原理 → 实现代码 → 实战题目
+  - ✅ 题目管理独立Tab - 管理端第4个Tab专门管理题目
+  - ✅ 编程题扩展字段 - programming_question_details表存储LeetCode链接、标签等
+  - ✅ 用户笔记扩展 - core_strategy字段支持用户记录解题思路
+
+  📊 实施步骤详解
+
+  阶段1: 数据库层 (1-2)
+
+  1. 创建Migration V7脚本 - 创建3个新表 + 修改2个现有表
+  2. 执行迁移并验证 - 确保表结构正确,初始化3个学习阶段
+
+  阶段2: 后端开发 (3-12)
+
+  3. 创建Entity实体类 - LearningStage, LearningContent, ProgrammingQuestionDetails
+  4. 创建Repository接口 - 数据访问层
+  5. 扩展现有实体 - Question增加stage_id, UserQuestionNote增加core_strategy
+  6. 创建DTO类 - 数据传输对象
+  7-10. 实现Service服务层 - 4个Service(LearningStage, LearningContent, Question扩展, UserQuestionNote扩展)
+  11-12. 创建Controller - 管理员API + 用户端API
+
+  阶段3: 前端开发 (13-20)
+
+  13. 创建API调用方法 - learningContentApi, learningStageApi
+  14. 管理端主页面 - AlgorithmContentManagement.vue (4个Tab)
+  15. 学习内容Modal - 添加/编辑文章、视频、代码示例
+  16. 题目编辑Modal扩展 - 支持programming_question_details字段
+  17. 算法模板管理页面 - 管理员端
+  18. 用户端学习页面 - 三栏布局 + 学习阶段Tab
+  19. 算法模板查阅页面 - 用户端
+  20. 题目详情Modal扩展 - 支持core_strategy字段显示和编辑
+
+  阶段4: 测试和文档 (21-23)
+
+  21. 后端测试 - 单元测试 + 集成测试
+  22. 前端测试 - 功能测试 + UI验收
+  23. 更新文档 - CLAUDE.md + ARCHITECTURE.md
+
+  

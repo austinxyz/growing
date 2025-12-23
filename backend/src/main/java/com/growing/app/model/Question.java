@@ -25,8 +25,11 @@ public class Question {
     @JoinColumn(name = "focus_area_id", nullable = false)
     private FocusArea focusArea;
 
-    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
-    private String questionText;
+    @Column(name = "title", length = 500, nullable = false)
+    private String title;  // 题目标题
+
+    @Column(name = "question_text", columnDefinition = "TEXT")
+    private String questionText;  // 详细描述
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

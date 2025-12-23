@@ -1,0 +1,138 @@
+3. [11] 11. Container With Most Water
+
+  - LeetCode链接: https://leetcode.com/problems/container-with-most-water/
+  - 当前状态: 待补充
+
+  双指针，那边比较低，往中间，不断比较max。
+
+  4. [27] 27. Remove Element
+
+  - LeetCode链接: https://leetcode.com/problems/remove-element/
+  - 当前状态: 待补充
+
+  快慢指针
+
+  5. [57] 57. Insert Interval
+
+  - LeetCode链接: https://leetcode.com/problems/insert-interval/description/
+  - 当前状态: 待补充
+
+  如果当前的end < insertInteval.start, 或者当前的start> insertInterval.end, 不变，取min（start，insertInteval.start）, max(end, insertinterval.end) 做为新的insertinterval，index++
+
+  6. [59] 59. Spiral Matrix II
+
+  - LeetCode链接: https://leetcode.com/problems/spiral-matrix-ii/
+  - 当前状态: 待补充
+设定left，right，top，bottom，不断缩小边界
+
+  7. [90] 90. Subsets II
+
+  - LeetCode链接: https://leetcode.com/problems/subsets-ii/
+  - 当前状态: 待补充
+start visit （start+1），通过nums[i]== nums[i-1]来剪枝
+
+  8. [114] 114. Flatten Binary Tree to Linked List
+
+  - LeetCode链接: https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
+  - 当前状态: 待补充
+
+  9. [141] 141. Linked List Cycle
+
+  - LeetCode链接: https://leetcode.com/problems/linked-list-cycle/
+  - 当前状态: 待补充
+
+快慢指针，快的追上慢的
+
+  10. [155] 155. 最小栈
+
+  - LeetCode链接: https://leetcode.com/problems/min-stack/
+  - 当前状态: 待补充
+
+用两个栈，一个栈记录最小值，push的时候看栈顶和当前元素，如果小，压入当前元素，否则压入栈顶元素。pop的时候都pop，getmin拿最小栈的peek
+
+  11. [283] 283. Move Zeroes
+
+  - LeetCode链接: https://leetcode.com/problems/move-zeroes/
+  - 当前状态: 待补充
+
+  快慢指针
+
+  12. [322] 322. Coin Change
+
+  - LeetCode链接: https://leetcode.com/problems/coin-change/
+  - 当前状态: 待补充
+
+  两层循环，外面是数额，内部是coins。从1开始算。(amount-coin[i]) +1, 做最小值比较
+509，从0，1开始循环
+
+  13. [410] 410. Split Array Largest Sum
+
+  - LeetCode链接: https://leetcode.com/problems/split-array-largest-sum/
+  - 当前状态: 待补充
+
+  函数，某个最大值下，可以分为几个数组，left=max，right=sum，二分查询找left 边界，
+和1011是一样的。
+
+  14. [445] 445. 两数相加 II
+
+  - LeetCode链接: https://leetcode.com/problems/add-two-numbers-ii/
+  - 当前状态: 待补充
+先reverse list，就是2
+
+  15. [496] 496. Next Greater Element I
+
+  - LeetCode链接: https://leetcode.com/problems/next-greater-element-i/
+  - 当前状态: 待补充
+
+  记录下 nums2的下一个greater map，然后将nums1的值在map中查询
+503 将数组加倍，计算greater map
+
+  16. [502] 502. IPO
+
+  - LeetCode链接: https://leetcode.com/problems/ipo/description/
+  - 当前状态: 待补充
+
+  将profits，capital转为project数组，按照capital排序，按照profits放入一个Priority queue，最大堆，记录当前资金，将项目capital 《当前资金的放入queue，取出醉倒profilts，count++，直到取出k的project。返回资金值
+
+  17. [515] 515. 在每个树行中找最大值
+
+  - LeetCode链接: https://leetcode.com/problems/find-largest-value-in-each-tree-row/
+  - 当前状态: 待补充
+
+  层序遍历
+
+  18. [695] 695. Max Area of Island
+
+  - LeetCode链接: https://leetcode.com/problems/max-area-of-island/
+  - 当前状态: 待补充
+  记录面积，填平，比较
+
+  19. [700] 700. Search in a Binary Search Tree
+
+  - LeetCode链接: https://leetcode.com/problems/search-in-a-binary-search-tree/
+  - 当前状态: 待补充
+  中序
+
+  20. [718] 718. Maximum Length of Repeated Subarray
+
+  - LeetCode链接: https://leetcode.com/problems/maximum-length-of-repeated-subarray/description/
+  - 当前状态: 待补充
+  dp[i][j] - if (i==0 or j==0) → nums1[i]==nums0[j], 1:0 else → if nums1[i]==nums2[j], dp[i-1][j-1]+1; find max dp[i][j]
+
+  21. [1457] 1457. 二叉树中的伪回文路径
+
+  - LeetCode链接: https://leetcode.com/problems/pseudo-palindromic-paths-in-a-binary-tree/
+  - 当前状态: 待补充
+
+  用int[10]记录每个数字出现个数，回文序列不能出现2个以上的奇数的数字。遍历，当left=right=null，判断是不是回文序列，再left，right遍历，最后将当前数字 count—
+
+  22. [1609] 1609. 奇偶树 🟠
+
+  - LeetCode链接: https://leetcode.com/problems/even-odd-tree
+  - 当前状态: 待补充
+
+  23. [2305] 2305. 公平分发饼干
+
+  - LeetCode链接: https://leetcode.com/problems/fair-distribution-of-cookies/
+  - 当前状态: 待补充
+  考虑对工作进行遍历，回溯哦，for 1-n （worker），剪枝，如果工作时间超过了之前的一个解，如果当前的工作量已经有之前的工人一样的了（job只要完成时不care具体工人的），给这个工作给当前工人，往下，回溯，不给这个工作。

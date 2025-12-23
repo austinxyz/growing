@@ -12,7 +12,8 @@ public class QuestionDTO {
     private Long id;
     private Long focusAreaId;
     private String focusAreaName;
-    private String questionText;
+    private String title;  // 题目标题（如 "[5] Longest Palindromic Substring"）
+    private String questionText;  // 详细描述
     private Question.Difficulty difficulty;
     private String answerRequirement;
     private String targetPosition;
@@ -26,4 +27,7 @@ public class QuestionDTO {
 
     // 用户笔记（仅在获取详情时包含）
     private UserQuestionNoteDTO userNote;
+
+    // 编程题详情（仅在编程题时包含）
+    private ProgrammingQuestionDetailsDTO programmingDetails;
 }

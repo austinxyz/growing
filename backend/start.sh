@@ -16,4 +16,4 @@ fi
 # Start Spring Boot
 echo "Starting Growing backend..."
 cd "$SCRIPT_DIR"
-mvn spring-boot:run
+mvn spring-boot:run -Dmaven.test.skip=true

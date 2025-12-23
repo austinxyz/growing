@@ -1,0 +1,319 @@
+package com.growing.app.service;
+
+import com.growing.app.dto.*;
+import com.growing.app.model.*;
+import com.growing.app.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+public class LearningContentService {
+
+    @Autowired
+    private LearningContentRepository learningContentRepository;
+
+    @Autowired
+    private FocusAreaRepository focusAreaRepository;
+
+    @Autowired
+    private LearningStageRepository learningStageRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private MajorCategoryRepository majorCategoryRepository;
+
+    @Autowired
+    private FocusAreaCategoryRepository focusAreaCategoryRepository;
+
+    // ==================== 用户端API ====================
+
+    /**
+     * 获取Focus Area的完整学习内容（按阶段分组）
+     * API: GET /api/learning-contents?focusAreaId=X
+     */
+    public FocusAreaLearningDTO getContentsByFocusArea(Long focusAreaId) {
+        FocusArea focusArea = focusAreaRepository.findById(focusAreaId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Focus Area不存在"));
+
+        FocusAreaLearningDTO result = new FocusAreaLearningDTO();
+
+        // 设置Focus Area信息
+        FocusAreaLearningDTO.FocusAreaInfo focusAreaInfo = new FocusAreaLearningDTO.FocusAreaInfo();
+        focusAreaInfo.setId(focusArea.getId());
+        focusAreaInfo.setName(focusArea.getName());
+
+        // 获取大分类名称
+        List<FocusAreaCategory> categories = focusAreaCategoryRepository.findByFocusAreaId(focusAreaId);
+        if (!categories.isEmpty() && categories.get(0).getCategory() != null) {
+            MajorCategory majorCategory = categories.get(0).getCategory();
+            focusAreaInfo.setCategoryName(majorCategory.getName());
+        }
+
+        result.setFocusArea(focusAreaInfo);
+
+        // 获取所有学习阶段
+        Long skillId = focusArea.getSkill().getId();
+        List<LearningStage> stages = learningStageRepository.findBySkillIdOrderBySortOrderAsc(skillId);
+
+        // 获取所有学习内容
+        List<LearningContent> allContents = learningContentRepository.findByFocusAreaIdOrderByStageIdAscSortOrderAsc(focusAreaId);
+
+        // 按阶段分组
+        Map<Long, List<LearningContent>> contentsByStage = allContents.stream()
+                .collect(Collectors.groupingBy(c -> c.getStage().getId(), LinkedHashMap::new, Collectors.toList()));
+
+        // 构建StageContentDTO列表
+        List<StageContentDTO> stageContents = stages.stream()
+                .map(stage -> {
+                    StageContentDTO dto = new StageContentDTO();
+                    dto.setId(stage.getId());
+                    dto.setStageName(stage.getStageName());
+                    dto.setStageType(stage.getStageType());
+                    dto.setDescription(stage.getDescription());
+                    dto.setSortOrder(stage.getSortOrder());
+
+                    // 填充该阶段的学习内容
+                    List<LearningContent> stageContentList = contentsByStage.getOrDefault(stage.getId(), new ArrayList<>());
+                    dto.setContents(stageContentList.stream()
+                            .map(this::convertToDTO)
+                            .collect(Collectors.toList()));
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        result.setStages(stageContents);
+        return result;
+    }
+
+    /**
+     * 获取单个学习内容详情
+     * API: GET /api/learning-contents/{id}
+     */
+    public LearningContentDTO getContentById(Long contentId) {
+        LearningContent content = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在"));
+
+        return convertToDTO(content);
+    }
+
+    /**
+     * 获取算法模版列表（focus_area_id = NULL）
+     * API: GET /api/algorithm-templates
+     */
+    public List<LearningContentDTO> getAlgorithmTemplates(String search) {
+        List<LearningContent> templates;
+
+        if (search != null && !search.trim().isEmpty()) {
+            templates = learningContentRepository.findByContentTypeAndFocusAreaIdIsNullAndTitleContainingOrderBySortOrder(
+                    LearningContent.ContentType.template, search.trim());
+        } else {
+            templates = learningContentRepository.findByContentTypeAndFocusAreaIdIsNullOrderBySortOrder(
+                    LearningContent.ContentType.template);
+        }
+
+        return templates.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取单个算法模版详情
+     * API: GET /api/algorithm-templates/{id}
+     */
+    public LearningContentDTO getAlgorithmTemplateById(Long templateId) {
+        LearningContent template = learningContentRepository.findById(templateId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "算法模版不存在"));
+
+        if (template.getContentType() != LearningContent.ContentType.template || template.getFocusArea() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "该内容不是算法模版");
+        }
+
+        return convertToDTO(template);
+    }
+
+    // ==================== 管理员API ====================
+
+    /**
+     * 分页查询学习内容（支持多条件过滤）
+     * API: GET /api/admin/learning-contents
+     */
+    public Page<LearningContentDTO> getContentsForAdmin(Long focusAreaId, Long stageId,
+                                                         LearningContent.ContentType contentType,
+                                                         int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LearningContent> contentPage;
+
+        // 根据条件组合查询
+        if (focusAreaId != null && stageId != null && contentType != null) {
+            contentPage = learningContentRepository.findByFocusAreaIdAndStageIdAndContentTypeOrderBySortOrderAsc(
+                    focusAreaId, stageId, contentType, pageable);
+        } else if (focusAreaId != null && contentType != null) {
+            contentPage = learningContentRepository.findByFocusAreaIdAndContentTypeOrderBySortOrderAsc(
+                    focusAreaId, contentType, pageable);
+        } else if (stageId != null && contentType != null) {
+            contentPage = learningContentRepository.findByStageIdAndContentTypeOrderBySortOrderAsc(
+                    stageId, contentType, pageable);
+        } else if (focusAreaId != null) {
+            contentPage = learningContentRepository.findByFocusAreaIdOrderBySortOrderAsc(focusAreaId, pageable);
+        } else if (stageId != null) {
+            contentPage = learningContentRepository.findByStageIdOrderBySortOrderAsc(stageId, pageable);
+        } else if (contentType != null) {
+            contentPage = learningContentRepository.findByContentTypeOrderBySortOrderAsc(contentType, pageable);
+        } else {
+            contentPage = learningContentRepository.findAll(pageable);
+        }
+
+        return contentPage.map(this::convertToDTO);
+    }
+
+    /**
+     * 创建学习内容（管理员）
+     * API: POST /api/admin/learning-contents
+     */
+    @Transactional
+    public LearningContentDTO createContent(LearningContentDTO dto, Long adminUserId) {
+        LearningStage stage = learningStageRepository.findById(dto.getStageId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习阶段不存在"));
+
+        User admin = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
+
+        LearningContent content = new LearningContent();
+        content.setStage(stage);
+        content.setContentType(dto.getContentType());
+        content.setTitle(dto.getTitle());
+        content.setDescription(dto.getDescription());
+        content.setUrl(dto.getUrl());
+        content.setAuthor(dto.getAuthor());
+        content.setContentData(dto.getContentData());
+        content.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
+        content.setVisibility(dto.getVisibility() != null ? dto.getVisibility() : LearningContent.Visibility.public_);
+        content.setCreatedBy(admin);
+
+        // 设置Focus Area（算法模版时为null）
+        if (dto.getFocusAreaId() != null) {
+            FocusArea focusArea = focusAreaRepository.findById(dto.getFocusAreaId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Focus Area不存在"));
+            content.setFocusArea(focusArea);
+        }
+
+        content = learningContentRepository.save(content);
+        return convertToDTO(content);
+    }
+
+    /**
+     * 更新学习内容（管理员）
+     * API: PUT /api/admin/learning-contents/{id}
+     */
+    @Transactional
+    public LearningContentDTO updateContent(Long contentId, LearningContentDTO dto) {
+        LearningContent content = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在"));
+
+        // 更新Stage（如果指定）
+        if (dto.getStageId() != null && !dto.getStageId().equals(content.getStage().getId())) {
+            LearningStage stage = learningStageRepository.findById(dto.getStageId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习阶段不存在"));
+            content.setStage(stage);
+        }
+
+        // 更新Focus Area（如果指定）
+        if (dto.getFocusAreaId() != null) {
+            if (content.getFocusArea() == null || !dto.getFocusAreaId().equals(content.getFocusArea().getId())) {
+                FocusArea focusArea = focusAreaRepository.findById(dto.getFocusAreaId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Focus Area不存在"));
+                content.setFocusArea(focusArea);
+            }
+        } else {
+            content.setFocusArea(null); // 设置为算法模版
+        }
+
+        content.setContentType(dto.getContentType());
+        content.setTitle(dto.getTitle());
+        content.setDescription(dto.getDescription());
+        content.setUrl(dto.getUrl());
+        content.setAuthor(dto.getAuthor());
+        content.setContentData(dto.getContentData());
+        content.setSortOrder(dto.getSortOrder());
+        content.setVisibility(dto.getVisibility());
+
+        content = learningContentRepository.save(content);
+        return convertToDTO(content);
+    }
+
+    /**
+     * 删除学习内容（管理员）
+     * API: DELETE /api/admin/learning-contents/{id}
+     */
+    @Transactional
+    public void deleteContent(Long contentId) {
+        if (!learningContentRepository.existsById(contentId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在");
+        }
+
+        learningContentRepository.deleteById(contentId);
+    }
+
+    /**
+     * 批量调整排序（管理员）
+     * API: PUT /api/admin/learning-contents/reorder
+     */
+    @Transactional
+    public void reorderContents(List<Long> contentIds) {
+        for (int i = 0; i < contentIds.size(); i++) {
+            Long contentId = contentIds.get(i);
+            LearningContent content = learningContentRepository.findById(contentId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在: " + contentId));
+            content.setSortOrder(i);
+            learningContentRepository.save(content);
+        }
+    }
+
+    // ==================== DTO转换 ====================
+
+    private LearningContentDTO convertToDTO(LearningContent content) {
+        LearningContentDTO dto = new LearningContentDTO();
+        dto.setId(content.getId());
+        dto.setStageId(content.getStage().getId());
+        dto.setStageName(content.getStage().getStageName());
+        dto.setContentType(content.getContentType());
+        dto.setTitle(content.getTitle());
+        dto.setDescription(content.getDescription());
+        dto.setUrl(content.getUrl());
+        dto.setAuthor(content.getAuthor());
+        dto.setContentData(content.getContentData());
+        dto.setSortOrder(content.getSortOrder());
+        dto.setVisibility(content.getVisibility());
+        dto.setCreatedAt(content.getCreatedAt());
+        dto.setUpdatedAt(content.getUpdatedAt());
+
+        // 设置Focus Area信息（如果存在）
+        if (content.getFocusArea() != null) {
+            dto.setFocusAreaId(content.getFocusArea().getId());
+            dto.setFocusAreaName(content.getFocusArea().getName());
+        }
+
+        // 设置创建者信息
+        if (content.getCreatedBy() != null) {
+            dto.setCreatedByUserId(content.getCreatedBy().getId());
+            dto.setCreatedByUsername(content.getCreatedBy().getUsername());
+        }
+
+        return dto;
+    }
+}

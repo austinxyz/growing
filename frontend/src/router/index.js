@@ -86,6 +86,25 @@ const routes = [
     name: 'QuestionManagement',
     component: () => import('../views/questions/admin/QuestionManagement.vue'),
     meta: { requiresAdmin: true }
+  },
+  // 管理员 - 算法内容管理（Phase 4）
+  {
+    path: '/admin/algorithm-content',
+    name: 'AlgorithmContentManagement',
+    component: () => import('../views/admin/AlgorithmContentManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  // 用户端 - 算法学习（Phase 4）
+  {
+    path: '/algorithm-learning',
+    name: 'AlgorithmLearning',
+    component: () => import('../views/AlgorithmLearning.vue')
+  },
+  // 用户端 - 算法模版库（Phase 4）
+  {
+    path: '/algorithm-templates',
+    name: 'AlgorithmTemplates',
+    component: () => import('../views/AlgorithmTemplates.vue')
   }
 ]
 

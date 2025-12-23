@@ -101,6 +101,22 @@
             <BookOpen class="w-5 h-5" />
             <span>我的试题库</span>
           </router-link>
+          <router-link
+            to="/algorithm-learning"
+            class="nav-item"
+            :class="isActive('/algorithm-learning')"
+          >
+            <Code class="w-5 h-5" />
+            <span>算法学习</span>
+          </router-link>
+          <router-link
+            to="/algorithm-templates"
+            class="nav-item"
+            :class="isActive('/algorithm-templates')"
+          >
+            <FileCode class="w-5 h-5" />
+            <span>算法模版库</span>
+          </router-link>
         </div>
       </template>
 
@@ -131,6 +147,14 @@
           >
             <BookOpen class="w-5 h-5" />
             <span>试题管理</span>
+          </router-link>
+          <router-link
+            to="/admin/algorithm-content"
+            class="nav-item"
+            :class="isActive('/admin/algorithm-content')"
+          >
+            <Code class="w-5 h-5" />
+            <span>算法与数据结构</span>
           </router-link>
         </div>
 
@@ -184,7 +208,9 @@ import {
   TrendingUp,
   Users,
   UserCircle,
-  LogOut
+  LogOut,
+  Code,
+  FileCode
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 
@@ -210,7 +236,9 @@ const topLevelTabs = [
 watch(() => route.path, (newPath) => {
   if (newPath.startsWith('/settings') || newPath.startsWith('/admin')) {
     activeTopTab.value = 'settings';
-  } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard')) {
+  } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard') ||
+             newPath.startsWith('/my-questions') || newPath.startsWith('/algorithm-learning') ||
+             newPath.startsWith('/algorithm-templates')) {
     activeTopTab.value = 'learning';
   } else if (newPath.startsWith('/career') || newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
     activeTopTab.value = 'career';

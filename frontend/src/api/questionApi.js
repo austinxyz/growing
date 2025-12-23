@@ -7,7 +7,8 @@ export const questionApi = {
     return api.get(`/questions/focus-areas/${focusAreaId}`, { params })
   },
 
-  // 获取试题详情（包含答案要求、Red Flags和用户笔记）
+  // 获取试题详情（包含答案要求、Red Flags、编程题详情和用户笔记）
+  // Phase 4更新: 支持ProgrammingQuestionDetails
   getQuestionById(id) {
     return api.get(`/questions/${id}`)
   },
@@ -33,6 +34,8 @@ export const questionApi = {
   },
 
   // 为试题添加/更新笔记（UPSERT逻辑）
+  // Phase 4更新: 支持coreStrategy字段
+  // data: { noteContent: string, coreStrategy: string }
   saveOrUpdateNote(questionId, data) {
     return api.post(`/questions/${questionId}/note`, data)
   },
@@ -50,6 +53,12 @@ export const adminQuestionApi = {
     return api.get('/admin/questions', { params })
   },
 
+  // 获取试题详情（管理员视角，含编程题详情）
+  // Phase 4新增
+  getQuestionById(id) {
+    return api.get(`/admin/questions/${id}`)
+  },
+
   // 管理员添加公共试题
   createQuestion(data) {
     return api.post('/admin/questions', data)
@@ -63,5 +72,17 @@ export const adminQuestionApi = {
   // 删除任意试题
   deleteQuestion(id) {
     return api.delete(`/admin/questions/${id}`)
+  },
+
+  // Phase 4新增: 创建编程题（含编程题详情）
+  // data: CreateQuestionWithDetailsRequest
+  createQuestionWithDetails(data) {
+    return api.post('/admin/questions/with-details', data)
+  },
+
+  // Phase 4新增: 更新编程题（含编程题详情）
+  // data: CreateQuestionWithDetailsRequest
+  updateQuestionWithDetails(id, data) {
+    return api.put(`/admin/questions/${id}/with-details`, data)
   }
 }

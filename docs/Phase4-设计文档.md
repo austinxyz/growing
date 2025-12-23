@@ -1,9 +1,13 @@
 # Phase 4 设计文档 - 编程与数据结构学习模块
 
-> **架构版本**: v2.0 (learning_stages + learning_contents)
-> **状态**: 设计阶段 🟡
+> **架构版本**: v2.2 (管理员UI改进 - 题目管理独立Tab)
+> **状态**: ✅ 设计定稿 - 题目管理独立Tab + programming_question_details表
 > **创建时间**: 2025-12-22
+> **最后更新**: 2025-12-22
 > **需求文档**: [Phase4-详细需求.md](../requirement/Phase4-详细需求.md)
+> **修正说明**:
+> - [Phase4-core_strategy-字段修正.md](./Phase4-core_strategy-字段修正.md)
+> - [Phase4-管理员UI改进-题目管理独立Tab.md](./Phase4-管理员UI改进-题目管理独立Tab.md)
 > **关键决策**: [Prompt.txt - Phase 4 Decisions](../prompt/Prompt.txt)
 
 ---
@@ -21,11 +25,12 @@ Phase 4 实现**灵活的、Skill级别可定制**的学习路径系统：
 
 ✅ **Skill级别自定义学习阶段** - learning_stages表存储每个Skill的学习路径
 ✅ **统一内容管理** - learning_contents表管理所有类型的学习内容
+✅ **题目管理独立** - programming_question_details表存储编程题专属字段
 ✅ **4大分类** - 数据结构、搜索、动规、其他（删除"核心刷题框架"和"基础篇"）
 ✅ **25个Focus Area** - 精简后的学习主题（从33个合并）
 ✅ **225篇文章** - labuladong算法笔记完整导入
 ✅ **算法模版库** - 独立板块，快速参考（不关联Focus Area）
-✅ **用户笔记** - 复用Phase 3的user_question_notes表
+✅ **用户笔记** - 复用Phase 3的user_question_notes表，扩展core_strategy字段
 
 ### 1.3 架构分层
 
@@ -34,12 +39,14 @@ Phase 4 实现**灵活的、Skill级别可定制**的学习路径系统：
 │                      前端 (Vue 3)                             │
 ├──────────────────────────────────────────────────────────────┤
 │  管理端                        │  用户端                      │
-│  - 分阶段内容管理               │  - 大分类浏览（4个Tab）       │
-│    * 按Tab组织内容             │  - Focus Area选择            │
-│    * 文章、视频、代码、题目     │  - 学习阶段Tab切换           │
-│  - 题目关联到阶段               │  - 内容查看（按阶段）         │
-│  - 算法模版管理                │  - 算法模版查阅              │
-│                                │  - 个人笔记管理              │
+│  - 分阶段内容管理（3个Tab）     │  - 大分类浏览（4个Tab）       │
+│    * 基础原理、实现代码、       │  - Focus Area选择            │
+│      实战题目                  │  - 学习阶段Tab切换           │
+│  - 题目管理独立Tab（第4个）     │  - 内容查看（按阶段）         │
+│    * CRUD编程题                │  - 题目详情Modal             │
+│    * 通用字段+编程题扩展字段    │  - 算法模版查阅              │
+│  - 算法模版管理                │  - 个人笔记管理              │
+│                                │    * 核心思路+个人笔记        │
 └──────────────────────────────────────────────────────────────┘
                            ↕ RESTful API
 ┌──────────────────────────────────────────────────────────────┐
@@ -67,8 +74,10 @@ Phase 4 实现**灵活的、Skill级别可定制**的学习路径系统：
 │  新增：                                                       │
 │  - learning_stages (学习阶段定义)                            │
 │  - learning_contents (学习内容统一表)                        │
+│  - programming_question_details (编程题专属字段)             │
 │  修改：                                                       │
 │  - questions (增加stage_id字段)                              │
+│  - user_question_notes (增加core_strategy字段)               │
 │  - major_categories (删除2个分类，保留4个)                   │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -85,6 +94,7 @@ Phase 4 实现**灵活的、Skill级别可定制**的学习路径系统：
 **新增概念**:
 - 🆕 **LearningStage** - Skill级别的学习阶段定义（新表）
 - 🆕 **LearningContent** - 统一的学习内容表（文章、视频、代码、模版等）
+- 🆕 **ProgrammingQuestionDetails** - 编程题专属字段（LeetCode链接、算法标签等）
 
 **架构优势**:
 - 🎯 **灵活扩展** - 未来可为"系统设计"、"运维"等Skill定义不同的学习阶段
@@ -152,28 +162,31 @@ Phase 4 实现**灵活的、Skill级别可定制**的学习路径系统：
      │
      │ 1:N
      ↓
-┌──────────────────┐         ┌─────────────────────┐
-│    questions     │────┐    │ learning_stages     │
-├──────────────────┤    │    ├─────────────────────┤
-│ id (PK)          │    └───→│ id (PK)             │
-│ focus_area_id    │   N:1   │ stage_id (FK)       │  ← 新增字段
-│ stage_id (FK)    │         └─────────────────────┘
-│ title            │
-│ difficulty       │
-└──────────────────┘
-     │
-     │ 1:N
-     ↓
-┌─────────────────────────┐
-│ user_question_notes     │  (复用Phase 3)
-├─────────────────────────┤
-│ id (PK)                 │
-│ user_id (FK)            │
-│ question_id (FK)        │
-│ note_content            │
-│ created_at              │
-│ updated_at              │
-└─────────────────────────┘
+┌──────────────────────────┐         ┌─────────────────────┐
+│    questions             │────┐    │ learning_stages     │
+├──────────────────────────┤    │    ├─────────────────────┤
+│ id (PK)                  │    └───→│ id (PK)             │
+│ focus_area_id            │   N:1   │ stage_id (FK)       │  ← 新增字段
+│ stage_id (FK)            │         └─────────────────────┘
+│ title                    │
+│ difficulty               │
+└──────────────────────────┘
+     │                 │
+     │ 1:N             │ 1:1
+     ↓                 ↓
+┌──────────────────────────────┐  ┌──────────────────────────────────┐
+│ user_question_notes          │  │ programming_question_details     │
+├──────────────────────────────┤  ├──────────────────────────────────┤
+│ id (PK)                      │  │ id (PK)                          │
+│ user_id (FK)                 │  │ question_id (FK, UNIQUE)         │
+│ question_id (FK)             │  │ leetcode_url                     │
+│ note_content                 │  │ labuladong_url                   │
+│ core_strategy (新增)         │  │ hellointerview_url               │
+│ created_at                   │  │ is_important                     │
+│ updated_at                   │  │ tags (JSON)                      │
+└──────────────────────────────┘  │ complexity                       │
+                                  │ similar_questions (JSON)         │
+                                  └──────────────────────────────────┘
 ```
 
 ### 2.2 表结构详细设计
@@ -318,29 +331,151 @@ CREATE TABLE learning_contents (
 
 ---
 
-#### 表3: questions (题目表 - 增加stage_id字段)
+#### 表3: questions (题目表 - 保持通用)
 
-**修改**: 为questions表增加stage_id关联
+**说明**:
+- questions表继续通过`focus_area_id`关联到Focus Area，**不关联**到`learning_stages`
+- questions表保持通用字段，适用于所有Skill（编程、系统设计、运维等）
+- 编程题的专属字段存储在独立表 `programming_question_details`
+
+---
+
+#### 表4: programming_question_details (编程题专属字段表)
+
+**说明**:
+- 存储编程题的公共元数据（题目链接、难度、标签等）
+- **核心思路 (core_strategy) 不存储在此表**，而是存储在 user_question_notes 表中（每个用户有自己的解题思路）
 
 ```sql
-ALTER TABLE questions
-ADD COLUMN stage_id BIGINT COMMENT '所属学习阶段（实战题目阶段）',
-ADD FOREIGN KEY (stage_id) REFERENCES learning_stages(id) ON DELETE SET NULL;
+CREATE TABLE programming_question_details (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  question_id BIGINT NOT NULL UNIQUE COMMENT '关联的题目ID',
+
+  -- 外部资源链接
+  leetcode_url VARCHAR(500) COMMENT 'LeetCode题目链接',
+  labuladong_url VARCHAR(500) COMMENT 'labuladong题解链接',
+  hellointerview_url VARCHAR(500) COMMENT 'Hello Interview题解链接',
+
+  -- 重要性标记
+  is_important BOOLEAN DEFAULT FALSE COMMENT '是否为重要算法题（⭐标记）',
+
+  -- 算法技巧标签
+  tags JSON COMMENT '算法技巧标签，如["双指针","滑动窗口"]',
+
+  -- 复杂度和相关题目
+  complexity VARCHAR(100) COMMENT '算法复杂度，如"时间O(n), 空间O(1)"',
+  similar_questions JSON COMMENT '类似题目列表，如[{"id": 15, "title": "3Sum"}]',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+  INDEX idx_important (is_important),
+  INDEX idx_tags ((CAST(tags AS CHAR(255) ARRAY)))
+) COMMENT='编程题专属字段表（仅用于编程与数据结构Skill）';
 ```
 
-**用途**: 将题目关联到"实战题目"阶段
+**设计优势**:
+- ✅ questions表保持简洁，适用于所有Skill类型
+- ✅ 编程题的额外信息独立管理，避免NULL字段浪费
+- ✅ 未来如需为其他Skill（如系统设计）添加专属字段，可创建类似的独立表
+- ✅ 通过question_id的UNIQUE约束确保一对一关系
+- ✅ CASCADE删除确保数据一致性
+- ✅ 核心思路存储在user_question_notes，支持用户个性化解题方法
 
-**示例**:
-```sql
--- 将题目关联到"实战题目"阶段（stage_id = 3）
-UPDATE questions
-SET stage_id = 3
-WHERE focus_area_id IN (SELECT id FROM focus_areas WHERE name = '数组');
+**tags字段示例**:
+```json
+["双指针", "滑动窗口"]
+```
+
+**similar_questions字段示例**:
+```json
+[
+  {"id": 15, "title": "3Sum"},
+  {"id": 18, "title": "4Sum"}
+]
 ```
 
 ---
 
-#### 表4: major_categories (大分类表 - 调整为4个)
+#### 表5: user_question_notes (用户笔记表 - 扩展编程题字段)
+
+**说明**:
+- 复用 Phase 3 的 user_question_notes 表
+- 为编程题扩展 `core_strategy` 字段（其他类型题目该字段为空）
+- 支持用户个性化的解题思路记录
+
+**Migration V7 扩展**:
+```sql
+ALTER TABLE user_question_notes
+  ADD COLUMN core_strategy TEXT COMMENT '核心思路（Markdown格式，仅编程题使用）';
+```
+
+**完整表结构** (包含Phase 3字段 + Phase 4扩展):
+```sql
+CREATE TABLE user_question_notes (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  question_id BIGINT NOT NULL COMMENT '关联的题目ID',
+  user_id BIGINT NOT NULL COMMENT '创建者ID',
+
+  -- Phase 3 字段
+  note_content TEXT NOT NULL COMMENT '笔记内容（Markdown格式）',
+
+  -- Phase 4 扩展字段（编程题专用）
+  core_strategy TEXT COMMENT '核心思路（Markdown格式，用户提供的解题核心思路）',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uk_question_user (question_id, user_id),
+  INDEX idx_question_id (question_id),
+  INDEX idx_user_id (user_id)
+) COMMENT='用户题目笔记表（Phase 3 + Phase 4扩展）';
+```
+
+**字段使用说明**:
+- **note_content** - 通用笔记内容（所有题目类型都可以使用）
+  - 补充说明、心得体会、注意事项等
+  - Phase 3 已有字段，保持向后兼容
+- **core_strategy** - 编程题核心思路（仅编程题使用）
+  - 用户提供的解题核心思路
+  - 不同用户对同一道题可以有不同的解法
+  - 数据结构题、系统设计题等其他类型题目该字段为 NULL
+
+**设计理由**:
+- ✅ **用户个性化** - 核心思路是用户个人的解题方法，不是题目的公共属性
+- ✅ **多样性** - 不同用户对同一道题可能有不同的解法和思路
+- ✅ **隐私性** - 用户笔记只有创建者本人可见
+- ✅ **复用性** - 复用Phase 3的表结构，避免冗余
+- ✅ **向后兼容** - 不影响现有Phase 3的笔记功能
+
+**前端展示示例**（编程题）:
+```
+┌────────────────────────────────────────┐
+│ 题目详情                                │
+├────────────────────────────────────────┤
+│ [26] 删除有序数组中的重复项             │
+│ 难度: EASY                              │
+│                                        │
+│ ━━━ 核心思路 (我的解法) ━━━           │
+│ 使用双指针法:                          │
+│ 1. 快指针遍历数组                      │
+│ 2. 慢指针指向不重复元素的末尾          │
+│ 3. 遇到不同元素时移动慢指针            │
+│                                        │
+│ ━━━ 个人笔记 ━━━                      │
+│ 注意边界情况:                          │
+│ - 数组为空时返回0                      │
+│ - 数组长度为1时直接返回1               │
+│ 复杂度: O(n) 时间, O(1) 空间           │
+└────────────────────────────────────────┘
+```
+
+---
+
+#### 表6: major_categories (大分类表 - 调整为4个)
 
 **修改**: 删除"核心刷题框架"和"基础篇"
 
@@ -467,22 +602,76 @@ learning_stages (关联到"实战题目"阶段)
 
 ---
 
-#### 3.1.2 题目关联到阶段
+#### 3.1.2 编程题管理 (Questions + Programming Question Details)
 
-**POST /api/admin/questions/{questionId}/link-stage**
-- 功能: 将题目关联到学习阶段
+**GET /api/admin/questions**
+- 功能: 查询题目列表（支持按Focus Area过滤）
+- 权限: 管理员
+- 参数:
+  - `focusAreaId` (optional): Focus Area ID
+  - `difficulty` (optional): EASY/MEDIUM/HARD
+  - `page`, `size`: 分页参数
+- 返回:
+  ```json
+  {
+    "content": [
+      {
+        "id": 26,
+        "title": "[26] 删除有序数组中的重复项",
+        "difficulty": "EASY",
+        "focusAreaId": 5,
+        "focusAreaName": "数组",
+        "programmingDetails": {
+          "leetcodeUrl": "https://leetcode.com/problems/...",
+          "isImportant": true,
+          "tags": ["双指针", "数组"],
+          "complexity": "时间O(n), 空间O(1)"
+        }
+      }
+    ],
+    "totalElements": 100
+  }
+  ```
+
+**POST /api/admin/questions**
+- 功能: 创建新题目（通用字段 + 编程题扩展字段）
 - 权限: 管理员
 - 请求体:
   ```json
   {
-    "stageId": 3  // "实战题目"阶段ID
+    "title": "[26] 删除有序数组中的重复项",
+    "questionDescription": "给你一个有序数组...",
+    "difficulty": "EASY",
+    "focusAreaId": 5,
+    "answerRequirement": "要求原地删除...",
+    "redFlags": ["忘记处理空数组", "修改了原数组长度"],
+    "programmingDetails": {
+      "leetcodeUrl": "https://leetcode.com/problems/...",
+      "labuladongUrl": "https://labuladong.online/...",
+      "hellointerviewUrl": "https://...",
+      "isImportant": true,
+      "tags": ["双指针", "数组"],
+      "complexity": "时间O(n), 空间O(1)",
+      "similarQuestions": [
+        {"id": 27, "title": "移除元素"}
+      ]
+    }
   }
   ```
+- 返回: 创建的question对象（包含programmingDetails）
+
+**PUT /api/admin/questions/{id}**
+- 功能: 更新题目（通用字段 + 编程题扩展字段）
+- 权限: 管理员
+- 请求体: 同创建
 - 返回: 更新后的question对象
 
-**DELETE /api/admin/questions/{questionId}/unlink-stage**
-- 功能: 取消题目的阶段关联
+**DELETE /api/admin/questions/{id}**
+- 功能: 删除题目
 - 权限: 管理员
+- 说明:
+  - 级联删除 programming_question_details
+  - 级联删除用户笔记 (user_question_notes)
 - 返回: 204 No Content
 
 ---
@@ -648,34 +837,51 @@ learning_stages (关联到"实战题目"阶段)
 
 #### 4.1.1 学习内容管理页面 (AlgorithmContentManagement.vue)
 
-**布局**: 两栏布局
+**布局**: 两栏布局 + 4个Tab
 ```
-┌─────────────────────────────────────────────────────────┐
-│  【编程与数据结构 - 内容管理】                             │
-├─────────────┬───────────────────────────────────────────┤
-│             │  【选中: 数组 - 基础原理】                  │
-│  左侧树形   │  ┌─────────────────────────────────────┐  │
-│  结构       │  │ Tab: 基础原理 | 实现代码 | 实战题目   │  │
-│             │  ├─────────────────────────────────────┤  │
-│  - 数据结构 │  │ [+ 添加内容]                        │  │
-│    - 数组   │  │                                     │  │
-│    - 链表   │  │ 1. [📄] 数组（顺序存储）基本原理      │  │
-│    - 栈队列 │  │    作者: labuladong [编辑] [删除]    │  │
-│  - 搜索     │  │                                     │  │
-│    - 回溯   │  │ 2. [📄] 动态数组代码实现             │  │
-│    - BFS    │  │    作者: labuladong [编辑] [删除]    │  │
-│  - 动规     │  │                                     │  │
-│    - 基础   │  │ [拖拽排序]                          │  │
-│             │  └─────────────────────────────────────┘  │
-└─────────────┴───────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│  编程与数据结构 - 内容管理                                  │
+├───────────────┬────────────────────────────────────────────┤
+│ 左侧面板(25%) │ 右侧面板(75%)                               │
+│               │                                            │
+│ [数据结构Tab] │ ┌──────────────────────────────────────┐ │
+│ [搜索Tab]     │ │ 数组 - 内容管理                       │ │
+│ [动规Tab]     │ ├──────────────────────────────────────┤ │
+│ [其他Tab]     │ │ Tab1 │ Tab2 │ Tab3 │ [题目管理] │    │ │
+│               │ │ 基础原理 实现代码 实战题目  (第4个Tab) │ │
+│ Focus Area列表│ ├──────────────────────────────────────┤ │
+│ ☑ 数组        │ │                                      │ │
+│ □ 链表        │ │ [+ 添加内容] 或 [+ 新建题目]         │ │
+│ □ 栈和队列    │ │                                      │ │
+│ □ 哈希表      │ │ 内容/题目列表                        │ │
+│ ...           │ │                                      │ │
+└───────────────┴──┴──────────────────────────────────────┴─┘
 ```
+
+**右侧面板Tab说明**:
+1. **Tab 1-3: 学习阶段Tab** (基础原理、实现代码、实战题目)
+   - 管理 learning_contents 表的数据
+   - 添加文章、视频、代码示例、题解链接等
+   - 点击"添加内容"弹出 LearningContentModal
+
+2. **Tab 4: 题目管理Tab**
+   - 管理 questions + programming_question_details 表的数据
+   - 显示当前Focus Area的所有题目
+   - 点击"新建题目"弹出 QuestionEditModal (包含通用字段 + 编程题扩展字段)
+
+**Tab切换逻辑**:
+- Tab 1-3切换时，加载对应阶段的learning_contents数据
+- 切换到Tab 4时，加载当前Focus Area的questions数据
+- Tab状态独立，不互相干扰
 
 **功能点**:
 1. **左侧树**: 4个大分类 → 25个Focus Area
-2. **右侧Tab**: 3个学习阶段（基础原理、实现代码、实战题目）
-3. **添加内容**: Modal弹窗，选择类型（article/video/code_example）
-4. **编辑/删除**: 内联操作
-5. **拖拽排序**: Vue Draggable实现
+2. **右侧Tab 1-3**: 3个学习阶段（基础原理、实现代码、实战题目）的学习内容管理
+3. **右侧Tab 4**: 题目CRUD（通用字段 + programming_question_details扩展字段）
+4. **添加内容**: Modal弹窗，选择类型（article/video/code_example）
+5. **新建题目**: Modal弹窗，填写通用字段 + 编程题专属字段
+6. **编辑/删除**: 内联操作
+7. **拖拽排序**: Vue Draggable实现
 
 ---
 
@@ -959,9 +1165,11 @@ public interface LearningStageRepository extends JpaRepository<LearningStage, Lo
 **执行内容**:
 1. 创建 `learning_stages` 表
 2. 创建 `learning_contents` 表
-3. 修改 `questions` 表（增加stage_id字段）
-4. 删除 `major_categories` 表中的2个分类
-5. 初始化"编程与数据结构"的3个学习阶段
+3. 创建 `programming_question_details` 表
+4. 修改 `questions` 表（增加stage_id字段）
+5. 修改 `user_question_notes` 表（增加core_strategy字段）
+6. 删除 `major_categories` 表中的2个分类
+7. 初始化"编程与数据结构"的3个学习阶段
 
 ---
 
@@ -1013,15 +1221,45 @@ CREATE TABLE learning_contents (
   INDEX idx_stage_type (stage_id, content_type)
 ) COMMENT='学习内容统一表';
 
--- 3. 修改questions表
+-- 3. 创建programming_question_details表
+CREATE TABLE programming_question_details (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  question_id BIGINT NOT NULL UNIQUE COMMENT '关联的题目ID',
+
+  -- 外部资源链接
+  leetcode_url VARCHAR(500) COMMENT 'LeetCode题目链接',
+  labuladong_url VARCHAR(500) COMMENT 'labuladong题解链接',
+  hellointerview_url VARCHAR(500) COMMENT 'Hello Interview题解链接',
+
+  -- 重要性标记
+  is_important BOOLEAN DEFAULT FALSE COMMENT '是否为重要算法题（⭐标记）',
+
+  -- 算法标签和相关题目
+  tags JSON COMMENT '算法技巧标签，如["双指针","滑动窗口"]',
+  complexity VARCHAR(100) COMMENT '算法复杂度，如"时间O(n), 空间O(1)"',
+  similar_questions JSON COMMENT '类似题目列表，如[{"id": 15, "title": "3Sum"}]',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+  INDEX idx_important (is_important),
+  INDEX idx_tags ((CAST(tags AS CHAR(255) ARRAY)))
+) COMMENT='编程题专属字段表（仅用于编程与数据结构Skill）';
+
+-- 4. 修改questions表
 ALTER TABLE questions
 ADD COLUMN stage_id BIGINT COMMENT '所属学习阶段',
 ADD FOREIGN KEY (stage_id) REFERENCES learning_stages(id) ON DELETE SET NULL;
 
--- 4. 删除major_categories中的2个分类
+-- 5. 修改user_question_notes表
+ALTER TABLE user_question_notes
+ADD COLUMN core_strategy TEXT COMMENT '核心思路（Markdown格式，仅编程题使用）';
+
+-- 6. 删除major_categories中的2个分类
 DELETE FROM major_categories WHERE name IN ('核心刷题框架', '基础篇');
 
--- 5. 初始化"编程与数据结构"的学习阶段
+-- 7. 初始化"编程与数据结构"的学习阶段
 -- 假设skill_id=1为"编程与数据结构"
 INSERT INTO learning_stages (skill_id, stage_name, stage_type, description, sort_order) VALUES
 (1, '基础原理', 'theory', '数据结构的基本概念、特点、适用场景', 1),
@@ -1244,30 +1482,36 @@ private String url;
 **新增文件**:
 - `LearningStage.java` (Entity)
 - `LearningContent.java` (Entity)
+- `ProgrammingQuestionDetails.java` (Entity)
 - `LearningStageRepository.java`
 - `LearningContentRepository.java`
+- `ProgrammingQuestionDetailsRepository.java`
 - `LearningContentService.java`
 - `AdminLearningContentController.java`
 - `LearningContentController.java`
 
 **修改文件**:
 - `Question.java` (增加stageId字段)
-- `QuestionService.java` (增加linkToStage方法)
+- `UserQuestionNote.java` (增加coreStrategy字段)
+- `QuestionService.java` (支持创建/更新programming_question_details)
+- `UserQuestionNoteService.java` (支持core_strategy的CRUD)
 
 ---
 
 ### 10.3 前端部署
 
 **新增页面**:
-- `AlgorithmContentManagement.vue` (管理端)
+- `AlgorithmContentManagement.vue` (管理端 - 4个Tab)
 - `AlgorithmTemplateManagement.vue` (管理端)
 - `AlgorithmLearning.vue` (用户端)
 - `AlgorithmTemplates.vue` (用户端)
 
 **新增组件**:
-- `LearningStageTab.vue` (学习阶段Tab切换)
+- `LearningStageTab.vue` (学习阶段Tab切换 - 3个Tab)
+- `QuestionManagementTab.vue` (题目管理Tab - 第4个Tab)
 - `LearningContentList.vue` (内容列表)
 - `AddLearningContentModal.vue` (添加内容Modal)
+- `QuestionEditModal.vue` (题目编辑Modal - 支持通用字段 + programming_question_details)
 
 ---
 
@@ -1316,7 +1560,11 @@ private String url;
 
 ---
 
-**文档版本**: v2.0
+**文档版本**: v2.2
 **最后更新**: 2025-12-22
-**状态**: 待Review ✅
-**下一步**: 编写Migration V7脚本
+**状态**: ✅ 设计定稿
+**更新说明**:
+- v2.0: 初始设计 - 学习阶段 + 学习内容统一表
+- v2.1: core_strategy字段修正 - 从programming_question_details移至user_question_notes
+- v2.2: 管理员UI改进 - 题目管理独立Tab + programming_question_details表
+**下一步**: 实施Migration V7

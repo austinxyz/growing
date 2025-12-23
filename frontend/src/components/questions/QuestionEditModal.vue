@@ -52,16 +52,30 @@
             </select>
           </div>
 
+          <!-- 题目标题 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              题目标题 <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="form.title"
+              type="text"
+              required
+              placeholder="例如: [5] Longest Palindromic Substring"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="mt-1 text-xs text-gray-500">简短标题，用于列表显示</p>
+          </div>
+
           <!-- 问题描述 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              问题描述 <span class="text-red-500">*</span>
+              问题描述
             </label>
             <textarea
               v-model="form.questionText"
-              required
-              rows="4"
-              placeholder="输入问题描述（支持 Markdown）"
+              rows="6"
+              placeholder="输入详细的题目描述（支持 Markdown）&#10;&#10;例如：&#10;**题目描述**: ...&#10;&#10;**考察点**: ...&#10;&#10;**示例**:&#10;```&#10;输入: ...&#10;输出: ...&#10;```"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></textarea>
             <p class="mt-1 text-xs text-gray-500">支持 Markdown 格式，包括代码块</p>
@@ -101,6 +115,110 @@
                 />
                 <span class="ml-2">Hard</span>
               </label>
+            </div>
+          </div>
+
+          <!-- 编程题详情 -->
+          <div class="border-t border-gray-200 pt-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">编程题详情</h3>
+
+            <div class="space-y-4">
+              <!-- LeetCode链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  LeetCode 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.leetcodeUrl"
+                  type="url"
+                  placeholder="https://leetcode.com/problems/xxx/"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">LeetCode 题目链接</p>
+              </div>
+
+              <!-- labuladong链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  labuladong 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.labuladongUrl"
+                  type="url"
+                  placeholder="https://labuladong.online/algo/xxx/"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">labuladong 算法教程链接</p>
+              </div>
+
+              <!-- 标签（Tags） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  标签（Tags）
+                </label>
+                <input
+                  v-model="form.programmingDetails.tags"
+                  type="text"
+                  placeholder="多个标签用逗号分隔，例如：数组,双指针,滑动窗口"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">用于分类和搜索，多个标签用逗号分隔</p>
+              </div>
+
+              <!-- HelloInterview链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  HelloInterview 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.hellointerviewUrl"
+                  type="url"
+                  placeholder="https://www.hellointerview.com/xxx"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">HelloInterview 面试题链接</p>
+              </div>
+
+              <!-- 相似题目 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  相似题目
+                </label>
+                <input
+                  v-model="form.programmingDetails.similarQuestions"
+                  type="text"
+                  placeholder="相似题目编号，用逗号分隔，例如：15,18,167"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">填写相似题目的ID，用逗号分隔</p>
+              </div>
+
+              <!-- 复杂度 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  复杂度
+                </label>
+                <input
+                  v-model="form.programmingDetails.complexity"
+                  type="text"
+                  placeholder="例如：时间O(n), 空间O(1)"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">同时填写时间和空间复杂度</p>
+              </div>
+
+              <!-- 重要标记 -->
+              <div>
+                <label class="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    v-model="form.programmingDetails.isImportant"
+                    class="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span class="ml-2 text-sm font-medium text-gray-700">标记为重要题目</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500">勾选表示这是一道重要的必做题</p>
+              </div>
             </div>
           </div>
 
@@ -214,12 +332,23 @@ const isEdit = ref(false)
 const careerPaths = ref([])
 const form = ref({
   focusAreaId: '',
+  title: '',
   questionText: '',
   difficulty: 'EASY',
   answerRequirement: '',
   targetPosition: '',
   targetLevel: '',
-  redFlags: []
+  redFlags: [],
+  // 编程题详情
+  programmingDetails: {
+    leetcodeUrl: '',
+    labuladongUrl: '',
+    hellointerviewUrl: '',
+    tags: '',
+    similarQuestions: '',
+    complexity: '',
+    isImportant: false
+  }
 })
 
 // 初始化职业路径列表
@@ -236,35 +365,56 @@ onMounted(async () => {
 watch(() => props.question, (newQuestion) => {
   if (newQuestion) {
     isEdit.value = true
+    const programmingDetails = newQuestion.programmingDetails || {}
     form.value = {
       focusAreaId: newQuestion.focusAreaId || '',
+      title: newQuestion.title || '',
       questionText: newQuestion.questionText || '',
       difficulty: newQuestion.difficulty || 'EASY',
       answerRequirement: newQuestion.answerRequirement || '',
       targetPosition: newQuestion.targetPosition || '',
       targetLevel: newQuestion.targetLevel || '',
-      redFlags: newQuestion.redFlags || []
+      redFlags: newQuestion.redFlags || [],
+      programmingDetails: {
+        leetcodeUrl: programmingDetails.leetcodeUrl || '',
+        labuladongUrl: programmingDetails.labuladongUrl || '',
+        hellointerviewUrl: programmingDetails.hellointerviewUrl || '',
+        tags: programmingDetails.tags || '',
+        similarQuestions: programmingDetails.similarQuestions || '',
+        complexity: programmingDetails.complexity || '',
+        isImportant: programmingDetails.isImportant || false
+      }
     }
   } else {
     isEdit.value = false
     form.value = {
       focusAreaId: props.currentFocusAreaId || '',  // 使用当前选中的Focus Area
+      title: '',
       questionText: '',
       difficulty: 'EASY',
       answerRequirement: '',
       targetPosition: '',
       targetLevel: '',
-      redFlags: []
+      redFlags: [],
+      programmingDetails: {
+        leetcodeUrl: '',
+        labuladongUrl: '',
+        hellointerviewUrl: '',
+        tags: '',
+        similarQuestions: '',
+        complexity: '',
+        isImportant: false
+      }
     }
   }
 }, { immediate: true })
 
 const handleSubmit = () => {
-  // 过滤掉空的 Red Flags
   const cleanedForm = {
     ...form.value,
     redFlags: form.value.redFlags.filter(flag => flag.trim() !== '')
   }
+
   emit('save', cleanedForm)
 }
 </script>

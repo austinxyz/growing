@@ -1,5 +1,6 @@
 package com.growing.app.controller;
 
+import com.growing.app.dto.CreateQuestionWithDetailsRequest;
 import com.growing.app.dto.QuestionDTO;
 import com.growing.app.service.AuthService;
 import com.growing.app.service.QuestionService;
@@ -53,7 +54,7 @@ public class AdminQuestionController {
     }
 
     /**
-     * 获取试题详情
+     * 获取试题详情（含编程题详情）
      */
     @GetMapping("/{id}")
     public ResponseEntity<QuestionDTO> getQuestionById(
@@ -61,7 +62,7 @@ public class AdminQuestionController {
             @RequestHeader("Authorization") String authHeader) {
 
         requireAdmin(authHeader);
-        QuestionDTO question = questionService.getQuestionById(id);
+        QuestionDTO question = questionService.getQuestionWithDetailsForAdmin(id);
         return ResponseEntity.ok(question);
     }
 
@@ -103,5 +104,59 @@ public class AdminQuestionController {
         requireAdmin(authHeader);
         questionService.deleteQuestion(id, null, true);
         return ResponseEntity.noContent().build();
+    }
+
+    // ============ 编程题详情管理 ============
+
+    /**
+     * 创建编程题（含详情）
+     * POST /api/admin/questions/with-details
+     * Body: { "question": {...}, "programmingDetails": {...} }
+     */
+    @PostMapping("/with-details")
+    public ResponseEntity<QuestionDTO> createQuestionWithDetails(
+            @RequestBody CreateQuestionWithDetailsRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+
+        if (request.getQuestion() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "question字段不能为空");
+        }
+
+        QuestionDTO created = questionService.createQuestionWithDetails(
+                request.getQuestion(),
+                request.getProgrammingDetails(),
+                null,
+                true
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
+     * 更新编程题（含详情）
+     * PUT /api/admin/questions/{id}/with-details
+     * Body: { "question": {...}, "programmingDetails": {...} }
+     */
+    @PutMapping("/{id}/with-details")
+    public ResponseEntity<QuestionDTO> updateQuestionWithDetails(
+            @PathVariable Long id,
+            @RequestBody CreateQuestionWithDetailsRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+
+        if (request.getQuestion() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "question字段不能为空");
+        }
+
+        QuestionDTO updated = questionService.updateQuestionWithDetails(
+                id,
+                request.getQuestion(),
+                request.getProgrammingDetails(),
+                null,
+                true
+        );
+        return ResponseEntity.ok(updated);
     }
 }

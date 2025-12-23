@@ -2,6 +2,7 @@ package com.growing.app.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.growing.app.dto.ProgrammingQuestionDetailsDTO;
 import com.growing.app.dto.QuestionDTO;
 import com.growing.app.dto.UserQuestionNoteDTO;
 import com.growing.app.model.FocusArea;
@@ -38,6 +39,9 @@ public class QuestionService {
     private UserQuestionNoteRepository noteRepository;
 
     @Autowired
+    private ProgrammingQuestionDetailsService programmingDetailsService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     /**
@@ -51,12 +55,12 @@ public class QuestionService {
     }
 
     /**
-     * 获取Focus Area下的所有试题（管理员）
+     * 获取Focus Area下的所有试题（管理员，含编程题详情）
      */
     public List<QuestionDTO> getAllQuestionsByFocusAreaId(Long focusAreaId) {
         return questionRepository.findByFocusAreaId(focusAreaId)
                 .stream()
-                .map(this::convertToDTO)
+                .map(this::convertToDTOWithDetails)
                 .collect(Collectors.toList());
     }
 
@@ -91,6 +95,7 @@ public class QuestionService {
     @Transactional
     public QuestionDTO createQuestion(QuestionDTO dto, Long userId, boolean isOfficial) {
         Question question = new Question();
+        question.setTitle(dto.getTitle());
         question.setQuestionText(dto.getQuestionText());
         question.setDifficulty(dto.getDifficulty());
         question.setAnswerRequirement(dto.getAnswerRequirement());
@@ -138,6 +143,7 @@ public class QuestionService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此试题");
         }
 
+        question.setTitle(dto.getTitle());
         question.setQuestionText(dto.getQuestionText());
         question.setDifficulty(dto.getDifficulty());
         question.setAnswerRequirement(dto.getAnswerRequirement());
@@ -187,6 +193,7 @@ public class QuestionService {
         dto.setId(question.getId());
         dto.setFocusAreaId(question.getFocusArea().getId());
         dto.setFocusAreaName(question.getFocusArea().getName());
+        dto.setTitle(question.getTitle());
         dto.setQuestionText(question.getQuestionText());
         dto.setDifficulty(question.getDifficulty());
         dto.setAnswerRequirement(question.getAnswerRequirement());
@@ -202,6 +209,19 @@ public class QuestionService {
     }
 
     /**
+     * 转换为DTO（含编程题详情）
+     */
+    private QuestionDTO convertToDTOWithDetails(Question question) {
+        QuestionDTO dto = convertToDTO(question);
+
+        // 加载编程题详情（如果存在）
+        programmingDetailsService.getDetailsByQuestionId(question.getId())
+                .ifPresent(dto::setProgrammingDetails);
+
+        return dto;
+    }
+
+    /**
      * 转换笔记为DTO
      */
     private UserQuestionNoteDTO convertNoteToDTO(UserQuestionNote note) {
@@ -210,8 +230,95 @@ public class QuestionService {
         dto.setQuestionId(note.getQuestion().getId());
         dto.setUserId(note.getUser().getId());
         dto.setNoteContent(note.getNoteContent());
+        dto.setCoreStrategy(note.getCoreStrategy());
         dto.setCreatedAt(note.getCreatedAt());
         dto.setUpdatedAt(note.getUpdatedAt());
+        return dto;
+    }
+
+    // ==================== 编程题详情管理 ====================
+
+    /**
+     * 创建编程题（含详情）
+     * 用于管理员创建编程题时一次性创建Question + ProgrammingQuestionDetails
+     */
+    @Transactional
+    public QuestionDTO createQuestionWithDetails(QuestionDTO questionDTO,
+                                                  ProgrammingQuestionDetailsDTO detailsDTO,
+                                                  Long userId,
+                                                  boolean isOfficial) {
+        // 先创建Question
+        QuestionDTO createdQuestion = createQuestion(questionDTO, userId, isOfficial);
+
+        // 如果提供了详情，创建ProgrammingQuestionDetails
+        if (detailsDTO != null) {
+            ProgrammingQuestionDetailsDTO createdDetails =
+                    programmingDetailsService.createDetails(createdQuestion.getId(), detailsDTO);
+            createdQuestion.setProgrammingDetails(createdDetails);
+        }
+
+        return createdQuestion;
+    }
+
+    /**
+     * 更新编程题（含详情）
+     * 用于管理员更新编程题时同时更新Question + ProgrammingQuestionDetails
+     */
+    @Transactional
+    public QuestionDTO updateQuestionWithDetails(Long questionId,
+                                                  QuestionDTO questionDTO,
+                                                  ProgrammingQuestionDetailsDTO detailsDTO,
+                                                  Long userId,
+                                                  boolean isAdmin) {
+        // 更新Question
+        QuestionDTO updatedQuestion = updateQuestion(questionId, questionDTO, userId, isAdmin);
+
+        // 更新或创建ProgrammingQuestionDetails
+        if (detailsDTO != null) {
+            Optional<ProgrammingQuestionDetailsDTO> existingDetails =
+                    programmingDetailsService.getDetailsByQuestionId(questionId);
+
+            if (existingDetails.isPresent()) {
+                // 更新现有详情
+                ProgrammingQuestionDetailsDTO updated =
+                        programmingDetailsService.updateDetailsByQuestionId(questionId, detailsDTO);
+                updatedQuestion.setProgrammingDetails(updated);
+            } else {
+                // 创建新详情
+                ProgrammingQuestionDetailsDTO created =
+                        programmingDetailsService.createDetails(questionId, detailsDTO);
+                updatedQuestion.setProgrammingDetails(created);
+            }
+        }
+
+        return updatedQuestion;
+    }
+
+    /**
+     * 获取编程题详情（用于管理端展示）
+     * 包含Question + ProgrammingQuestionDetails
+     */
+    public QuestionDTO getQuestionWithDetailsForAdmin(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
+
+        return convertToDTOWithDetails(question);
+    }
+
+    /**
+     * 获取编程题详情（用于用户端展示）
+     * 包含Question + ProgrammingQuestionDetails + UserQuestionNote
+     */
+    public QuestionDTO getQuestionWithDetailsForUser(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
+
+        QuestionDTO dto = convertToDTOWithDetails(question);
+
+        // 加载用户笔记
+        Optional<UserQuestionNote> note = noteRepository.findByQuestionIdAndUserId(questionId, userId);
+        note.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
+
         return dto;
     }
 }

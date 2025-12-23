@@ -54,7 +54,11 @@ public class QuestionController {
     }
 
     /**
-     * 获取试题详情（包含答案要求、Red Flags和用户笔记）
+     * 获取试题详情（包含答案要求、Red Flags、编程题详情和用户笔记）
+     *
+     * Phase 4更新: 支持ProgrammingQuestionDetails
+     * - 如果是编程题(question_type='programming')，返回programmingDetails字段
+     * - 包含用户笔记（noteContent + coreStrategy）
      */
     @GetMapping("/{id}")
     public ResponseEntity<QuestionDTO> getQuestionById(
@@ -65,7 +69,7 @@ public class QuestionController {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
 
-        QuestionDTO question = questionService.getQuestionByIdForUser(id, user.getId());
+        QuestionDTO question = questionService.getQuestionWithDetailsForUser(id, user.getId());
         return ResponseEntity.ok(question);
     }
 
@@ -138,23 +142,32 @@ public class QuestionController {
 
     /**
      * 为试题添加笔记（如果已有笔记则更新）
+     *
+     * Phase 4更新: 支持coreStrategy字段
+     * - noteContent: 通用笔记内容（所有题型）
+     * - coreStrategy: 核心思路（仅编程题）
      */
     @PostMapping("/{id}/note")
     public ResponseEntity<UserQuestionNoteDTO> saveOrUpdateNote(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request,
+            @RequestBody UserQuestionNoteDTO requestDTO,
             @RequestHeader("Authorization") String authHeader) {
 
         String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
 
-        String noteContent = request.get("noteContent");
-        if (noteContent == null || noteContent.trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "笔记内容不能为空");
+        // 验证至少有一个字段不为空
+        if ((requestDTO.getNoteContent() == null || requestDTO.getNoteContent().trim().isEmpty()) &&
+            (requestDTO.getCoreStrategy() == null || requestDTO.getCoreStrategy().trim().isEmpty())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "笔记内容或核心思路至少填写一项");
         }
 
-        UserQuestionNoteDTO note = noteService.saveOrUpdateNote(id, noteContent, user.getId());
+        // 设置questionId和userId
+        requestDTO.setQuestionId(id);
+        requestDTO.setUserId(user.getId());
+
+        UserQuestionNoteDTO note = noteService.saveOrUpdateNote(requestDTO);
 
         // 判断是创建还是更新
         HttpStatus status = note.getCreatedAt().equals(note.getUpdatedAt())
