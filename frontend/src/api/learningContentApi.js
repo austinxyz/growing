@@ -38,6 +38,34 @@ export const getAlgorithmTemplateById = (id) => {
   return api.get(`/learning-contents/algorithm-templates/${id}`)
 }
 
+/**
+ * 获取用户对指定模版的笔记
+ * @param {number} templateId - 模版ID
+ * @returns {Promise} UserTemplateNoteDTO
+ */
+export const getTemplateNote = (templateId) => {
+  return api.get(`/learning-contents/algorithm-templates/${templateId}/note`)
+}
+
+/**
+ * 保存或更新用户模版笔记
+ * @param {number} templateId - 模版ID
+ * @param {string} noteContent - 笔记内容
+ * @returns {Promise} UserTemplateNoteDTO
+ */
+export const saveOrUpdateTemplateNote = (templateId, noteContent) => {
+  return api.post(`/learning-contents/algorithm-templates/${templateId}/note`, { noteContent })
+}
+
+/**
+ * 删除用户模版笔记
+ * @param {number} templateId - 模版ID
+ * @returns {Promise}
+ */
+export const deleteTemplateNote = (templateId) => {
+  return api.delete(`/learning-contents/algorithm-templates/${templateId}/note`)
+}
+
 // ===== 管理员 API =====
 
 /**

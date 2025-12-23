@@ -132,14 +132,90 @@
           </div>
 
           <!-- 模版内容（展开时显示） -->
-          <div v-if="expandedTemplates.includes(template.id)" class="px-6 py-4">
-            <div
-              v-if="template.contentText"
-              v-html="renderMarkdown(template.contentText)"
-              class="prose prose-sm max-w-none"
-            ></div>
-            <div v-else class="text-gray-400 text-center py-4">
-              暂无内容
+          <div v-if="expandedTemplates.includes(template.id)">
+            <!-- 模版代码 -->
+            <div class="px-6 py-4 border-b border-gray-200">
+              <div
+                v-if="template.contentText"
+                v-html="renderMarkdown(template.contentText)"
+                class="prose prose-sm max-w-none"
+              ></div>
+              <div v-else class="text-gray-400 text-center py-4">
+                暂无内容
+              </div>
+            </div>
+
+            <!-- 笔记区域 -->
+            <div class="px-6 py-4 bg-amber-50">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-semibold text-gray-700 flex items-center">
+                  <svg class="w-4 h-4 mr-1.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  我的笔记
+                </h4>
+                <div v-if="templateNotes[template.id]?.note" class="text-xs text-gray-500">
+                  最后更新: {{ formatDate(templateNotes[template.id].note.updatedAt) }}
+                </div>
+              </div>
+
+              <!-- 查看模式 -->
+              <div v-if="!templateNotes[template.id]?.isEditing">
+                <div
+                  v-if="templateNotes[template.id]?.note?.noteContent"
+                  v-html="renderMarkdown(templateNotes[template.id].note.noteContent)"
+                  class="prose prose-sm max-w-none text-gray-700 bg-white rounded-md p-4 border border-amber-200"
+                ></div>
+                <div v-else class="text-gray-400 text-sm italic text-center py-6">
+                  点击"添加笔记"按钮记录你的学习心得
+                </div>
+
+                <div class="mt-3 flex space-x-2">
+                  <button
+                    @click="startEditingNote(template.id)"
+                    class="px-3 py-1.5 text-sm text-amber-700 bg-white border border-amber-300 rounded-md hover:bg-amber-50 transition-colors"
+                  >
+                    {{ templateNotes[template.id]?.note ? '编辑笔记' : '添加笔记' }}
+                  </button>
+                  <button
+                    v-if="templateNotes[template.id]?.note"
+                    @click="handleDeleteNote(template.id)"
+                    class="px-3 py-1.5 text-sm text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+                  >
+                    删除笔记
+                  </button>
+                </div>
+              </div>
+
+              <!-- 编辑模式 -->
+              <div v-else>
+                <textarea
+                  v-model="templateNotes[template.id].editContent"
+                  placeholder="在此输入你的学习笔记（支持Markdown格式）..."
+                  class="w-full h-40 px-3 py-2 text-sm border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none font-mono"
+                ></textarea>
+
+                <div class="mt-3 flex space-x-2">
+                  <button
+                    @click="handleSaveNote(template.id)"
+                    :disabled="savingNotes.has(template.id) || !templateNotes[template.id].editContent?.trim()"
+                    class="px-3 py-1.5 text-sm text-white bg-amber-600 rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {{ savingNotes.has(template.id) ? '保存中...' : '保存笔记' }}
+                  </button>
+                  <button
+                    @click="cancelEditingNote(template.id)"
+                    :disabled="savingNotes.has(template.id)"
+                    class="px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    取消
+                  </button>
+                </div>
+
+                <div class="mt-2 text-xs text-gray-500">
+                  提示: 支持Markdown格式（代码块、列表、加粗等）
+                </div>
+              </div>
             </div>
           </div>
 
@@ -188,7 +264,7 @@
 import { ref, onMounted } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
-import { getAlgorithmTemplates } from '@/api/learningContentApi'
+import { getAlgorithmTemplates, getTemplateNote, saveOrUpdateTemplateNote, deleteTemplateNote } from '@/api/learningContentApi'
 
 // Configure marked for code highlighting
 marked.setOptions({
@@ -208,6 +284,8 @@ const pageSize = ref(10)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const expandedTemplates = ref([])
+const templateNotes = ref({}) // 存储每个模版的笔记 {templateId: {note, isEditing, editContent}}
+const savingNotes = ref(new Set()) // 正在保存的笔记templateId集合
 
 // Methods
 const loadTemplates = async () => {
@@ -251,12 +329,95 @@ const goToPage = (page) => {
   }
 }
 
-const toggleTemplate = (templateId) => {
+const toggleTemplate = async (templateId) => {
   const index = expandedTemplates.value.indexOf(templateId)
   if (index > -1) {
     expandedTemplates.value.splice(index, 1)
   } else {
     expandedTemplates.value.push(templateId)
+    // 展开时加载笔记
+    await loadTemplateNote(templateId)
+  }
+}
+
+const loadTemplateNote = async (templateId) => {
+  try {
+    const note = await getTemplateNote(templateId)
+    templateNotes.value[templateId] = {
+      note: note,
+      isEditing: false,
+      editContent: ''
+    }
+  } catch (error) {
+    // 404表示没有笔记，这是正常的
+    if (error.response?.status === 404) {
+      templateNotes.value[templateId] = {
+        note: null,
+        isEditing: false,
+        editContent: ''
+      }
+    } else {
+      console.error('Failed to load template note:', error)
+    }
+  }
+}
+
+const startEditingNote = (templateId) => {
+  if (!templateNotes.value[templateId]) {
+    templateNotes.value[templateId] = {
+      note: null,
+      isEditing: true,
+      editContent: ''
+    }
+  } else {
+    templateNotes.value[templateId].isEditing = true
+    templateNotes.value[templateId].editContent = templateNotes.value[templateId].note?.noteContent || ''
+  }
+}
+
+const cancelEditingNote = (templateId) => {
+  if (templateNotes.value[templateId]) {
+    templateNotes.value[templateId].isEditing = false
+    templateNotes.value[templateId].editContent = ''
+  }
+}
+
+const handleSaveNote = async (templateId) => {
+  const noteContent = templateNotes.value[templateId]?.editContent?.trim()
+  if (!noteContent) return
+
+  savingNotes.value.add(templateId)
+
+  try {
+    const savedNote = await saveOrUpdateTemplateNote(templateId, noteContent)
+    templateNotes.value[templateId] = {
+      note: savedNote,
+      isEditing: false,
+      editContent: ''
+    }
+    alert('笔记保存成功')
+  } catch (error) {
+    console.error('Failed to save template note:', error)
+    alert('保存笔记失败: ' + (error.response?.data?.message || error.message))
+  } finally {
+    savingNotes.value.delete(templateId)
+  }
+}
+
+const handleDeleteNote = async (templateId) => {
+  if (!confirm('确定要删除这条笔记吗？')) return
+
+  try {
+    await deleteTemplateNote(templateId)
+    templateNotes.value[templateId] = {
+      note: null,
+      isEditing: false,
+      editContent: ''
+    }
+    alert('笔记已删除')
+  } catch (error) {
+    console.error('Failed to delete template note:', error)
+    alert('删除笔记失败: ' + (error.response?.data?.message || error.message))
   }
 }
 

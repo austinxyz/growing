@@ -2,9 +2,11 @@ package com.growing.app.controller;
 
 import com.growing.app.dto.FocusAreaLearningDTO;
 import com.growing.app.dto.LearningContentDTO;
+import com.growing.app.dto.UserTemplateNoteDTO;
 import com.growing.app.model.User;
 import com.growing.app.repository.UserRepository;
 import com.growing.app.service.LearningContentService;
+import com.growing.app.service.UserTemplateNoteService;
 import com.growing.app.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 用户端学习内容Controller
@@ -31,6 +35,9 @@ public class LearningContentController {
 
     @Autowired
     private LearningContentService learningContentService;
+
+    @Autowired
+    private UserTemplateNoteService userTemplateNoteService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -133,5 +140,74 @@ public class LearningContentController {
 
         LearningContentDTO template = learningContentService.getAlgorithmTemplateById(id);
         return ResponseEntity.ok(template);
+    }
+
+    /**
+     * 获取用户对指定模版的笔记
+     *
+     * GET /api/learning-contents/algorithm-templates/{templateId}/note
+     */
+    @GetMapping("/algorithm-templates/{templateId}/note")
+    public ResponseEntity<UserTemplateNoteDTO> getTemplateNote(
+            @PathVariable Long templateId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        Optional<UserTemplateNoteDTO> noteOpt = userTemplateNoteService
+                .getNoteByTemplateAndUser(templateId, user.getId());
+
+        return noteOpt.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 保存或更新用户模版笔记
+     *
+     * POST /api/learning-contents/algorithm-templates/{templateId}/note
+     * Request Body: { "noteContent": "..." }
+     */
+    @PostMapping("/algorithm-templates/{templateId}/note")
+    public ResponseEntity<UserTemplateNoteDTO> saveOrUpdateTemplateNote(
+            @PathVariable Long templateId,
+            @RequestBody Map<String, String> request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        String noteContent = request.get("noteContent");
+        if (noteContent == null || noteContent.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "笔记内容不能为空");
+        }
+
+        UserTemplateNoteDTO savedNote = userTemplateNoteService
+                .saveOrUpdateNote(templateId, user.getId(), noteContent);
+
+        return ResponseEntity.ok(savedNote);
+    }
+
+    /**
+     * 删除用户模版笔记
+     *
+     * DELETE /api/learning-contents/algorithm-templates/{templateId}/note
+     */
+    @DeleteMapping("/algorithm-templates/{templateId}/note")
+    public ResponseEntity<Void> deleteTemplateNote(
+            @PathVariable Long templateId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        userTemplateNoteService.deleteNote(templateId, user.getId());
+        return ResponseEntity.noContent().build();
     }
 }
