@@ -73,4 +73,15 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
      * 查询所有算法模版（focus_area IS NULL）
      */
     List<LearningContent> findByContentTypeAndFocusAreaIsNullOrderBySortOrderAsc(LearningContent.ContentType contentType);
+
+    /**
+     * 分页查询算法模版（focus_area_id IS NULL）
+     */
+    Page<LearningContent> findByContentTypeAndFocusAreaIdIsNull(LearningContent.ContentType contentType, Pageable pageable);
+
+    /**
+     * 搜索算法模版（分页）
+     */
+    Page<LearningContent> findByContentTypeAndFocusAreaIdIsNullAndTitleContaining(
+            LearningContent.ContentType contentType, String keyword, Pageable pageable);
 }

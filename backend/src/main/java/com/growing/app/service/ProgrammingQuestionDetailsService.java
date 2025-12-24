@@ -39,6 +39,19 @@ public class ProgrammingQuestionDetailsService {
     }
 
     /**
+     * 批量获取编程题详情（通过Question IDs）
+     * 返回 Map<QuestionId, DetailsDTO>
+     */
+    public java.util.Map<Long, ProgrammingQuestionDetailsDTO> getDetailsByQuestionIds(List<Long> questionIds) {
+        List<ProgrammingQuestionDetails> detailsList = detailsRepository.findByQuestionIdIn(questionIds);
+        return detailsList.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        details -> details.getQuestion().getId(),
+                        this::convertToDTO
+                ));
+    }
+
+    /**
      * 获取编程题详情（通过Details ID）
      */
     public ProgrammingQuestionDetailsDTO getDetailsById(Long detailsId) {
@@ -63,6 +76,7 @@ public class ProgrammingQuestionDetailsService {
 
         ProgrammingQuestionDetails details = new ProgrammingQuestionDetails();
         details.setQuestion(question);
+        details.setLeetcodeNumber(dto.getLeetcodeNumber() != null ? dto.getLeetcodeNumber() : extractLeetCodeNumber(question.getTitle()));
         details.setLeetcodeUrl(dto.getLeetcodeUrl());
         details.setLabuladongUrl(dto.getLabuladongUrl());
         details.setHellointerviewUrl(dto.getHellointerviewUrl());
@@ -85,6 +99,7 @@ public class ProgrammingQuestionDetailsService {
         ProgrammingQuestionDetails details = detailsRepository.findById(detailsId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "编程题详情不存在"));
 
+        details.setLeetcodeNumber(dto.getLeetcodeNumber() != null ? dto.getLeetcodeNumber() : extractLeetCodeNumber(details.getQuestion().getTitle()));
         details.setLeetcodeUrl(dto.getLeetcodeUrl());
         details.setLabuladongUrl(dto.getLabuladongUrl());
         details.setHellointerviewUrl(dto.getHellointerviewUrl());
@@ -137,6 +152,7 @@ public class ProgrammingQuestionDetailsService {
         ProgrammingQuestionDetailsDTO dto = new ProgrammingQuestionDetailsDTO();
         dto.setId(details.getId());
         dto.setQuestionId(details.getQuestion().getId());
+        dto.setLeetcodeNumber(details.getLeetcodeNumber());
         dto.setLeetcodeUrl(details.getLeetcodeUrl());
         dto.setLabuladongUrl(details.getLabuladongUrl());
         dto.setHellointerviewUrl(details.getHellointerviewUrl());
@@ -152,6 +168,29 @@ public class ProgrammingQuestionDetailsService {
         dto.setSimilarQuestions(getSimilarQuestionsFromEntity(details));
 
         return dto;
+    }
+
+    // ==================== 辅助方法 ====================
+
+    /**
+     * 从题目标题中提取LeetCode编号
+     * 例如："1. Two Sum" -> 1
+     */
+    private Integer extractLeetCodeNumber(String title) {
+        if (title == null || title.isEmpty()) {
+            return null;
+        }
+
+        // 匹配开头的数字+点的格式
+        if (title.matches("^\\d+\\..*")) {
+            try {
+                return Integer.parseInt(title.substring(0, title.indexOf('.')));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     // ==================== JSON序列化辅助方法 ====================

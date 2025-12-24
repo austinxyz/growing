@@ -1,0 +1,6 @@
+{
+  "name": "fetch-leetcode-desc",
+  "description": "Fetch LeetCode problem descriptions for questions with incomplete descriptions and update the database",
+  "version": "1.0.0",
+  "user_invocable": true
+}

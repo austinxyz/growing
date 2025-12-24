@@ -38,6 +38,24 @@ public class QuestionController {
     private AuthService authService;
 
     /**
+     * 获取用户的学习总结（按大分类和Focus Area分组）
+     * 只返回用户有笔记的试题
+     *
+     * IMPORTANT: 这个路由必须放在 /{id} 之前，避免被路径参数匹配
+     */
+    @GetMapping("/learning-review")
+    public ResponseEntity<Map<String, Object>> getLearningReview(
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        Map<String, Object> review = questionService.getLearningReview(user.getId());
+        return ResponseEntity.ok(review);
+    }
+
+    /**
      * 获取Focus Area下的试题列表（公共 + 用户自己的）
      */
     @GetMapping("/focus-areas/{focusAreaId}")
@@ -167,7 +185,7 @@ public class QuestionController {
         requestDTO.setQuestionId(id);
         requestDTO.setUserId(user.getId());
 
-        UserQuestionNoteDTO note = noteService.saveOrUpdateNote(requestDTO);
+        UserQuestionNoteDTO note = noteService.saveOrUpdateNote(id, requestDTO, user.getId());
 
         // 判断是创建还是更新
         HttpStatus status = note.getCreatedAt().equals(note.getUpdatedAt())

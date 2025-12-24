@@ -595,3 +595,18 @@ Phase 4 实施计划
   23. 更新文档 - CLAUDE.md + ARCHITECTURE.md
 
   11:45 还没调试完成，先休息了
+
+  我改变想法了，与做一个agent，可以从算法题_整理.md，拿到一个试题，例如
+  ### 276. [2611] 2611. 老鼠和奶酪
+
+**LeetCode链接**: https://leetcode.com/problems/mice-and-cheese/
+
+**核心思路**: order reward1[i]-reward2[i], find k max, use reward1, else reward2, sum.
+
+  agent可以分析试题，归类到正确的focus area，扩展额外的信息，插入到数据库表 question表，programming_question_details表 和user_question_notes表
+  根据题目title和leetcode 链接，可以扩展试题信息，比如问题描述，标签，复杂度等，而核心思路可以作为个人笔记的一部分，笔记包括核心思路和note_content。和笔记部分目前都是以austin.xyz用户来加入。
+  你可以参考题目 '[5] Longest Palindromic Substring'，获取正确的内容。
+
+
+  保留AI_AGENT_PROMPT，算法题_Focus_Area_映射分析，算法题_整理，Infrastructure Engineering Interview questions -
+  Sheet1，labuladong_phase4_v2_staged

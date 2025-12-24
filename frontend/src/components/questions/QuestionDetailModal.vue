@@ -1,41 +1,61 @@
 <template>
-  <div class="fixed inset-0 z-50 overflow-y-auto">
-    <!-- 背景遮罩 -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$emit('close')"></div>
+  <div class="fixed inset-0 z-50 overflow-hidden">
+    <!-- 背景遮罩（半透明，点击不关闭） -->
+    <div class="fixed inset-0 bg-black bg-opacity-30 transition-opacity"></div>
 
-    <!-- 弹窗内容 -->
-    <div class="flex min-h-screen items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <!-- 头部 -->
-        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <div class="flex items-center space-x-3">
-            <h2 class="text-xl font-semibold text-gray-900">试题详情</h2>
-            <DifficultyBadge :difficulty="question.difficulty" />
-          </div>
-          <button
-            @click="$emit('close')"
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <!-- 可拖拽、可调整大小的弹窗 -->
+    <div
+      ref="modalRef"
+      class="absolute bg-white rounded-lg shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
+      :style="{
+        left: modalPosition.x + 'px',
+        top: modalPosition.y + 'px',
+        width: modalWidth + 'px',
+        cursor: isDragging ? 'grabbing' : 'default'
+      }"
+    >
+      <!-- 可拖拽的头部 -->
+      <div
+        @mousedown="startDrag"
+        class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing select-none flex-shrink-0"
+      >
+        <div class="flex items-center space-x-2">
+          <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+          </svg>
+          <h2 class="text-base font-semibold text-gray-900">试题详情</h2>
+          <DifficultyBadge :difficulty="question.difficulty" />
         </div>
+        <button
+          @click="$emit('close')"
+          @mousedown.stop
+          class="text-gray-400 hover:text-gray-600"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        <!-- 内容 -->
-        <div class="p-6 space-y-6">
-          <!-- Loading状态 -->
-          <div v-if="loading" class="text-center text-gray-500 py-12">
+      <!-- 左右两栏布局 -->
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Loading状态 -->
+        <div v-if="loading" class="flex-1 flex items-center justify-center text-gray-500">
+          <div class="text-center">
             <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <p class="mt-2 text-sm">加载中...</p>
           </div>
+        </div>
 
-          <template v-else-if="fullQuestion">
-            <!-- 外部链接 -->
-            <div v-if="fullQuestion.programmingDetails?.leetcodeUrl || fullQuestion.programmingDetails?.labuladongUrl || fullQuestion.programmingDetails?.hellointerviewUrl" class="flex flex-wrap gap-3">
+        <template v-else-if="fullQuestion">
+          <!-- 左栏：题目详情 -->
+          <div class="w-1/2 overflow-y-auto border-r border-gray-200 p-4">
+            <div class="space-y-4">
+              <!-- 外部链接 -->
+              <div v-if="fullQuestion.programmingDetails?.leetcodeUrl || fullQuestion.programmingDetails?.labuladongUrl || fullQuestion.programmingDetails?.hellointerviewUrl" class="flex flex-wrap gap-2">
               <a
                 v-if="fullQuestion.programmingDetails.leetcodeUrl"
                 :href="fullQuestion.programmingDetails.leetcodeUrl"
@@ -136,115 +156,128 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
+        <!-- 右栏：笔记 -->
+        <div class="w-1/2 overflow-y-auto p-4 bg-gray-50">
+          <div class="space-y-4">
             <!-- 核心思路（用户笔记） -->
-            <div class="border-t border-gray-200 pt-6">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-semibold text-gray-900">核心思路</h3>
-                <button
-                  v-if="!isEditingStrategy"
-                  @click="startEditStrategy"
-                  class="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  {{ userNote?.coreStrategy ? '编辑' : '添加' }}
-                </button>
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-lg font-semibold text-gray-900">核心思路</h3>
+                  <button
+                    v-if="!isEditingStrategy"
+                    @click="startEditStrategy"
+                    class="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    {{ userNote?.coreStrategy ? '编辑' : '添加' }}
+                  </button>
+                </div>
+
+                <!-- 显示模式 -->
+                <div v-if="!isEditingStrategy && userNote?.coreStrategy" class="prose prose-sm max-w-none bg-yellow-50 rounded-lg p-4" v-html="renderMarkdown(userNote.coreStrategy)"></div>
+                <div v-else-if="!isEditingStrategy" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
+                  暂无核心思路，点击上方"添加"按钮记录你的解题思路
+                </div>
+
+                <!-- 编辑模式 -->
+                <div v-else>
+                  <textarea
+                    v-model="editForm.coreStrategy"
+                    rows="6"
+                    placeholder="记录解题的核心思路，如使用的算法、数据结构、关键步骤等（支持Markdown）"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  ></textarea>
+                  <div class="flex justify-end space-x-2 mt-2">
+                    <button
+                      @click="cancelEditStrategy"
+                      class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      取消
+                    </button>
+                    <button
+                      @click="saveStrategy"
+                      :disabled="saving"
+                      class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+                    >
+                      {{ saving ? '保存中...' : '保存' }}
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <!-- 显示模式 -->
-              <div v-if="!isEditingStrategy && userNote?.coreStrategy" class="prose prose-sm max-w-none bg-yellow-50 rounded-lg p-4" v-html="renderMarkdown(userNote.coreStrategy)"></div>
-              <div v-else-if="!isEditingStrategy" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
-                暂无核心思路，点击上方"添加"按钮记录你的解题思路
-              </div>
+              <!-- 个人笔记 -->
+              <div class="border-t border-gray-200 pt-4">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-lg font-semibold text-gray-900">个人笔记</h3>
+                  <button
+                    v-if="!isEditingNote"
+                    @click="startEditNote"
+                    class="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    {{ userNote?.noteContent ? '编辑' : '添加' }}
+                  </button>
+                </div>
 
-              <!-- 编辑模式 -->
-              <div v-else>
-                <textarea
-                  v-model="editForm.coreStrategy"
-                  rows="6"
-                  placeholder="记录解题的核心思路，如使用的算法、数据结构、关键步骤等（支持Markdown）"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                ></textarea>
-                <div class="flex justify-end space-x-2 mt-2">
-                  <button
-                    @click="cancelEditStrategy"
-                    class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    取消
-                  </button>
-                  <button
-                    @click="saveStrategy"
-                    :disabled="saving"
-                    class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                  >
-                    {{ saving ? '保存中...' : '保存' }}
-                  </button>
+                <!-- 显示模式 -->
+                <div v-if="!isEditingNote && userNote?.noteContent" class="prose prose-sm max-w-none bg-green-50 rounded-lg p-4" v-html="renderMarkdown(userNote.noteContent)"></div>
+                <div v-else-if="!isEditingNote" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
+                  暂无个人笔记，点击上方"添加"按钮记录你的心得体会
+                </div>
+
+                <!-- 编辑模式 -->
+                <div v-else>
+                  <textarea
+                    v-model="editForm.noteContent"
+                    rows="6"
+                    placeholder="记录个人心得、注意事项、易错点等（支持Markdown）"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  ></textarea>
+                  <div class="flex justify-end space-x-2 mt-2">
+                    <button
+                      @click="cancelEditNote"
+                      class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      取消
+                    </button>
+                    <button
+                      @click="saveNote"
+                      :disabled="saving"
+                      class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+                    >
+                      {{ saving ? '保存中...' : '保存' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <!-- 个人笔记 -->
-            <div class="border-t border-gray-200 pt-6">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-semibold text-gray-900">个人笔记</h3>
-                <button
-                  v-if="!isEditingNote"
-                  @click="startEditNote"
-                  class="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  {{ userNote?.noteContent ? '编辑' : '添加' }}
-                </button>
-              </div>
-
-              <!-- 显示模式 -->
-              <div v-if="!isEditingNote && userNote?.noteContent" class="prose prose-sm max-w-none bg-green-50 rounded-lg p-4" v-html="renderMarkdown(userNote.noteContent)"></div>
-              <div v-else-if="!isEditingNote" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
-                暂无个人笔记，点击上方"添加"按钮记录你的心得体会
-              </div>
-
-              <!-- 编辑模式 -->
-              <div v-else>
-                <textarea
-                  v-model="editForm.noteContent"
-                  rows="6"
-                  placeholder="记录个人心得、注意事项、易错点等（支持Markdown）"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                ></textarea>
-                <div class="flex justify-end space-x-2 mt-2">
-                  <button
-                    @click="cancelEditNote"
-                    class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    取消
-                  </button>
-                  <button
-                    @click="saveNote"
-                    :disabled="saving"
-                    class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                  >
-                    {{ saving ? '保存中...' : '保存' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <!-- 底部操作按钮 -->
-        <div class="border-t border-gray-200 px-6 py-4 flex justify-end">
-          <button
-            @click="$emit('close')"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            关闭
-          </button>
-        </div>
+          </div>
+        </template>
       </div>
+
+      <!-- 底部操作按钮 -->
+      <div class="border-t border-gray-200 px-4 py-3 flex justify-end bg-white">
+        <button
+          @click="$emit('close')"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          关闭
+        </button>
+      </div>
+
+      <!-- 右边缘拖拽手柄（用于调整宽度） -->
+      <div
+        @mousedown="startResize"
+        class="absolute top-0 right-0 w-1 h-full cursor-ew-resize hover:bg-blue-500 transition-colors"
+        :class="{ 'bg-blue-500': isResizing }"
+      ></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { questionApi } from '@/api/questionApi'
@@ -278,6 +311,92 @@ const editForm = ref({
   coreStrategy: '',
   noteContent: ''
 })
+
+// 拖拽相关状态
+const modalRef = ref(null)
+const isDragging = ref(false)
+const modalPosition = ref({ x: 0, y: 0 })
+const dragStart = ref({ x: 0, y: 0 })
+
+// 调整大小相关状态
+const isResizing = ref(false)
+const modalWidth = ref(1200) // 初始宽度1200px
+const resizeStartX = ref(0)
+const resizeStartWidth = ref(0)
+
+// 初始化弹窗位置（屏幕居中）
+const initModalPosition = () => {
+  const windowWidth = window.innerWidth
+  const windowHeight = window.innerHeight
+  const modalHeight = windowHeight * 0.85
+
+  // 将弹窗放在屏幕中央
+  modalPosition.value = {
+    x: (windowWidth - modalWidth.value) / 2,
+    y: (windowHeight - modalHeight) / 2
+  }
+}
+
+// 开始拖拽
+const startDrag = (e) => {
+  isDragging.value = true
+  dragStart.value = {
+    x: e.clientX - modalPosition.value.x,
+    y: e.clientY - modalPosition.value.y
+  }
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+}
+
+// 拖拽中
+const onDrag = (e) => {
+  if (!isDragging.value) return
+
+  modalPosition.value = {
+    x: e.clientX - dragStart.value.x,
+    y: e.clientY - dragStart.value.y
+  }
+}
+
+// 停止拖拽
+const stopDrag = () => {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+// 开始调整大小
+const startResize = (e) => {
+  e.stopPropagation() // 防止触发拖拽
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+  resizeStartWidth.value = modalWidth.value
+
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', stopResize)
+}
+
+// 调整大小中
+const onResize = (e) => {
+  if (!isResizing.value) return
+
+  const deltaX = e.clientX - resizeStartX.value
+  const newWidth = resizeStartWidth.value + deltaX
+
+  // 限制最小宽度800px，最大宽度为屏幕宽度的90%
+  const minWidth = 800
+  const maxWidth = window.innerWidth * 0.9
+
+  modalWidth.value = Math.max(minWidth, Math.min(newWidth, maxWidth))
+}
+
+// 停止调整大小
+const stopResize = () => {
+  isResizing.value = false
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', stopResize)
+}
 
 // Methods
 const renderMarkdown = (text) => {
@@ -377,8 +496,17 @@ const saveNote = async () => {
 
 // Initialize
 onMounted(async () => {
+  initModalPosition()
   await loadQuestionDetails()
   await loadUserNote()
+})
+
+// Cleanup
+onUnmounted(() => {
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', stopResize)
 })
 </script>
 

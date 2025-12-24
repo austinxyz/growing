@@ -641,7 +641,7 @@ const editQuestion = async (question) => {
 
 // 删除试题确认
 const deleteQuestionConfirm = async (question) => {
-  if (!confirm(`确定要删除试题"${question.questionText.substring(0, 30)}..."吗？`)) {
+  if (!confirm(`确定要删除试题"${(question.questionDescription || question.title).substring(0, 30)}..."吗？`)) {
     return
   }
 

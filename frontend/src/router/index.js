@@ -28,27 +28,6 @@ const routes = [
     name: 'MyCareerPaths',
     component: () => import('../views/careerPaths/MyCareerPaths.vue')
   },
-  // 学习模块 - 技能管理
-  {
-    path: '/skills',
-    name: 'SkillList',
-    component: () => import('../views/skills/SkillList.vue')
-  },
-  {
-    path: '/skills/:id',
-    name: 'SkillDetail',
-    component: () => import('../views/skills/SkillDetail.vue')
-  },
-  {
-    path: '/skills/tree',
-    name: 'SkillTree',
-    component: () => import('../views/skills/SkillTree.vue')
-  },
-  {
-    path: '/skills/progress',
-    name: 'LearningProgress',
-    component: () => import('../views/skills/LearningProgress.vue')
-  },
   // 管理员 - 技能管理
   {
     path: '/admin/skills',
@@ -105,6 +84,12 @@ const routes = [
     path: '/algorithm-templates',
     name: 'AlgorithmTemplates',
     component: () => import('../views/AlgorithmTemplates.vue')
+  },
+  // 用户端 - 学习总结
+  {
+    path: '/learning-review',
+    name: 'LearningReview',
+    component: () => import('../views/LearningReview.vue')
   },
   // 管理员 - 算法模版管理（Phase 4）
   {

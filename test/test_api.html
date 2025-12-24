@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing API Responses</h1>
+    <div id="output"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const output = document.getElementById('output');
+
+        async function login() {
+            const response = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: 'austinxu', password: 'helloworld'})
+            });
+            const data = await response.json();
+            return data.token;
+        }
+
+        async function test() {
+            try {
+                const token = await login();
+                output.innerHTML += '<h2>Token received</h2>';
+
+                // Test 1: Get all career paths
+                const cpResponse = await fetch(`${API_BASE}/career-paths`, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                const careerPaths = await cpResponse.json();
+                output.innerHTML += `<h3>Career Paths (${careerPaths.data.length}):</h3>`;
+                output.innerHTML += `<pre>${JSON.stringify(careerPaths.data, null, 2)}</pre>`;
+
+                // Test 2: Get skills for each career path
+                for (const cp of careerPaths.data) {
+                    const skillsResponse = await fetch(`${API_BASE}/skills/career-path/${cp.id}`, {
+                        headers: {'Authorization': `Bearer ${token}`}
+                    });
+                    const skills = await skillsResponse.json();
+                    output.innerHTML += `<h3>Skills for "${cp.name}" (${skills.length}):</h3>`;
+                    output.innerHTML += `<pre>${JSON.stringify(skills.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        focusAreaCount: s.focusAreaCount,
+                        focusAreas: s.focusAreas?.map(fa => fa.name)
+                    })), null, 2)}</pre>`;
+                }
+
+            } catch (error) {
+                output.innerHTML += `<p style="color:red">Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>

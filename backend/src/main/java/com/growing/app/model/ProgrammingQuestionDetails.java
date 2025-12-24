@@ -31,6 +31,9 @@ public class ProgrammingQuestionDetails {
     @JoinColumn(name = "question_id", nullable = false, unique = true)
     private Question question;
 
+    @Column(name = "leetcode_number")
+    private Integer leetcodeNumber;
+
     @Column(name = "leetcode_url", length = 500)
     private String leetcodeUrl;
 

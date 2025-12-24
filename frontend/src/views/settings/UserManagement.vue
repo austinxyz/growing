@@ -312,7 +312,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import userApi from '@/api/user'
-import careerPathApi from '@/api/careerPath'
+import { getAllCareerPaths } from '@/api/careerPaths'
 
 // 状态
 const users = ref([])
@@ -359,7 +359,7 @@ const loadUsers = async () => {
 // 加载职业路径
 const loadCareerPaths = async () => {
   try {
-    const response = await careerPathApi.getCareerPaths()
+    const response = await getAllCareerPaths()
     careerPaths.value = response.data || []
   } catch (err) {
     console.error('加载职业路径失败:', err)

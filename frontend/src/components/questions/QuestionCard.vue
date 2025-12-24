@@ -30,7 +30,7 @@
     </div>
 
     <h3 class="text-base font-medium text-gray-900 mb-2 line-clamp-2">
-      {{ truncate(question.questionText, 100) }}
+      {{ truncate(question.questionDescription, 100) }}
     </h3>
 
     <div class="flex items-center space-x-3 text-sm text-gray-600">

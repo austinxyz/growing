@@ -27,4 +27,9 @@ public interface ProgrammingQuestionDetailsRepository extends JpaRepository<Prog
      * 删除question关联的details
      */
     void deleteByQuestionId(Long questionId);
+
+    /**
+     * 批量查询多个question的编程题详情
+     */
+    List<ProgrammingQuestionDetails> findByQuestionIdIn(List<Long> questionIds);
 }

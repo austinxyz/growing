@@ -163,6 +163,16 @@ public class AuthService {
     }
 
     /**
+     * 从 token 中获取用户ID
+     */
+    public Long getUserIdFromToken(String token) {
+        String username = jwtUtil.getUsernameFromToken(token);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        return user.getId();
+    }
+
+    /**
      * 验证 token 并获取用户信息
      */
     public UserDTO validateToken(String token) {

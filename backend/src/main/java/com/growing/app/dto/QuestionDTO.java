@@ -14,7 +14,6 @@ public class QuestionDTO {
     private String focusAreaName;
     private String title;  // 题目标题（如 "[5] Longest Palindromic Substring"）
     private String questionDescription;  // 问题描述（Markdown格式）
-    private String questionText;  // 详细描述
     private Question.Difficulty difficulty;
     private String answerRequirement;
     private String targetPosition;

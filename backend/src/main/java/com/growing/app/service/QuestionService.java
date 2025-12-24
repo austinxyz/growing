@@ -9,18 +9,15 @@ import com.growing.app.model.FocusArea;
 import com.growing.app.model.Question;
 import com.growing.app.model.User;
 import com.growing.app.model.UserQuestionNote;
-import com.growing.app.repository.FocusAreaRepository;
-import com.growing.app.repository.QuestionRepository;
-import com.growing.app.repository.UserQuestionNoteRepository;
-import com.growing.app.repository.UserRepository;
+import com.growing.app.repository.*;
+import com.growing.app.model.MajorCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +37,12 @@ public class QuestionService {
 
     @Autowired
     private ProgrammingQuestionDetailsService programmingDetailsService;
+
+    @Autowired
+    private FocusAreaCategoryRepository focusAreaCategoryRepository;
+
+    @Autowired
+    private MajorCategoryRepository majorCategoryRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -105,7 +108,7 @@ public class QuestionService {
     public QuestionDTO createQuestion(QuestionDTO dto, Long userId, boolean isOfficial) {
         Question question = new Question();
         question.setTitle(dto.getTitle());
-        question.setQuestionText(dto.getQuestionText());
+        question.setQuestionDescription(dto.getQuestionDescription());
         question.setDifficulty(dto.getDifficulty());
         question.setAnswerRequirement(dto.getAnswerRequirement());
         question.setTargetPosition(dto.getTargetPosition());
@@ -153,7 +156,7 @@ public class QuestionService {
         }
 
         question.setTitle(dto.getTitle());
-        question.setQuestionText(dto.getQuestionText());
+        question.setQuestionDescription(dto.getQuestionDescription());
         question.setDifficulty(dto.getDifficulty());
         question.setAnswerRequirement(dto.getAnswerRequirement());
         question.setTargetPosition(dto.getTargetPosition());
@@ -204,7 +207,6 @@ public class QuestionService {
         dto.setFocusAreaName(question.getFocusArea().getName());
         dto.setTitle(question.getTitle());
         dto.setQuestionDescription(question.getQuestionDescription());
-        dto.setQuestionText(question.getQuestionText());
         dto.setDifficulty(question.getDifficulty());
         dto.setAnswerRequirement(question.getAnswerRequirement());
         dto.setTargetPosition(question.getTargetPosition());
@@ -330,5 +332,171 @@ public class QuestionService {
         note.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
 
         return dto;
+    }
+
+    /**
+     * 获取用户的学习总结（按大分类和Focus Area分组）
+     * 显示"算法与数据结构"skill下的所有编程题，有笔记的显示核心思路
+     */
+    public Map<String, Object> getLearningReview(Long userId) {
+        // 常量：算法与数据结构skill ID
+        final Long ALGORITHM_SKILL_ID = 1L;
+
+        // 1. 一次性批量查询所有编程题（带Focus Area和Programming Details）
+        List<Question> allProgrammingQuestions = questionRepository.findAllProgrammingQuestionsBySkillId(ALGORITHM_SKILL_ID);
+
+        // 2. 一次性获取用户的所有笔记，建立 questionId -> note 的映射
+        List<UserQuestionNote> userNotes = noteRepository.findAllByUserIdWithQuestionAndFocusArea(userId);
+        Map<Long, UserQuestionNote> noteMap = userNotes.stream()
+                .collect(Collectors.toMap(
+                        note -> note.getQuestion().getId(),
+                        note -> note
+                ));
+
+        // 3. 批量加载所有编程题详情，建立 questionId -> details 的映射
+        List<Long> questionIds = allProgrammingQuestions.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        Map<Long, ProgrammingQuestionDetailsDTO> detailsMap =
+                programmingDetailsService.getDetailsByQuestionIds(questionIds);
+
+        // 4. 收集所有 Focus Area IDs，批量查询它们对应的大分类
+        Set<Long> focusAreaIds = allProgrammingQuestions.stream()
+                .map(q -> q.getFocusArea().getId())
+                .collect(Collectors.toSet());
+
+        // 4. 批量查询所有 Focus Area 对应的大分类关系
+        Map<Long, List<Long>> focusAreaToCategoryMap = new HashMap<>();
+        Map<Long, MajorCategory> majorCategoryMap = new HashMap<>();
+
+        for (Long focusAreaId : focusAreaIds) {
+            var facList = focusAreaCategoryRepository.findByFocusAreaId(focusAreaId);
+            List<Long> categoryIds = new ArrayList<>();
+            for (var fac : facList) {
+                categoryIds.add(fac.getCategoryId());
+                if (!majorCategoryMap.containsKey(fac.getCategoryId())) {
+                    majorCategoryRepository.findById(fac.getCategoryId())
+                            .ifPresent(mc -> majorCategoryMap.put(mc.getId(), mc));
+                }
+            }
+            focusAreaToCategoryMap.put(focusAreaId, categoryIds);
+        }
+
+        // 5. 结构: Map<大分类名, Map<FocusAreaId, List<QuestionSummary>>>
+        Map<String, Map<Long, List<Map<String, Object>>>> categoryGroups = new LinkedHashMap<>();
+        Map<String, Long> categoryIdMap = new HashMap<>();
+
+        // 6. 遍历所有编程题，组装数据
+        for (Question question : allProgrammingQuestions) {
+            FocusArea focusArea = question.getFocusArea();
+            UserQuestionNote note = noteMap.get(question.getId());
+
+            // 获取编程题详情（从批量加载的map中获取）
+            ProgrammingQuestionDetailsDTO programmingDetails = detailsMap.get(question.getId());
+            if (programmingDetails == null) {
+                continue;
+            }
+
+            // 获取该 Focus Area 对应的所有大分类
+            List<Long> categoryIds = focusAreaToCategoryMap.get(focusArea.getId());
+
+            if (categoryIds == null || categoryIds.isEmpty()) {
+                // 没有关联的大分类，放入"未分类"
+                processQuestionForReview(categoryGroups, categoryIdMap, "未分类", null,
+                        focusArea, question, note, programmingDetails);
+            } else {
+                // 一个Focus Area可能属于多个大分类，将试题添加到所有相关分类中
+                for (Long categoryId : categoryIds) {
+                    MajorCategory mc = majorCategoryMap.get(categoryId);
+                    if (mc != null) {
+                        processQuestionForReview(categoryGroups, categoryIdMap,
+                                mc.getName(), mc.getId(), focusArea, question, note, programmingDetails);
+                    }
+                }
+            }
+        }
+
+        // 对每个分类内的Focus Area按Focus Area name排序，对每个Focus Area内的试题按leetcode_number排序
+        Map<String, Object> categoriesResult = new LinkedHashMap<>();
+        categoryGroups.forEach((categoryName, focusAreaGroups) -> {
+            List<Map<String, Object>> focusAreaList = new ArrayList<>();
+
+            focusAreaGroups.forEach((focusAreaId, questions) -> {
+                // 按leetcode_number排序
+                questions.sort(Comparator.comparing(q ->
+                        q.get("leetcodeNumber") != null ? (Integer) q.get("leetcodeNumber") : Integer.MAX_VALUE
+                ));
+
+                Map<String, Object> focusAreaGroup = new LinkedHashMap<>();
+                focusAreaGroup.put("focusAreaId", focusAreaId);
+                focusAreaGroup.put("focusAreaName", questions.get(0).get("focusAreaName"));
+                focusAreaGroup.put("questions", questions);
+                focusAreaList.add(focusAreaGroup);
+            });
+
+            // 按Focus Area名称排序
+            focusAreaList.sort(Comparator.comparing(fa -> (String) fa.get("focusAreaName")));
+
+            Map<String, Object> categoryData = new LinkedHashMap<>();
+            categoryData.put("categoryId", categoryIdMap.get(categoryName));
+            categoryData.put("focusAreas", focusAreaList);
+            categoriesResult.put(categoryName, categoryData);
+        });
+
+        // 统计所有编程题的数量
+        int totalQuestions = categoryGroups.values().stream()
+                .mapToInt(focusAreaGroups -> focusAreaGroups.values().stream()
+                        .mapToInt(List::size)
+                        .sum())
+                .sum();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("categories", categoriesResult);
+        result.put("totalQuestions", totalQuestions);
+        return result;
+    }
+
+    /**
+     * 处理单个试题，添加到对应的分类和Focus Area分组
+     * @param note 可能为null（用户没有笔记）
+     */
+    private void processQuestionForReview(
+            Map<String, Map<Long, List<Map<String, Object>>>> categoryGroups,
+            Map<String, Long> categoryIdMap,
+            String categoryName,
+            Long categoryId,
+            FocusArea focusArea,
+            Question question,
+            UserQuestionNote note,
+            ProgrammingQuestionDetailsDTO programmingDetails) {
+
+        // 初始化分类
+        if (!categoryGroups.containsKey(categoryName)) {
+            categoryGroups.put(categoryName, new LinkedHashMap<>());
+            categoryIdMap.put(categoryName, categoryId);
+        }
+
+        Map<Long, List<Map<String, Object>>> focusAreaGroups = categoryGroups.get(categoryName);
+
+        // 初始化Focus Area
+        if (!focusAreaGroups.containsKey(focusArea.getId())) {
+            focusAreaGroups.put(focusArea.getId(), new ArrayList<>());
+        }
+
+        Map<String, Object> questionSummary = new LinkedHashMap<>();
+        questionSummary.put("questionId", question.getId());
+        questionSummary.put("title", question.getTitle());
+        questionSummary.put("focusAreaId", focusArea.getId());
+        questionSummary.put("focusAreaName", focusArea.getName());
+        questionSummary.put("difficulty", question.getDifficulty());
+
+        // 核心思路：如果用户有笔记就显示，否则为null
+        questionSummary.put("coreStrategy", note != null ? note.getCoreStrategy() : null);
+
+        // 添加编程题专属信息
+        questionSummary.put("leetcodeNumber", programmingDetails.getLeetcodeNumber());
+        questionSummary.put("leetcodeUrl", programmingDetails.getLeetcodeUrl());
+
+        focusAreaGroups.get(focusArea.getId()).add(questionSummary);
     }
 }

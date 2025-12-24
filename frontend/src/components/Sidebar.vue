@@ -88,11 +88,6 @@
             <Briefcase class="w-5 h-5" />
             <span>职业技能</span>
           </router-link>
-        </div>
-
-        <!-- 学习模块 -->
-        <div class="space-y-1">
-          <div class="nav-section-title">学习模块</div>
           <router-link
             to="/my-questions"
             class="nav-item"
@@ -101,13 +96,18 @@
             <BookOpen class="w-5 h-5" />
             <span>我的试题库</span>
           </router-link>
+        </div>
+
+        <!-- 算法与数据结构 -->
+        <div class="space-y-1">
+          <div class="nav-section-title">算法与数据结构</div>
           <router-link
             to="/algorithm-learning"
             class="nav-item"
             :class="isActive('/algorithm-learning')"
           >
             <Code class="w-5 h-5" />
-            <span>算法学习</span>
+            <span>学习路径</span>
           </router-link>
           <router-link
             to="/algorithm-templates"
@@ -115,7 +115,15 @@
             :class="isActive('/algorithm-templates')"
           >
             <FileCode class="w-5 h-5" />
-            <span>算法模版库</span>
+            <span>模版库</span>
+          </router-link>
+          <router-link
+            to="/learning-review"
+            class="nav-item"
+            :class="isActive('/learning-review')"
+          >
+            <BookCheck class="w-5 h-5" />
+            <span>学习总结</span>
           </router-link>
         </div>
       </template>
@@ -137,16 +145,16 @@
             class="nav-item"
             :class="isActive('/admin/skills')"
           >
-            <BookOpen class="w-5 h-5" />
-            <span>技能管理</span>
+            <Target class="w-5 h-5" />
+            <span>职业技能库</span>
           </router-link>
           <router-link
             to="/admin/questions"
             class="nav-item"
             :class="isActive('/admin/questions')"
           >
-            <BookOpen class="w-5 h-5" />
-            <span>试题管理</span>
+            <FileQuestion class="w-5 h-5" />
+            <span>试题库</span>
           </router-link>
           <router-link
             to="/admin/algorithm-content"
@@ -162,7 +170,7 @@
             :class="isActive('/admin/algorithm-templates')"
           >
             <FileCode class="w-5 h-5" />
-            <span>算法模版管理</span>
+            <span>算法模版库</span>
           </router-link>
         </div>
 
@@ -218,7 +226,10 @@ import {
   UserCircle,
   LogOut,
   Code,
-  FileCode
+  FileCode,
+  Target,
+  FileQuestion,
+  BookCheck
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 

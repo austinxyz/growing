@@ -79,7 +79,7 @@
           <!-- 问题描述 -->
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-2">问题描述</h3>
-            <div class="prose prose-sm max-w-none bg-gray-50 rounded-lg p-4" v-html="renderMarkdown(question.questionText)"></div>
+            <div class="prose prose-sm max-w-none bg-gray-50 rounded-lg p-4" v-html="renderMarkdown(question.questionDescription)"></div>
           </div>
 
           <!-- 编程题详情 -->

@@ -226,7 +226,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import authApi from '@/api/auth'
-import careerPathApi from '@/api/careerPath'
+import { getAllCareerPaths } from '@/api/careerPaths'
 
 const router = useRouter()
 const { login } = useAuth()
@@ -324,7 +324,7 @@ const handleGoogleCallback = (response) => {
 // 加载职业路径
 const loadCareerPaths = async () => {
   try {
-    const response = await careerPathApi.getCareerPaths()
+    const response = await getAllCareerPaths()
     careerPaths.value = response.data || []
   } catch (error) {
     console.error('加载职业路径失败:', error)

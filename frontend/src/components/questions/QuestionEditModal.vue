@@ -73,7 +73,7 @@
               问题描述
             </label>
             <textarea
-              v-model="form.questionText"
+              v-model="form.questionDescription"
               rows="6"
               placeholder="输入详细的题目描述（支持 Markdown）&#10;&#10;例如：&#10;**题目描述**: ...&#10;&#10;**考察点**: ...&#10;&#10;**示例**:&#10;```&#10;输入: ...&#10;输出: ...&#10;```"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -333,7 +333,7 @@ const careerPaths = ref([])
 const form = ref({
   focusAreaId: '',
   title: '',
-  questionText: '',
+  questionDescription: '',
   difficulty: 'EASY',
   answerRequirement: '',
   targetPosition: '',
@@ -369,7 +369,7 @@ watch(() => props.question, (newQuestion) => {
     form.value = {
       focusAreaId: newQuestion.focusAreaId || '',
       title: newQuestion.title || '',
-      questionText: newQuestion.questionText || '',
+      questionDescription: newQuestion.questionDescription || '',
       difficulty: newQuestion.difficulty || 'EASY',
       answerRequirement: newQuestion.answerRequirement || '',
       targetPosition: newQuestion.targetPosition || '',
@@ -390,7 +390,7 @@ watch(() => props.question, (newQuestion) => {
     form.value = {
       focusAreaId: props.currentFocusAreaId || '',  // 使用当前选中的Focus Area
       title: '',
-      questionText: '',
+      questionDescription: '',
       difficulty: 'EASY',
       answerRequirement: '',
       targetPosition: '',

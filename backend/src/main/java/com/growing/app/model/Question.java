@@ -31,9 +31,6 @@ public class Question {
     @Column(name = "question_description", columnDefinition = "TEXT")
     private String questionDescription;  // 问题描述（Markdown格式）
 
-    @Column(name = "question_text", columnDefinition = "TEXT")
-    private String questionText;  // 详细描述
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Difficulty difficulty;

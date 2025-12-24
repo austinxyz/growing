@@ -132,6 +132,25 @@ public class LearningContentService {
     }
 
     /**
+     * 获取算法模版列表（分页版本）
+     * API: GET /api/learning-contents/algorithm-templates
+     */
+    public Page<LearningContentDTO> getAlgorithmTemplates(String search, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LearningContent> templates;
+
+        if (search != null && !search.trim().isEmpty()) {
+            templates = learningContentRepository.findByContentTypeAndFocusAreaIdIsNullAndTitleContaining(
+                    LearningContent.ContentType.template, search.trim(), pageable);
+        } else {
+            templates = learningContentRepository.findByContentTypeAndFocusAreaIdIsNull(
+                    LearningContent.ContentType.template, pageable);
+        }
+
+        return templates.map(this::convertToDTO);
+    }
+
+    /**
      * 获取单个算法模版详情
      * API: GET /api/algorithm-templates/{id}
      */
@@ -206,7 +225,7 @@ public class LearningContentService {
         content.setAuthor(dto.getAuthor());
         content.setContentData(dto.getContentData());
         content.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
-        content.setVisibility(dto.getVisibility() != null ? dto.getVisibility() : LearningContent.Visibility.public_);
+        content.setVisibility(dto.getVisibility() != null ? dto.getVisibility() : LearningContent.Visibility.PUBLIC);
         content.setCreatedBy(admin);
 
         // 设置Focus Area（算法模版时为null）

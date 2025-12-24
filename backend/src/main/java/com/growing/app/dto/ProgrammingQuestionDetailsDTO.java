@@ -10,6 +10,9 @@ public class ProgrammingQuestionDetailsDTO {
     private Long id;
     private Long questionId;
 
+    // LeetCode题号
+    private Integer leetcodeNumber;
+
     // 外部资源链接
     private String leetcodeUrl;
     private String labuladongUrl;

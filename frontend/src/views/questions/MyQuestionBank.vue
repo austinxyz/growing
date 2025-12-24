@@ -225,7 +225,7 @@
               <h2 class="text-xl font-semibold text-gray-900 mb-4">
                 问题
               </h2>
-              <div class="prose prose-sm max-w-none mb-6" v-html="renderMarkdown(selectedQuestion.questionText)"></div>
+              <div class="prose prose-sm max-w-none mb-6" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
 
               <div v-if="selectedQuestion.targetPosition || selectedQuestion.targetLevel" class="text-sm text-gray-600 mb-4">
                 <span v-if="selectedQuestion.targetPosition">针对职位: {{ selectedQuestion.targetPosition }}</span>
@@ -335,7 +335,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { marked } from 'marked'
 import { questionApi } from '@/api/questionApi'
-import { getAllCareerPaths } from '@/api/careerPaths'
+import { getMyCareerPaths } from '@/api/careerPaths'
 import { getSkillsByCareerPath } from '@/api/skills'
 import QuestionCard from '@/components/questions/QuestionCard.vue'
 import DifficultyBadge from '@/components/questions/DifficultyBadge.vue'
@@ -584,7 +584,7 @@ const closeNoteModal = () => {
 // Initialize
 onMounted(async () => {
   try {
-    const response = await getAllCareerPaths()
+    const response = await getMyCareerPaths()
     careerPaths.value = response.data || response || []
     if (careerPaths.value.length > 0) {
       await selectCareerPath(careerPaths.value[0].id)
