@@ -36,45 +36,116 @@
 
 ### ⚠️ Common Mistakes from Previous Prompts
 
+**📂 Category 1: Documentation Management Mistakes**
+
 **Mistake #1**: Asking for "归纳到CLAUDE.md文件中去，但保持这个文件简洁"
 - **Problem**: You asked me to add architecture details to CLAUDE.md, making it bloated
 - **Fix**: Architecture details belong in `docs/ARCHITECTURE.md`, CLAUDE.md is for guardrails only
+- **🛡️ How to Avoid**: Before asking for docs updates, specify EXACTLY which file gets what (e.g., "Update CLAUDE.md with [error pattern X], keep under 10 lines, focus on prevention checklist")
 
 **Mistake #2**: Not specifying what CLAUDE.md should contain
 - **Problem**: Generic "summarize architecture" leads to verbose output
 - **Fix**: Explicitly state "only critical guardrails and quick start commands"
+- **🛡️ How to Avoid**: Use template: "Update CLAUDE.md with [specific error], show [prevention checklist/code example]"
 
 **Mistake #3**: Asking to "review" design documents without specific criteria
 - **Problem**: I'll just parrot back what's in the doc without value-add
 - **Fix**: Ask specific questions like "what security issues exist?" or "what's missing?"
+- **🛡️ How to Avoid**: Provide review criteria: security, performance, edge cases, UX, or missing validations
 
-**Mistake #4 (Phase 3)**: Not understanding axios interceptor behavior
-- **Problem**: Axios response interceptor returns `response.data`, but code used `response.data` again → `undefined`
-- **What Happened**: Bug appeared TWICE in Phase 3 (QuestionManagement.vue, MyQuestionBank.vue)
-- **Root Cause**: `/frontend/src/api/index.js:27-29` has interceptor that auto-unwraps
-- **Fix**: Always use `response` directly, not `response.data` (see Guardrail #8)
-- **Lesson**: When debugging "data not showing", check interceptors first
+---
 
-**Mistake #5 (Phase 3)**: Incomplete DTO conversion in Service layer
+**🌐 Category 2: Frontend Axios Mistakes** ⚠️ **HIGHEST FREQUENCY - 2 mistakes in 2 phases!**
+
+**Root Cause**: Not checking `/frontend/src/api/index.js` before writing API code
+
+**Mistake #4 (Phase 3)**: Using `response.data` when interceptor already unwrapped it
+- **Problem**: Axios interceptor returns `response.data`, but code used `response.data` again → `undefined`
+- **What Happened**: Bug appeared TWICE (QuestionManagement.vue, MyQuestionBank.vue)
+- **Root Cause**: `/frontend/src/api/index.js:27-29` auto-unwraps `response.data`
+- **Fix**: Always use `response` directly (see Guardrail #8)
+- **🛡️ Prevention Checklist**:
+  1. [ ] Read `/frontend/src/api/index.js:27-29` BEFORE writing any API call
+  2. [ ] Add comment in new API files: `// Note: interceptor returns response.data already`
+  3. [ ] Use pattern: `const data = await api.method()` (NOT `const response = ...`)
+  4. [ ] Test with browser console to verify data structure
+
+**Mistake #7 (Phase 4)**: Adding `/api` prefix when baseURL already includes it
+- **Problem**: `apiClient.get('/api/major-categories')` → `/api/api/major-categories` (404)
+- **What Happened**: Created `majorCategoryApi.js` with duplicate `/api/` prefix
+- **Root Cause**: Forgot `/frontend/src/api/index.js:4` sets `baseURL: '/api'`
+- **Fix**: Endpoints NEVER include `/api` - just `apiClient.get('/major-categories')`
+- **🛡️ Prevention Checklist**:
+  1. [ ] Read `/frontend/src/api/index.js:4` to confirm baseURL
+  2. [ ] Memorize: `baseURL = '/api'` → endpoints start with `/` (e.g., `/users`)
+  3. [ ] Review existing API file (e.g., `questionApi.js`) as reference
+  4. [ ] Add template comment:
+     ```javascript
+     // ⚠️ baseURL is '/api', do NOT add '/api' prefix!
+     // ❌ WRONG: apiClient.get('/api/users')
+     // ✅ CORRECT: apiClient.get('/users')
+     ```
+
+**🚨 MANDATORY Checklist Before Writing ANY Frontend API Code**:
+- [ ] Opened `/frontend/src/api/index.js` and checked lines 4 (baseURL) and 27-29 (interceptor)?
+- [ ] Reviewed at least ONE existing API file for reference?
+- [ ] API endpoints start with `/` WITHOUT `/api` prefix?
+- [ ] API response pattern is `const data = await api.method()`?
+- [ ] Added template comment warning about axios config?
+
+---
+
+**🔧 Category 3: Backend Service Layer Mistakes**
+
+**Mistake #5 (Phase 3)**: Incomplete DTO conversion
 - **Problem**: `SkillService.getSkillsByCareerPathId()` didn't populate `focusAreas` list
-- **What Happened**: Frontend couldn't display Focus Area tree because backend returned empty array
-- **Root Cause**: DTO conversion only set `focusAreaCount`, forgot to add actual `focusAreas` list
+- **What Happened**: Frontend got empty array, couldn't display Focus Area tree
+- **Root Cause**: DTO only set `focusAreaCount`, forgot `focusAreas` list itself
 - **Fix**: Added `dto.setFocusAreas(focusAreaRepository.find...)`
-- **Lesson**: When adding new fields to DTOs, update ALL methods that return that DTO
+- **🛡️ Prevention Checklist** (when adding DTO fields):
+  1. [ ] Grep ALL Service methods returning this DTO
+  2. [ ] For each method: verify new field is populated
+  3. [ ] Add unit test checking DTO completeness
+  4. [ ] Use code comment:
+     ```java
+     // DTO Completeness Checklist:
+     // [ ] Primitives set? [ ] Nested collections? [ ] Computed fields?
+     ```
 
-**Mistake #6 (Phase 3)**: Poor UX from not considering user context
-- **Problem**: User already viewing Focus Area X, but modal still asked "which Focus Area?"
-- **What Happened**: Required user to re-select Focus Area when adding question
-- **Root Cause**: Modal didn't receive current context as prop
-- **Fix**: Pass `currentFocusAreaId` and `currentFocusAreaName` props, conditionally render read-only field
-- **Lesson**: Before implementing forms, think about user's current context and pre-fill what you can
+---
 
-**Mistake #7 (Phase 4)**: Adding `/api` prefix when axios baseURL already includes it
-- **Problem**: API calls like `apiClient.get('/api/major-categories')` resulted in `/api/api/major-categories` (404)
-- **What Happened**: Created `majorCategoryApi.js` with `/api/` prefix, but axios baseURL is already `/api`
-- **Root Cause**: Forgot that `/frontend/src/api/index.js:4` sets `baseURL: '/api'`
-- **Fix**: API calls should NEVER include `/api` prefix - just use `apiClient.get('/major-categories')`
-- **Lesson**: ALWAYS check axios config before writing API calls. Frontend axios baseURL = `/api`, so endpoint paths start with `/` (e.g., `/users`, `/skills`)
+**🎨 Category 4: UX Design Mistakes**
+
+**Mistake #6 (Phase 3)**: Not pre-filling user context in forms
+- **Problem**: User viewing Focus Area X, but modal asked "which Focus Area?" again
+- **What Happened**: Required re-selection of known context
+- **Root Cause**: Modal didn't receive `currentFocusAreaId` prop
+- **Fix**: Pass context props, conditionally render read-only vs editable
+- **🛡️ Prevention Checklist** (before implementing forms/modals):
+  1. [ ] Asked: "What context does the user ALREADY have?"
+  2. [ ] Pre-filled ALL inferrable fields from current context
+  3. [ ] Used pattern:
+     ```vue
+     <!-- Pass context -->
+     <Modal :current-id="selectedId" :current-name="selectedName" />
+     <!-- Conditionally render -->
+     <div v-if="currentName">{{ currentName }}</div> <!-- read-only -->
+     <select v-else v-model="form.id">...</select> <!-- editable -->
+     ```
+  4. [ ] Tested with real user workflow: "Would I be annoyed?"
+
+---
+
+**📊 Meta-Analysis: Why Axios Mistakes Repeat**
+
+**Pattern**: Axios config mistakes in Phase 3 AND Phase 4
+**Why**: Guardrails #8 and #9 are REACTIVE (written AFTER bugs), not PROACTIVE
+
+**Breaking the Pattern**:
+- ✅ Add prevention checklists (done above)
+- ✅ Create `/frontend/src/api/README.md` with axios config summary (TODO)
+- ✅ Update CLAUDE.md after EVERY bug fix with "How to Avoid" section
+- ⚠️ Consider ESLint rule to detect `/api/api` paths (investigate feasibility)
 
 ## Quick Start
 

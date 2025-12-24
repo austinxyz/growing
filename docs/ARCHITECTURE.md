@@ -532,6 +532,279 @@ npm run dev  # Runs on http://localhost:3000, proxies /api to :8080
 
 ---
 
-**Document Version**: v1.0
-**Last Updated**: 2025-12-21
+## Phase 4 Architecture (Algorithm Learning System)
+
+### Overview
+
+Phase 4 introduced a flexible, Skill-level learning path system for the "算法与数据结构" skill. Key innovation: **different skills can define different learning stages** (e.g., algorithms use 3 stages: theory → implementation → practice).
+
+### New Data Model
+
+**Phase 4 additions**:
+```
+major_categories (id, name, sort_order)  - 4 fixed categories
+  ↑ many-to-many via focus_area_categories
+focus_areas (extended with category mapping)
+  ↑ one-to-many
+learning_contents (id, focus_area_id, stage_id, content_type, title, url, ...)
+  ↑ many-to-one
+learning_stages (id, skill_id, stage_name, stage_type, sort_order)  - 3 stages
+  ↑ many-to-one
+skills (算法与数据结构, skill_id=1)
+
+questions (extended with programming_question_details)
+  ↓ one-to-one
+programming_question_details (id, question_id, leetcode_number, leetcode_url, ...)
+
+user_question_notes (extended with core_strategy field for programming questions)
+```
+
+**Data Statistics**:
+- Major Categories: 4 (数据结构、搜索、动规、其他)
+- Focus Areas: 52 (algorithm topics)
+- Learning Stages: 3 (基础原理、实现代码、实战题目)
+- Learning Contents: 235 (225 articles + 10 templates)
+- Programming Questions: 272 (with detailed metadata)
+- User Notes: 272 (with core_strategy field)
+
+### Architecture Patterns
+
+**1. Skill-Level Learning Stages**:
+```
+Skill ("算法与数据结构")
+  → Learning Stages (3 custom stages)
+    → Learning Contents (articles, videos, code, templates)
+```
+
+Different skills can define different stages:
+- Algorithms: theory → implementation → practice
+- System Design (future): requirements → architecture → scalability
+- DevOps (future): setup → automation → monitoring
+
+**2. Algorithm Templates**:
+- Stored in `learning_contents` with `focus_area_id = NULL`
+- `content_type = 'template'`
+- Independent from Focus Areas, displayed in separate section
+- 10 templates for quick reference
+
+**3. Programming Question Details** (one-to-one extension):
+```java
+// questions table (generic, all question types)
+Question {
+  id, focus_area_id, title, question_description,
+  difficulty, question_type, is_official, ...
+}
+
+// programming_question_details table (programming-specific)
+ProgrammingQuestionDetails {
+  id, question_id (UNIQUE),
+  leetcode_number, leetcode_url,
+  labuladong_url, hellointerview_url
+}
+```
+
+**Design Benefits**:
+- `questions` table stays generic (supports behavioral, technical, programming, design)
+- Programming-specific fields isolated, no NULL waste for other question types
+- UNIQUE constraint ensures strict one-to-one relationship
+
+**4. User Notes Extension** (core_strategy field):
+```java
+// Phase 3 base structure
+UserQuestionNote {
+  id, question_id, user_id,
+  note_content,           // General notes (all question types)
+  created_at, updated_at
+}
+
+// Phase 4 extension
++ core_strategy TEXT     // Core algorithm strategy (programming questions only)
+```
+
+**Why store in user_question_notes, not programming_question_details?**
+- Core strategy is USER-SPECIFIC, not question metadata
+- Different users may have different solving approaches
+- Supports user privacy (only owner can see their strategy)
+
+### API Design
+
+**Admin APIs** (learning content management):
+```
+GET    /api/admin/learning-contents?focusAreaId={id}&stageId={id}
+POST   /api/admin/learning-contents
+PUT    /api/admin/learning-contents/{id}
+DELETE /api/admin/learning-contents/{id}
+
+GET    /api/admin/questions?focusAreaId={id}
+POST   /api/admin/questions (with programming_question_details)
+PUT    /api/admin/questions/{id}
+DELETE /api/admin/questions/{id} (cascade delete details and notes)
+```
+
+**User APIs**:
+```
+GET    /api/major-categories
+GET    /api/focus-areas-with-categories?skillId={id}
+GET    /api/learning-contents?focusAreaId={id}  (returns all stages in one call)
+GET    /api/algorithm-templates?search={keyword}
+GET    /api/questions/learning-review?majorCategoryId={id}&focusAreaId={id}&leetcodeNumber={num}
+```
+
+**Learning Review API** (new feature):
+- Endpoint: `GET /api/questions/learning-review`
+- Purpose: Batch query all 272 programming questions with core strategies
+- Performance: 0.6 seconds (batch query optimization)
+- Optimization technique:
+  ```java
+  // Single query for all programming questions
+  List<Question> allQuestions = questionRepository.findAllProgrammingQuestionsBySkillId(1L);
+
+  // Batch load user notes, build Map<questionId, UserQuestionNote>
+  Map<Long, UserQuestionNote> noteMap = buildNoteMap(allQuestions, userId);
+
+  // Batch load programming details, build Map<questionId, ProgrammingQuestionDetailsDTO>
+  Map<Long, ProgrammingQuestionDetailsDTO> detailsMap = buildDetailsMap(allQuestions);
+
+  // Batch query Focus Area to Major Category mapping
+  Map<Long, List<Long>> focusAreaToCategoryMap = buildCategoryMap(allQuestions);
+  ```
+
+### Frontend Architecture
+
+**Admin Pages**:
+1. `/admin/algorithm-content` - Two-column layout
+   - Left: Major Category tabs + Focus Area list
+   - Right: 4 tabs (基础原理、实现代码、实战题目、试题库)
+   - Tab 1-3: Manage learning_contents
+   - Tab 4: Manage questions + programming_question_details
+
+2. `/admin/algorithm-templates` - Two-column layout
+   - Left: Template list
+   - Right: Markdown editor
+
+**User Pages**:
+1. `/algorithm-learning` - Three-column layout
+   - Top: 4 Major Category tabs
+   - Left: Focus Area list
+   - Right: **Single-page integrated display** (all learning stages vertically stacked)
+   - Design change from original: Originally 3 tabs (theory/implementation/practice), now single page for continuous reading
+
+2. `/algorithm-templates` - Two-column layout
+   - Left: Template list + search
+   - Right: Markdown preview
+
+3. `/learning-review` - Compact dual-column layout (NEW)
+   - Top: Filters (major category, focus area, LeetCode number)
+   - Body: Dual-column card grid (272 questions)
+   - Card format (2 rows):
+     - Row 1: Difficulty icon + Title (clickable) + Focus Area + Category tag
+     - Row 2: Core strategy (or "暂无核心思路")
+   - Color coding by major category (blue/green/orange/purple)
+   - Performance: 0.6s load time (backend batch query)
+
+### Service Layer Patterns
+
+**Pattern 1: Batch Query Optimization**
+```java
+// QuestionService.getLearningReview()
+public Map<String, Object> getLearningReview(Long userId) {
+    // Single query for all programming questions
+    List<Question> allProgrammingQuestions =
+        questionRepository.findAllProgrammingQuestionsBySkillId(ALGORITHM_SKILL_ID);
+
+    // Batch load associations (avoid N+1 queries)
+    Map<Long, UserQuestionNote> noteMap = batchLoadNotes(allProgrammingQuestions, userId);
+    Map<Long, ProgrammingQuestionDetailsDTO> detailsMap = batchLoadDetails(allProgrammingQuestions);
+    Map<Long, List<Long>> focusAreaToCategoryMap = batchLoadCategoryMapping(allProgrammingQuestions);
+
+    // Assemble response
+    return assembleResponse(allProgrammingQuestions, noteMap, detailsMap, focusAreaToCategoryMap);
+}
+```
+
+**Pattern 2: Single-Page Integrated Display** (frontend)
+```javascript
+// AlgorithmLearning.vue
+async function loadFocusAreaContent(focusAreaId) {
+  // Single API call returns all learning stages
+  const data = await learningContentApi.getContentsByFocusArea(focusAreaId)
+
+  // Backend returns: { focusArea, stageContents: [{ stage, contents }, ...] }
+  // Frontend displays all stages vertically in one page
+  allStages.value = data.stageContents
+}
+```
+
+### Database Migrations
+
+**V9: Add leetcode_number field**
+```sql
+ALTER TABLE programming_question_details
+ADD COLUMN leetcode_number INT COMMENT 'LeetCode题号',
+ADD INDEX idx_leetcode_number (leetcode_number);
+```
+
+**V10: Remove deprecated question_text field**
+```sql
+ALTER TABLE questions
+DROP COLUMN question_text;
+```
+
+**Initial Data Import**:
+- 3 learning stages (V8_create_learning_stages.sql)
+- 225 labuladong articles (import/labuladong_phase4_v2_staged.md → Python script)
+- 10 algorithm templates (manual creation via admin panel)
+- 272 programming questions + details (import/programming_questions_with_details.sql)
+- 272 user notes with core_strategy (import/notes_only_import.sql)
+
+### Performance Optimizations
+
+**Database Indexes**:
+```sql
+-- learning_contents
+CREATE INDEX idx_focus_stage ON learning_contents(focus_area_id, stage_id, sort_order);
+CREATE INDEX idx_stage_type ON learning_contents(stage_id, content_type);
+
+-- programming_question_details
+CREATE INDEX idx_leetcode_number ON programming_question_details(leetcode_number);
+
+-- focus_area_categories
+CREATE INDEX idx_focus_area_id ON focus_area_categories(focus_area_id);
+CREATE INDEX idx_category_id ON focus_area_categories(major_category_id);
+```
+
+**Query Optimization**:
+- Learning review: Batch query (0.6s for 272 questions)
+- Focus Area content: Single API call for all stages
+- Template search: Indexed on title field
+
+### Key Design Decisions
+
+**1. Why separate programming_question_details table?**
+- `questions` table is generic (supports all question types)
+- Programming-specific fields (LeetCode links) only needed for programming questions
+- Avoids NULL fields for 107 behavioral questions
+- Easier to extend with other question types (system design, DevOps, etc.)
+
+**2. Why store core_strategy in user_question_notes?**
+- Core strategy is user-specific, not question metadata
+- Different users have different solving approaches
+- Supports privacy (only owner sees their strategy)
+- Reuses Phase 3 infrastructure (UPSERT logic, ownership control)
+
+**3. Why single-page display instead of tabs?**
+- Better learning flow: users read theory → code → practice continuously
+- Reduces UI friction (no tab switching)
+- Matches reading patterns: top-to-bottom scroll
+
+**4. Why add learning review page?**
+- User need: Quickly review all 272 questions' core strategies
+- Avoids clicking 272 individual question details
+- Performance: Batch query optimization (0.6s load time)
+- Compact design: Dual-column, minimal padding, text-xs fonts
+
+---
+
+**Document Version**: v2.0
+**Last Updated**: 2025-12-24 (added Phase 4 architecture)
 **Maintainer**: Austin Xu
