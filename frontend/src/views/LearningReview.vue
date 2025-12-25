@@ -158,14 +158,12 @@
       <table class="print-table">
         <thead>
           <tr>
-            <th class="w-num">#</th>
             <th class="w-title">题目</th>
             <th class="w-strategy">核心策略</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(question, index) in filteredQuestions" :key="question.questionId">
-            <td class="text-center">{{ index + 1 }}</td>
+          <tr v-for="question in filteredQuestions" :key="question.questionId">
             <td>
               <span v-if="question.isImportant" class="important-mark">⭐</span>
               {{ question.title }}
@@ -392,7 +390,7 @@ onMounted(() => {
   /* 打印页面设置 */
   @page {
     size: A4 portrait;
-    margin: 10mm 8mm;
+    margin: 8mm 6mm;
   }
 
   /* 全局打印样式 */
@@ -410,32 +408,32 @@ onMounted(() => {
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8pt; /* 小字体以容纳更多内容 */
+    font-size: 7pt; /* 小字体以容纳更多内容 */
     line-height: 1.2;
   }
 
   .print-table th {
     background-color: #f3f4f6;
     border: 1px solid #d1d5db;
-    padding: 3px 4px;
+    padding: 2px 3px;
     text-align: left;
     font-weight: 600;
-    font-size: 8pt;
+    font-size: 7pt;
   }
 
   .print-table td {
     border: 1px solid #e5e7eb;
-    padding: 3px 4px;
-    font-size: 7pt; /* 内容字体更小 */
+    padding: 2px 3px;
+    font-size: 6pt; /* 内容字体更小 */
     vertical-align: top;
   }
 
   /* 难度标签 */
   .difficulty-badge {
     display: inline-block;
-    padding: 1px 4px;
+    padding: 1px 3px;
     border-radius: 2px;
-    font-size: 6pt;
+    font-size: 5pt;
     font-weight: 500;
   }
 
@@ -457,7 +455,7 @@ onMounted(() => {
   /* 重要标记 */
   .important-mark {
     color: #f97316;
-    font-size: 8pt;
+    font-size: 7pt;
   }
 
   /* 尽量避免表格行跨页，但允许必要时跨页 */
@@ -476,30 +474,25 @@ onMounted(() => {
   }
 
   /* 列宽控制（紧凑模式） */
-  .print-table th.w-num,
-  .print-table td:nth-child(1) {
-    width: 4%;
-  }
-
   .print-table th.w-title,
-  .print-table td:nth-child(2) {
-    width: 28%;
+  .print-table td:nth-child(1) {
+    width: 30%;
   }
 
   .print-table th.w-strategy,
-  .print-table td:nth-child(3) {
-    width: 68%;
+  .print-table td:nth-child(2) {
+    width: 70%;
   }
 
   /* 标题样式 */
   .print-only h1 {
-    font-size: 14pt;
-    margin-bottom: 4px;
+    font-size: 12pt;
+    margin-bottom: 3px;
   }
 
   .print-only p {
-    font-size: 9pt;
-    margin-bottom: 6px;
+    font-size: 8pt;
+    margin-bottom: 4px;
   }
 }
 </style>
