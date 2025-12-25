@@ -158,24 +158,14 @@
       <table class="print-table">
         <thead>
           <tr>
-            <th class="w-8">#</th>
-            <th class="w-12">难度</th>
-            <th class="w-16">分类</th>
-            <th class="w-24">Focus Area</th>
-            <th class="w-40">题目</th>
-            <th>核心策略</th>
+            <th class="w-num">#</th>
+            <th class="w-title">题目</th>
+            <th class="w-strategy">核心策略</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(question, index) in filteredQuestions" :key="question.questionId">
             <td class="text-center">{{ index + 1 }}</td>
-            <td class="text-center">
-              <span class="difficulty-badge" :class="difficultyClass(question.difficulty)">
-                {{ difficultyText(question.difficulty) }}
-              </span>
-            </td>
-            <td class="text-center">{{ getCategoryShortName(question.categoryName) }}</td>
-            <td>{{ question.focusAreaName }}</td>
             <td>
               <span v-if="question.isImportant" class="important-mark">⭐</span>
               {{ question.title }}
@@ -476,34 +466,19 @@ onMounted(() => {
   }
 
   /* 列宽控制（紧凑模式） */
-  .print-table th.w-8,
+  .print-table th.w-num,
   .print-table td:nth-child(1) {
     width: 5%;
   }
 
-  .print-table th.w-12,
+  .print-table th.w-title,
   .print-table td:nth-child(2) {
-    width: 8%;
+    width: 35%;
   }
 
-  .print-table th.w-16,
+  .print-table th.w-strategy,
   .print-table td:nth-child(3) {
-    width: 8%;
-  }
-
-  .print-table th.w-24,
-  .print-table td:nth-child(4) {
-    width: 15%;
-  }
-
-  .print-table th.w-40,
-  .print-table td:nth-child(5) {
-    width: 22%;
-  }
-
-  /* 核心策略列占剩余空间 */
-  .print-table td:nth-child(6) {
-    width: 42%;
+    width: 60%;
   }
 
   /* 标题样式 */
