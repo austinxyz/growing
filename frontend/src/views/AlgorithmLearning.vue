@@ -219,11 +219,16 @@
                     >
                       <!-- 紧凑显示：难度+题目 | 核心思路 -->
                       <div class="flex items-start gap-3">
-                        <!-- 左侧：难度 + 题目标题 -->
+                        <!-- 左侧：难度 + 重要标识 + 题目标题 -->
                         <div class="flex items-start gap-2 w-64 flex-shrink-0">
                           <!-- 难度图标 -->
                           <span :class="getDifficultyIconClass(question.difficulty)" class="flex-shrink-0 mt-0.5" :title="question.difficulty">
                             {{ getDifficultyIcon(question.difficulty) }}
+                          </span>
+
+                          <!-- 重要标识 -->
+                          <span v-if="question.programmingDetails?.isImportant" class="text-orange-500 text-sm flex-shrink-0 mt-0.5" title="重要题目">
+                            ⭐
                           </span>
 
                           <!-- 题目标题（作为LeetCode链接，文字超出省略） -->
@@ -254,7 +259,7 @@
 
                 <!-- 试题库：左右分栏详细显示 -->
                 <div v-else-if="selectedStageId === 'questions-detail'" class="flex h-[calc(100vh-240px)]">
-                  <!-- 左侧：试题列表 -->
+                  <!-- 左侧：试题列表（紧凑模式） -->
                   <div class="w-80 border-r border-gray-200 overflow-y-auto">
                     <div v-if="questions.length === 0" class="text-center text-gray-400 py-12">
                       该Focus Area暂无试题
@@ -265,36 +270,32 @@
                       :key="question.id"
                       @click="selectQuestionForDetail(question)"
                       :class="[
-                        'p-3 border-b border-gray-100 cursor-pointer transition-colors',
+                        'p-2 border-b border-gray-100 cursor-pointer transition-colors',
                         selectedQuestionForDetail?.id === question.id
                           ? 'bg-blue-50 border-l-4 border-l-blue-600'
                           : 'hover:bg-gray-50'
                       ]"
                     >
-                      <div class="flex items-start gap-2">
+                      <div class="flex items-center gap-2">
                         <!-- 难度图标 -->
-                        <span :class="getDifficultyIconClass(question.difficulty)" class="flex-shrink-0 mt-0.5" :title="question.difficulty">
+                        <span :class="getDifficultyIconClass(question.difficulty)" class="flex-shrink-0" :title="question.difficulty">
                           {{ getDifficultyIcon(question.difficulty) }}
                         </span>
 
-                        <!-- 题目标题 -->
-                        <div class="flex-1 min-w-0">
-                          <h3 :class="[
-                            'text-sm font-medium',
-                            selectedQuestionForDetail?.id === question.id
-                              ? 'text-blue-700'
-                              : 'text-gray-900'
-                          ]">
-                            {{ question.title }}
-                          </h3>
-                          <!-- 笔记状态指示 -->
-                          <div v-if="question.note" class="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                            </svg>
-                            <span>已有笔记</span>
-                          </div>
-                        </div>
+                        <!-- 重要标识 -->
+                        <span v-if="question.programmingDetails?.isImportant" class="text-orange-500 text-sm flex-shrink-0" title="重要题目">
+                          ⭐
+                        </span>
+
+                        <!-- 题目标题（单行显示，超出省略） -->
+                        <h3 :class="[
+                          'text-sm font-medium truncate',
+                          selectedQuestionForDetail?.id === question.id
+                            ? 'text-blue-700'
+                            : 'text-gray-900'
+                        ]" :title="question.title">
+                          {{ question.title }}
+                        </h3>
                       </div>
                     </div>
                   </div>
@@ -482,7 +483,22 @@ const loadQuestions = async () => {
 
   try {
     const data = await questionApi.getQuestionsByFocusArea(selectedFocusArea.value.id)
-    questions.value = data || []
+    // 排序逻辑：先按isImportant降序（重要的在前），再按leetcodeNumber升序
+    const sortedData = (data || []).sort((a, b) => {
+      // 1. 先比较isImportant（重要的在前）
+      const aImportant = a.programmingDetails?.isImportant || false
+      const bImportant = b.programmingDetails?.isImportant || false
+      if (aImportant !== bImportant) {
+        return bImportant ? 1 : -1 // true在前
+      }
+
+      // 2. 再比较leetcodeNumber（题号小的在前）
+      const aNumber = a.programmingDetails?.leetcodeNumber || Number.MAX_SAFE_INTEGER
+      const bNumber = b.programmingDetails?.leetcodeNumber || Number.MAX_SAFE_INTEGER
+      return aNumber - bNumber
+    })
+
+    questions.value = sortedData
   } catch (error) {
     console.error('加载试题失败:', error)
     questions.value = []

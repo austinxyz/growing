@@ -41,6 +41,19 @@
           class="text-sm px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-20"
         />
 
+        <!-- 重要题目筛选 -->
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+          <input
+            v-model="showImportantOnly"
+            type="checkbox"
+            class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+          />
+          <span class="flex items-center gap-1">
+            <span class="text-orange-500">⭐</span>
+            仅重要题
+          </span>
+        </label>
+
         <button
           @click="resetFilters"
           class="text-sm px-3 py-1.5 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
@@ -72,7 +85,7 @@
           class="p-2 hover:bg-blue-50 rounded transition-colors text-xs"
           :style="{ borderLeft: `3px solid ${getCategoryColor(question.categoryName)}` }"
         >
-          <!-- 第一行：难度 + 题目 + Focus Area + 分类 -->
+          <!-- 第一行：难度 + 重要标识 + 题目 + Focus Area + 分类 -->
           <div class="flex items-center gap-2 mb-1">
             <!-- 难度图标 -->
             <span
@@ -84,6 +97,11 @@
               }"
               :title="difficultyText(question.difficulty)"
             ></span>
+
+            <!-- 重要标识 -->
+            <span v-if="question.isImportant" class="text-orange-500 text-sm flex-shrink-0" title="重要题目">
+              ⭐
+            </span>
 
             <!-- 题目 -->
             <button
@@ -141,6 +159,7 @@ const totalQuestions = ref(0)
 const selectedCategoryName = ref('')
 const selectedFocusAreaId = ref('')
 const leetcodeNumberFilter = ref('')
+const showImportantOnly = ref(false)
 
 // 弹窗状态
 const selectedQuestion = ref(null)
@@ -201,6 +220,11 @@ const filteredQuestions = computed(() => {
           }
         }
 
+        // 按重要性过滤
+        if (showImportantOnly.value && !question.isImportant) {
+          return
+        }
+
         // 添加分类和Focus Area信息
         result.push({
           ...question,
@@ -221,6 +245,7 @@ function resetFilters() {
   selectedCategoryName.value = ''
   selectedFocusAreaId.value = ''
   leetcodeNumberFilter.value = ''
+  showImportantOnly.value = false
 }
 
 /**

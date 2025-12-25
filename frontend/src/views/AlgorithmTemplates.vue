@@ -399,10 +399,17 @@ const handleDeleteNote = async () => {
 // Markdown渲染
 const renderMarkdown = (text) => {
   if (!text) return ''
-  return marked(text, {
-    breaks: true,
-    gfm: true
-  })
+  try {
+    // 使用marked渲染，启用breaks选项将换行符转换为<br>
+    return marked(text, {
+      breaks: true,  // 单个换行符转换为<br>
+      gfm: true      // GitHub Flavored Markdown
+    })
+  } catch (error) {
+    console.error('Markdown rendering error:', error)
+    // 如果markdown渲染失败，将换行符转换为<br>标签
+    return text.replace(/\n/g, '<br>')
+  }
 }
 
 // 日期格式化

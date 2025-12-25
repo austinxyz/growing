@@ -182,11 +182,16 @@ const editForm = ref({
 const renderMarkdown = (text) => {
   if (!text) return ''
   try {
-    const html = marked(text, { breaks: true, gfm: true })
+    // 使用marked渲染，启用breaks选项将换行符转换为<br>
+    const html = marked(text, {
+      breaks: true,  // 单个换行符转换为<br>
+      gfm: true      // GitHub Flavored Markdown
+    })
     return DOMPurify.sanitize(html)
   } catch (error) {
     console.error('Markdown rendering error:', error)
-    return text
+    // 如果markdown渲染失败，将换行符转换为<br>标签
+    return text.replace(/\n/g, '<br>')
   }
 }
 

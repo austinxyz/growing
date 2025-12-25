@@ -422,10 +422,15 @@ public class QuestionService {
             List<Map<String, Object>> focusAreaList = new ArrayList<>();
 
             focusAreaGroups.forEach((focusAreaId, questions) -> {
-                // 按leetcode_number排序
-                questions.sort(Comparator.comparing(q ->
-                        q.get("leetcodeNumber") != null ? (Integer) q.get("leetcodeNumber") : Integer.MAX_VALUE
-                ));
+                // 排序逻辑：先按isImportant降序（重要的在前），再按leetcodeNumber升序
+                questions.sort(Comparator
+                        .comparing((Map<String, Object> q) -> {
+                            Boolean isImportant = (Boolean) q.get("isImportant");
+                            return isImportant != null && isImportant ? 0 : 1; // 0在前（重要的）
+                        })
+                        .thenComparing(q ->
+                                q.get("leetcodeNumber") != null ? (Integer) q.get("leetcodeNumber") : Integer.MAX_VALUE
+                        ));
 
                 Map<String, Object> focusAreaGroup = new LinkedHashMap<>();
                 focusAreaGroup.put("focusAreaId", focusAreaId);
@@ -496,6 +501,7 @@ public class QuestionService {
         // 添加编程题专属信息
         questionSummary.put("leetcodeNumber", programmingDetails.getLeetcodeNumber());
         questionSummary.put("leetcodeUrl", programmingDetails.getLeetcodeUrl());
+        questionSummary.put("isImportant", programmingDetails.getIsImportant());
 
         focusAreaGroups.get(focusArea.getId()).add(questionSummary);
     }

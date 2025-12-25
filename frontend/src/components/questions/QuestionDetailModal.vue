@@ -14,16 +14,16 @@
         cursor: isDragging ? 'grabbing' : 'default'
       }"
     >
-      <!-- 可拖拽的头部 -->
+      <!-- 可拖拽的头部 - 紧凑模式 -->
       <div
         @mousedown="startDrag"
-        class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing select-none flex-shrink-0"
+        class="bg-white border-b border-gray-200 px-3 py-2 flex items-center justify-between cursor-grab active:cursor-grabbing select-none flex-shrink-0"
       >
         <div class="flex items-center space-x-2">
-          <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
           </svg>
-          <h2 class="text-base font-semibold text-gray-900">试题详情</h2>
+          <h2 class="text-sm font-semibold text-gray-900">{{ fullQuestion?.title || '加载中...' }}</h2>
           <DifficultyBadge :difficulty="question.difficulty" />
         </div>
         <button
@@ -31,7 +31,7 @@
           @mousedown.stop
           class="text-gray-400 hover:text-gray-600"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -51,208 +51,192 @@
         </div>
 
         <template v-else-if="fullQuestion">
-          <!-- 左栏：题目详情 -->
-          <div class="w-1/2 overflow-y-auto border-r border-gray-200 p-4">
-            <div class="space-y-4">
-              <!-- 外部链接 -->
-              <div v-if="fullQuestion.programmingDetails?.leetcodeUrl || fullQuestion.programmingDetails?.labuladongUrl || fullQuestion.programmingDetails?.hellointerviewUrl" class="flex flex-wrap gap-2">
-              <a
-                v-if="fullQuestion.programmingDetails.leetcodeUrl"
-                :href="fullQuestion.programmingDetails.leetcodeUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200 transition-colors"
-              >
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H20.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z"/>
-                </svg>
-                在 LeetCode 上练习
-              </a>
-              <a
-                v-if="fullQuestion.programmingDetails.labuladongUrl"
-                :href="fullQuestion.programmingDetails.labuladongUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-              >
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                labuladong 算法教程
-              </a>
-              <a
-                v-if="fullQuestion.programmingDetails.hellointerviewUrl"
-                :href="fullQuestion.programmingDetails.hellointerviewUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
-              >
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                HelloInterview
-              </a>
-            </div>
+          <!-- 左栏：题目详情 - 紧凑模式 -->
+          <div class="w-1/2 overflow-y-auto border-r border-gray-200 p-3">
+            <div class="space-y-2">
+              <!-- 第一行：外部链接 + 标签 + 复杂度 - 全部合并 -->
+              <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                <!-- 外部链接 -->
+                <a
+                  v-if="fullQuestion.programmingDetails?.leetcodeUrl"
+                  :href="fullQuestion.programmingDetails.leetcodeUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-2 py-1 font-medium text-orange-700 bg-orange-100 rounded hover:bg-orange-200 transition-colors"
+                >
+                  <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H20.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z"/>
+                  </svg>
+                  LeetCode
+                </a>
+                <a
+                  v-if="fullQuestion.programmingDetails?.labuladongUrl"
+                  :href="fullQuestion.programmingDetails.labuladongUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-2 py-1 font-medium text-green-700 bg-green-100 rounded hover:bg-green-200 transition-colors"
+                >
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  labuladong
+                </a>
+                <a
+                  v-if="fullQuestion.programmingDetails?.hellointerviewUrl"
+                  :href="fullQuestion.programmingDetails.hellointerviewUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-2 py-1 font-medium text-purple-700 bg-purple-100 rounded hover:bg-purple-200 transition-colors"
+                >
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  Hello
+                </a>
 
-            <!-- 标题 -->
-            <div>
-              <h3 class="text-sm font-medium text-gray-500 mb-1">题目标题</h3>
-              <p class="text-lg font-semibold text-gray-900">{{ fullQuestion.title }}</p>
-            </div>
+                <!-- 分隔符（如果有外部链接） -->
+                <span v-if="fullQuestion.programmingDetails?.leetcodeUrl || fullQuestion.programmingDetails?.labuladongUrl || fullQuestion.programmingDetails?.hellointerviewUrl" class="text-gray-300">|</span>
 
-            <!-- 问题描述 -->
-            <div>
-              <h3 class="text-sm font-medium text-gray-500 mb-2">问题描述</h3>
-              <div class="prose prose-sm max-w-none bg-gray-50 rounded-lg p-4" v-html="renderMarkdown(fullQuestion.questionDescription)"></div>
-            </div>
-
-            <!-- 答案要求 -->
-            <div v-if="fullQuestion.answerRequirement" class="border-t border-gray-200 pt-6">
-              <h3 class="text-sm font-medium text-gray-700 mb-2">答案要求</h3>
-              <div class="prose prose-sm max-w-none bg-blue-50 rounded-lg p-4" v-html="renderMarkdown(fullQuestion.answerRequirement)"></div>
-            </div>
-
-            <!-- 编程题详情 -->
-            <div v-if="fullQuestion.programmingDetails" class="border-t border-gray-200 pt-6 space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">编程题详情</h3>
-                <span v-if="fullQuestion.programmingDetails.isImportant" class="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-                  ⭐ 重要必做
+                <!-- 重要标记 -->
+                <span v-if="fullQuestion.programmingDetails?.isImportant" class="px-2 py-0.5 font-medium bg-red-100 text-red-700 rounded">
+                  ⭐ 重要
                 </span>
-              </div>
 
-              <!-- 标签 -->
-              <div v-if="fullQuestion.programmingDetails.tags && fullQuestion.programmingDetails.tags.length > 0">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">标签</h4>
-                <div class="flex flex-wrap gap-2">
+                <!-- 标签 -->
+                <template v-if="fullQuestion.programmingDetails?.tags && fullQuestion.programmingDetails.tags.length > 0">
                   <span
                     v-for="(tag, index) in fullQuestion.programmingDetails.tags"
                     :key="index"
-                    class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-full"
+                    class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded"
                   >
                     {{ tag }}
                   </span>
-                </div>
+                </template>
+
+                <!-- 复杂度 -->
+                <span v-if="fullQuestion.programmingDetails?.complexity" class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
+                  {{ fullQuestion.programmingDetails.complexity }}
+                </span>
               </div>
 
-              <!-- 复杂度 -->
-              <div v-if="fullQuestion.programmingDetails.complexity">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">复杂度</h4>
-                <p class="text-sm text-gray-600 bg-gray-50 rounded px-3 py-2">{{ fullQuestion.programmingDetails.complexity }}</p>
+              <!-- 问题描述 - 直接显示，不要标题 -->
+              <div class="prose prose-sm prose-compact max-w-none bg-gray-50 rounded p-2" v-html="renderMarkdown(fullQuestion.questionDescription)"></div>
+
+              <!-- 答案要求 -->
+              <div v-if="fullQuestion.answerRequirement" class="border-t border-gray-200 pt-2">
+                <h4 class="text-xs font-medium text-gray-700 mb-1">答案要求</h4>
+                <div class="prose prose-sm prose-compact max-w-none bg-blue-50 rounded p-2" v-html="renderMarkdown(fullQuestion.answerRequirement)"></div>
               </div>
 
               <!-- 相似题目 -->
-              <div v-if="fullQuestion.programmingDetails.similarQuestions && fullQuestion.programmingDetails.similarQuestions.length > 0">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">相似题目</h4>
-                <div class="space-y-2">
+              <div v-if="fullQuestion.programmingDetails?.similarQuestions && fullQuestion.programmingDetails.similarQuestions.length > 0" class="border-t border-gray-200 pt-2">
+                <h4 class="text-xs font-medium text-gray-700 mb-1">相似题目</h4>
+                <div class="space-y-0.5">
                   <div
                     v-for="(sq, index) in fullQuestion.programmingDetails.similarQuestions"
                     :key="index"
-                    class="flex items-center text-sm text-gray-600"
+                    class="flex items-center text-xs text-gray-600"
                   >
-                    <span class="mr-2">•</span>
+                    <span class="mr-1">•</span>
                     <span>{{ sq.title || `题目 ${sq.id}` }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 右栏：笔记 -->
-        <div class="w-1/2 overflow-y-auto p-4 bg-gray-50">
-          <div class="space-y-4">
-            <!-- 核心思路（用户笔记） -->
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-gray-900">核心思路</h3>
-                  <button
-                    v-if="!isEditingStrategy"
-                    @click="startEditStrategy"
-                    class="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    {{ userNote?.coreStrategy ? '编辑' : '添加' }}
-                  </button>
-                </div>
+        <!-- 右栏：笔记 - 紧凑模式 -->
+        <div class="w-1/2 flex flex-col overflow-hidden bg-gray-50">
+          <!-- 核心思路 - 固定区域，不滚动 -->
+          <div class="flex-shrink-0 p-3 bg-white border-b border-gray-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-semibold text-gray-900">核心思路</h3>
+              <button
+                v-if="!isEditingStrategy"
+                @click="startEditStrategy"
+                class="text-xs text-blue-600 hover:text-blue-700"
+              >
+                {{ userNote?.coreStrategy ? '编辑' : '添加' }}
+              </button>
+            </div>
 
-                <!-- 显示模式 -->
-                <div v-if="!isEditingStrategy && userNote?.coreStrategy" class="prose prose-sm max-w-none bg-yellow-50 rounded-lg p-4" v-html="renderMarkdown(userNote.coreStrategy)"></div>
-                <div v-else-if="!isEditingStrategy" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
-                  暂无核心思路，点击上方"添加"按钮记录你的解题思路
-                </div>
+            <!-- 显示模式 - 紧凑 -->
+            <div v-if="!isEditingStrategy && userNote?.coreStrategy" class="prose prose-sm prose-compact max-w-none bg-yellow-50 rounded p-2 text-sm" v-html="renderMarkdown(userNote.coreStrategy)"></div>
+            <div v-else-if="!isEditingStrategy" class="text-center text-gray-400 py-4 bg-gray-50 rounded text-xs">
+              暂无核心思路，点击"添加"记录解题思路
+            </div>
 
-                <!-- 编辑模式 -->
-                <div v-else>
-                  <textarea
-                    v-model="editForm.coreStrategy"
-                    rows="6"
-                    placeholder="记录解题的核心思路，如使用的算法、数据结构、关键步骤等（支持Markdown）"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  ></textarea>
-                  <div class="flex justify-end space-x-2 mt-2">
-                    <button
-                      @click="cancelEditStrategy"
-                      class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      取消
-                    </button>
-                    <button
-                      @click="saveStrategy"
-                      :disabled="saving"
-                      class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                    >
-                      {{ saving ? '保存中...' : '保存' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 个人笔记 -->
-              <div class="border-t border-gray-200 pt-4">
-                <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-gray-900">个人笔记</h3>
-                  <button
-                    v-if="!isEditingNote"
-                    @click="startEditNote"
-                    class="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    {{ userNote?.noteContent ? '编辑' : '添加' }}
-                  </button>
-                </div>
-
-                <!-- 显示模式 -->
-                <div v-if="!isEditingNote && userNote?.noteContent" class="prose prose-sm max-w-none bg-green-50 rounded-lg p-4" v-html="renderMarkdown(userNote.noteContent)"></div>
-                <div v-else-if="!isEditingNote" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg">
-                  暂无个人笔记，点击上方"添加"按钮记录你的心得体会
-                </div>
-
-                <!-- 编辑模式 -->
-                <div v-else>
-                  <textarea
-                    v-model="editForm.noteContent"
-                    rows="6"
-                    placeholder="记录个人心得、注意事项、易错点等（支持Markdown）"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  ></textarea>
-                  <div class="flex justify-end space-x-2 mt-2">
-                    <button
-                      @click="cancelEditNote"
-                      class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      取消
-                    </button>
-                    <button
-                      @click="saveNote"
-                      :disabled="saving"
-                      class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                    >
-                      {{ saving ? '保存中...' : '保存' }}
-                    </button>
-                  </div>
-                </div>
+            <!-- 编辑模式 - 紧凑 -->
+            <div v-else>
+              <textarea
+                v-model="editForm.coreStrategy"
+                rows="4"
+                placeholder="记录解题的核心思路，如使用的算法、数据结构、关键步骤等（支持Markdown）"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs"
+              ></textarea>
+              <div class="flex justify-end space-x-2 mt-1.5">
+                <button
+                  @click="cancelEditStrategy"
+                  class="px-3 py-1 text-xs text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  @click="saveStrategy"
+                  :disabled="saving"
+                  class="px-3 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-300"
+                >
+                  {{ saving ? '保存中...' : '保存' }}
+                </button>
               </div>
             </div>
           </div>
+
+          <!-- 个人笔记 - 可滚动区域 -->
+          <div class="flex-1 overflow-y-auto p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-semibold text-gray-900">个人笔记</h3>
+              <button
+                v-if="!isEditingNote"
+                @click="startEditNote"
+                class="text-xs text-blue-600 hover:text-blue-700"
+              >
+                {{ userNote?.noteContent ? '编辑' : '添加' }}
+              </button>
+            </div>
+
+            <!-- 显示模式 - 紧凑 -->
+            <div v-if="!isEditingNote && userNote?.noteContent" class="prose prose-sm prose-compact max-w-none bg-green-50 rounded p-2 text-sm" v-html="renderMarkdown(userNote.noteContent)"></div>
+            <div v-else-if="!isEditingNote" class="text-center text-gray-400 py-6 bg-gray-50 rounded text-xs">
+              暂无个人笔记，点击"添加"记录心得体会
+            </div>
+
+            <!-- 编辑模式 - 增加高度 -->
+            <div v-else class="flex flex-col h-full">
+              <textarea
+                v-model="editForm.noteContent"
+                rows="20"
+                placeholder="记录个人心得、注意事项、易错点等（支持Markdown）"
+                class="flex-1 w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs resize-none"
+              ></textarea>
+              <div class="flex justify-end space-x-2 mt-1.5">
+                <button
+                  @click="cancelEditNote"
+                  class="px-3 py-1 text-xs text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  @click="saveNote"
+                  :disabled="saving"
+                  class="px-3 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-300"
+                >
+                  {{ saving ? '保存中...' : '保存' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         </template>
       </div>
 
@@ -402,11 +386,16 @@ const stopResize = () => {
 const renderMarkdown = (text) => {
   if (!text) return ''
   try {
-    const html = marked(text, { breaks: true, gfm: true })
+    // 使用marked渲染，启用breaks选项将换行符转换为<br>
+    const html = marked(text, {
+      breaks: true,  // 单个换行符转换为<br>
+      gfm: true      // GitHub Flavored Markdown
+    })
     return DOMPurify.sanitize(html)
   } catch (error) {
     console.error('Markdown rendering error:', error)
-    return text
+    // 如果markdown渲染失败，将换行符转换为<br>标签
+    return text.replace(/\n/g, '<br>')
   }
 }
 
@@ -511,54 +500,98 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Prose 样式 */
+/* Prose 样式 - 紧凑模式 */
 :deep(.prose) {
   color: #374151;
-  line-height: 1.75;
+  line-height: 1.5;
+}
+
+:deep(.prose-compact) {
+  line-height: 1.4;
 }
 
 :deep(.prose p) {
-  margin-top: 0.75em;
-  margin-bottom: 0.75em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+:deep(.prose-compact p) {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
 }
 
 :deep(.prose h1),
 :deep(.prose h2),
 :deep(.prose h3) {
-  margin-top: 1.25em;
-  margin-bottom: 0.625em;
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
   font-weight: 600;
+}
+
+:deep(.prose-compact h1),
+:deep(.prose-compact h2),
+:deep(.prose-compact h3) {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+  font-size: 0.95em;
 }
 
 :deep(.prose ul),
 :deep(.prose ol) {
-  margin-top: 0.75em;
-  margin-bottom: 0.75em;
-  padding-left: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.25em;
+}
+
+:deep(.prose-compact ul),
+:deep(.prose-compact ol) {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+  padding-left: 1em;
+}
+
+:deep(.prose li) {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+:deep(.prose-compact li) {
+  margin-top: 0.15em;
+  margin-bottom: 0.15em;
 }
 
 :deep(.prose code) {
   background-color: #f3f4f6;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-size: 0.875em;
+  padding: 0.15em 0.3em;
+  border-radius: 0.2em;
+  font-size: 0.85em;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 :deep(.prose pre) {
   background-color: #1f2937;
   color: #f9fafb;
-  padding: 1em;
-  border-radius: 0.375em;
+  padding: 0.75em;
+  border-radius: 0.3em;
   overflow-x: auto;
-  margin-top: 1em;
-  margin-bottom: 1em;
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
+
+:deep(.prose-compact pre) {
+  padding: 0.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 :deep(.prose pre code) {
   background-color: transparent;
   padding: 0;
   color: inherit;
-  font-size: 0.875em;
+  font-size: 0.8em;
+}
+
+:deep(.prose-compact pre code) {
+  font-size: 0.75em;
 }
 </style>

@@ -610,3 +610,5 @@ Phase 4 实施计划
 
   保留AI_AGENT_PROMPT，算法题_Focus_Area_映射分析，算法题_整理，Infrastructure Engineering Interview questions -
   Sheet1，labuladong_phase4_v2_staged
+
+  更新架构指导文档，包含phase4的架构，review一下我phase 4到底犯了哪些错误，按照claude-code-guide的建议，更改CLAUDE.md,要更多体现如何避免犯错
