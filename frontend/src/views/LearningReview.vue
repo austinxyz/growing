@@ -392,7 +392,7 @@ onMounted(() => {
   /* 打印页面设置 */
   @page {
     size: A4 portrait;
-    margin: 12mm 10mm;
+    margin: 10mm 8mm;
   }
 
   /* 全局打印样式 */
@@ -478,17 +478,17 @@ onMounted(() => {
   /* 列宽控制（紧凑模式） */
   .print-table th.w-num,
   .print-table td:nth-child(1) {
-    width: 5%;
+    width: 4%;
   }
 
   .print-table th.w-title,
   .print-table td:nth-child(2) {
-    width: 35%;
+    width: 28%;
   }
 
   .print-table th.w-strategy,
   .print-table td:nth-child(3) {
-    width: 60%;
+    width: 68%;
   }
 
   /* 标题样式 */
