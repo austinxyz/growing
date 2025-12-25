@@ -1,7 +1,7 @@
 <template>
   <div class="w-full px-6 py-4">
     <!-- 标题和过滤器在同一行 -->
-    <div class="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4">
+    <div class="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4 no-print">
       <div>
         <h1 class="text-xl font-bold text-gray-800">学习总结 - 算法与数据结构</h1>
         <p class="text-xs text-gray-500 mt-1">共 {{ totalQuestions }} 题</p>
@@ -9,6 +9,17 @@
 
       <!-- 紧凑的过滤器 -->
       <div class="flex items-center gap-3">
+        <!-- 打印按钮 -->
+        <button
+          @click="printSummary"
+          class="flex items-center gap-1 text-sm px-3 py-1.5 text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+          title="打印学习总结"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          打印
+        </button>
         <select
           v-model="selectedCategoryName"
           class="text-sm px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -63,21 +74,27 @@
       </div>
     </div>
 
+    <!-- 打印用的标题（仅在打印时显示） -->
+    <div class="print-only">
+      <h1 class="text-center text-lg font-bold mb-2">算法与数据结构学习总结</h1>
+      <p class="text-center text-xs text-gray-600 mb-3">共 {{ filteredQuestions.length }} 题</p>
+    </div>
+
     <!-- 加载状态 -->
-    <div v-if="loading" class="text-center py-12">
+    <div v-if="loading" class="text-center py-12 no-print">
       <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       <p class="mt-2 text-sm text-gray-600">加载中...</p>
     </div>
 
     <!-- 空状态 -->
-    <div v-else-if="filteredQuestions.length === 0" class="bg-white rounded-lg shadow-sm p-8 text-center">
+    <div v-else-if="filteredQuestions.length === 0" class="bg-white rounded-lg shadow-sm p-8 text-center no-print">
       <div class="text-gray-400 text-4xl mb-2">📝</div>
       <h3 class="text-base font-semibold text-gray-700 mb-1">暂无学习笔记</h3>
       <p class="text-sm text-gray-600">去「我的试题库」添加试题笔记吧！</p>
     </div>
 
-    <!-- 紧凑的试题列表 - 双列双行布局 -->
-    <div v-else class="bg-white rounded-lg shadow-sm p-4">
+    <!-- 紧凑的试题列表 - 双列双行布局（屏幕显示） -->
+    <div v-else class="bg-white rounded-lg shadow-sm p-4 screen-only">
       <div class="grid grid-cols-2 gap-3">
         <div
           v-for="question in filteredQuestions"
@@ -134,6 +151,39 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 打印用的表格（仅在打印时显示） -->
+    <div v-if="filteredQuestions.length > 0" class="print-only">
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th class="w-8">#</th>
+            <th class="w-12">难度</th>
+            <th class="w-16">分类</th>
+            <th class="w-24">Focus Area</th>
+            <th class="w-40">题目</th>
+            <th>核心策略</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(question, index) in filteredQuestions" :key="question.questionId">
+            <td class="text-center">{{ index + 1 }}</td>
+            <td class="text-center">
+              <span class="difficulty-badge" :class="difficultyClass(question.difficulty)">
+                {{ difficultyText(question.difficulty) }}
+              </span>
+            </td>
+            <td class="text-center">{{ getCategoryShortName(question.categoryName) }}</td>
+            <td>{{ question.focusAreaName }}</td>
+            <td>
+              <span v-if="question.isImportant" class="important-mark">⭐</span>
+              {{ question.title }}
+            </td>
+            <td>{{ question.coreStrategy || '暂无' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- 题目详情弹窗 -->
@@ -299,6 +349,25 @@ function showQuestionDetail(question) {
   }
 }
 
+/**
+ * 难度CSS类名
+ */
+function difficultyClass(difficulty) {
+  const classMap = {
+    EASY: 'difficulty-easy',
+    MEDIUM: 'difficulty-medium',
+    HARD: 'difficulty-hard'
+  }
+  return classMap[difficulty] || ''
+}
+
+/**
+ * 打印学习总结
+ */
+function printSummary() {
+  window.print()
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchLearningReview()
@@ -310,5 +379,142 @@ onMounted(() => {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+/* 屏幕显示时隐藏打印内容 */
+.print-only {
+  display: none;
+}
+
+/* 打印时的样式 */
+@media print {
+  /* 隐藏屏幕显示的内容 */
+  .no-print,
+  .screen-only {
+    display: none !important;
+  }
+
+  /* 显示打印内容 */
+  .print-only {
+    display: block !important;
+  }
+
+  /* 打印页面设置 */
+  @page {
+    size: A4;
+    margin: 10mm 8mm;
+  }
+
+  /* 全局打印样式 */
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 打印表格样式 - 紧凑模式 */
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt; /* 小字体以容纳更多内容 */
+    line-height: 1.2;
+  }
+
+  .print-table th {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 3px 4px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 8pt;
+  }
+
+  .print-table td {
+    border: 1px solid #e5e7eb;
+    padding: 3px 4px;
+    font-size: 7pt; /* 内容字体更小 */
+    vertical-align: top;
+  }
+
+  /* 难度标签 */
+  .difficulty-badge {
+    display: inline-block;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 6pt;
+    font-weight: 500;
+  }
+
+  .difficulty-easy {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .difficulty-medium {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .difficulty-hard {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* 重要标记 */
+  .important-mark {
+    color: #f97316;
+    font-size: 8pt;
+  }
+
+  /* 避免表格行跨页 */
+  .print-table tr {
+    page-break-inside: avoid;
+  }
+
+  /* 表头在每页重复 */
+  .print-table thead {
+    display: table-header-group;
+  }
+
+  /* 列宽控制（紧凑模式） */
+  .print-table th.w-8,
+  .print-table td:nth-child(1) {
+    width: 5%;
+  }
+
+  .print-table th.w-12,
+  .print-table td:nth-child(2) {
+    width: 8%;
+  }
+
+  .print-table th.w-16,
+  .print-table td:nth-child(3) {
+    width: 8%;
+  }
+
+  .print-table th.w-24,
+  .print-table td:nth-child(4) {
+    width: 15%;
+  }
+
+  .print-table th.w-40,
+  .print-table td:nth-child(5) {
+    width: 22%;
+  }
+
+  /* 核心策略列占剩余空间 */
+  .print-table td:nth-child(6) {
+    width: 42%;
+  }
+
+  /* 标题样式 */
+  .print-only h1 {
+    font-size: 14pt;
+    margin-bottom: 4px;
+  }
+
+  .print-only p {
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
 }
 </style>
