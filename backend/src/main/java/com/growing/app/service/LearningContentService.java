@@ -358,6 +358,14 @@ public class LearningContentService {
             dto.setCreatedByUsername(content.getCreatedBy().getUsername());
         }
 
+        // 设置网站信息（如果存在）
+        if (content.getWebsite() != null) {
+            dto.setWebsiteId(content.getWebsite().getId());
+            dto.setWebsiteName(content.getWebsite().getName());
+            dto.setWebsiteDisplayName(content.getWebsite().getDisplayName());
+            dto.setSupportsIframe(content.getWebsite().getSupportsIframe());
+        }
+
         return dto;
     }
 }

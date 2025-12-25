@@ -29,6 +29,10 @@ public class LearningContent {
     @JoinColumn(name = "stage_id")
     private LearningStage stage; // NULL for algorithm templates
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "website_id")
+    private LearningResourceWebsite website; // 关联的学习资源网站
+
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type", nullable = false)
     private ContentType contentType;

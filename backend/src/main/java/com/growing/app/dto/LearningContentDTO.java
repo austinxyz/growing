@@ -18,6 +18,10 @@ public class LearningContentDTO {
     private String description;
     private String url;
     private String author;
+    private Long websiteId;
+    private String websiteName;
+    private String websiteDisplayName;
+    private Boolean supportsIframe; // 网站是否支持iframe嵌入
     private String contentData; // JSON字符串
     private Integer sortOrder;
     private Visibility visibility;

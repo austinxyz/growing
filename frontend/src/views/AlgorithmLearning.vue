@@ -184,15 +184,26 @@
 
                     <!-- 资料详情 -->
                     <div v-else class="p-4 h-full flex flex-col">
-                      <!-- 描述 -->
-                      <div v-if="selectedContentItem.description" class="prose max-w-none mb-4">
-                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                          {{ selectedContentItem.description }}
-                        </div>
+                      <!-- 标题 -->
+                      <h2 class="text-xl font-bold text-gray-900 mb-3">{{ selectedContentItem.title }}</h2>
+
+                      <!-- 不支持iframe：显示跳转链接 -->
+                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === false">
+                        <a
+                          :href="selectedContentItem.url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          在新标签页打开
+                        </a>
                       </div>
 
-                      <!-- 原文内容（iframe嵌入） -->
-                      <div v-if="selectedContentItem.url" class="flex-1 flex flex-col">
+                      <!-- 支持iframe：直接显示 -->
+                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === true" class="flex-1 flex flex-col">
                         <iframe
                           :src="selectedContentItem.url"
                           class="w-full h-full border border-gray-300 rounded"

@@ -308,6 +308,9 @@
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           链接
                         </th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          操作
+                        </th>
                       </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -350,6 +353,21 @@
                           </a>
                           <span v-else class="text-gray-400">-</span>
                         </td>
+                        <!-- 操作 -->
+                        <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                          <button
+                            @click="handleEditContent(content)"
+                            class="text-blue-600 hover:text-blue-800 mr-3"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            @click="handleDeleteContent(content.id)"
+                            class="text-red-600 hover:text-red-800"
+                          >
+                            删除
+                          </button>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -387,16 +405,27 @@
     @save="saveQuestion"
     @cancel="showQuestionModal = false; editingQuestion = null"
   />
+
+  <!-- 学习内容编辑Modal -->
+  <LearningContentEditModal
+    v-if="showContentModal"
+    :focusAreaId="selectedFocusAreaId"
+    :stageId="activeStageId"
+    :content="editingContent"
+    @close="showContentModal = false; editingContent = null"
+    @success="handleContentSaved"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import majorCategoryApi from '@/api/majorCategoryApi'
-import { getContentsByFocusArea } from '@/api/learningContentApi'
+import learningContentApi from '@/api/learningContentApi'
 import { getStagesBySkill } from '@/api/learningStageApi'
 import { adminQuestionApi } from '@/api/questionApi'
 import QuestionViewModal from '@/components/questions/QuestionViewModal.vue'
 import QuestionEditModal from '@/components/questions/QuestionEditModal.vue'
+import LearningContentEditModal from '@/components/skills/admin/LearningContentEditModal.vue'
 
 // Skill ID（编程与数据结构）
 const PROGRAMMING_SKILL_ID = 1
@@ -429,6 +458,10 @@ const showViewModal = ref(false)
 const viewingQuestion = ref(null)
 const showQuestionModal = ref(false)
 const editingQuestion = ref(null)
+
+// 学习内容编辑相关
+const showContentModal = ref(false)
+const editingContent = ref(null)
 
 // 计算属性：根据大分类过滤Focus Area
 const filteredFocusAreas = computed(() => {
@@ -506,7 +539,7 @@ const loadFocusAreaContents = async () => {
   loadingContents.value = true
   try {
     console.log('开始加载Focus Area学习内容，ID:', selectedFocusAreaId.value)
-    const data = await getContentsByFocusArea(selectedFocusAreaId.value)
+    const data = await learningContentApi.getContentsByFocusArea(selectedFocusAreaId.value)
     console.log('学习内容API返回:', data)
 
     // 将内容按阶段 ID 分组存储，方便查找
@@ -584,6 +617,36 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+// ==================== 学习内容编辑/删除功能 ====================
+
+// 编辑学习内容
+const handleEditContent = (content) => {
+  editingContent.value = content
+  showContentModal.value = true
+}
+
+// 删除学习内容
+const handleDeleteContent = async (contentId) => {
+  if (!confirm('确定要删除这个学习内容吗？')) {
+    return
+  }
+
+  try {
+    await learningContentApi.deleteContent(contentId)
+    await loadFocusAreaContents()
+  } catch (error) {
+    console.error('删除学习内容失败:', error)
+    alert('删除失败: ' + (error.message || '未知错误'))
+  }
+}
+
+// 保存学习内容后刷新
+const handleContentSaved = async () => {
+  showContentModal.value = false
+  editingContent.value = null
+  await loadFocusAreaContents()
 }
 
 // ==================== 试题库功能 ====================

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
+  <div v-if="isOpen && question" class="fixed inset-0 z-50 overflow-y-auto">
     <!-- 背景遮罩 -->
     <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$emit('close')"></div>
 
@@ -199,7 +199,7 @@ defineProps({
   },
   question: {
     type: Object,
-    required: true
+    default: null
   }
 })
 
