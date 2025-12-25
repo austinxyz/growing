@@ -391,14 +391,19 @@ onMounted(() => {
 
   /* 打印页面设置 */
   @page {
-    size: A4;
-    margin: 10mm 8mm;
+    size: A4 portrait;
+    margin: 12mm 10mm;
   }
 
   /* 全局打印样式 */
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  /* 确保内容可以跨页 */
+  .print-only {
+    page-break-after: auto;
   }
 
   /* 打印表格样式 - 紧凑模式 */
@@ -455,14 +460,19 @@ onMounted(() => {
     font-size: 8pt;
   }
 
-  /* 避免表格行跨页 */
+  /* 尽量避免表格行跨页，但允许必要时跨页 */
   .print-table tr {
-    page-break-inside: avoid;
+    page-break-inside: auto;
   }
 
   /* 表头在每页重复 */
   .print-table thead {
     display: table-header-group;
+  }
+
+  .print-table tbody {
+    page-break-before: auto;
+    page-break-after: auto;
   }
 
   /* 列宽控制（紧凑模式） */
