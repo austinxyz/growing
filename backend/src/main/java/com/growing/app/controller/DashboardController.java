@@ -1,5 +1,6 @@
 package com.growing.app.controller;
 
+import com.growing.app.service.AuthService;
 import com.growing.app.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,9 @@ public class DashboardController {
     @Autowired
     private DashboardService dashboardService;
 
+    @Autowired
+    private AuthService authService;
+
     /**
      * 获取仪表盘整体统计信息
      */
@@ -21,6 +25,17 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> getStatistics() {
         Map<String, Object> statistics = dashboardService.getOverallStatistics();
         return ResponseEntity.ok(statistics);
+    }
+
+    /**
+     * 获取用户笔记统计信息
+     */
+    @GetMapping("/user-notes")
+    public ResponseEntity<Map<String, Object>> getUserNotesStatistics(
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        Map<String, Object> notesStats = dashboardService.getUserNotesStatistics(userId);
+        return ResponseEntity.ok(notesStats);
     }
 
     /**

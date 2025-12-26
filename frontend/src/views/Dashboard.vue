@@ -110,7 +110,15 @@
     <!-- 算法与数据结构 -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">💻 算法与数据结构</h2>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">💻 算法与数据结构</h2>
+          <p class="text-sm text-gray-500 mt-1" v-if="userNotes.algorithmNotesTotal > 0">
+            已记录 {{ userNotes.algorithmNotesTotal }} 条笔记
+            <span class="text-xs text-gray-400">
+              (试题: {{ userNotes.algorithmQuestionNotes }}，模板: {{ userNotes.algorithmTemplateNotes }}，学习: {{ userNotes.algorithmLearningNotes }})
+            </span>
+          </p>
+        </div>
         <router-link
           to="/learning-review"
           class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all text-sm font-semibold shadow-md"
@@ -147,7 +155,12 @@
     <!-- 系统设计 -->
     <div class="bg-white rounded-xl shadow-lg p-6">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">🏗️ 系统设计</h2>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">🏗️ 系统设计</h2>
+          <p class="text-sm text-gray-500 mt-1" v-if="userNotes.systemDesignCaseNotes > 0">
+            已答题 {{ userNotes.systemDesignCaseNotes }} 个案例
+          </p>
+        </div>
         <router-link
           to="/system-design/summary"
           class="px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:from-orange-600 hover:to-pink-600 transition-all text-sm font-semibold shadow-md"
@@ -244,6 +257,14 @@ const systemDesign = ref({
   totalCases: 0
 })
 
+const userNotes = ref({
+  algorithmQuestionNotes: 0,
+  algorithmTemplateNotes: 0,
+  algorithmLearningNotes: 0,
+  algorithmNotesTotal: 0,
+  systemDesignCaseNotes: 0
+})
+
 const loadStatistics = async () => {
   try {
     const data = await dashboardApi.getOverallStatistics()
@@ -271,9 +292,19 @@ const loadSystemDesign = async () => {
   }
 }
 
+const loadUserNotes = async () => {
+  try {
+    const data = await dashboardApi.getUserNotesStatistics()
+    userNotes.value = data
+  } catch (error) {
+    console.error('加载用户笔记统计失败:', error)
+  }
+}
+
 onMounted(() => {
   loadStatistics()
   loadAlgorithmCategories()
   loadSystemDesign()
+  loadUserNotes()
 })
 </script>

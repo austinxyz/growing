@@ -30,4 +30,9 @@ public interface UserCaseNoteRepository extends JpaRepository<UserCaseNote, Long
      * 删除用户对某个案例的答题记录
      */
     void deleteBySystemDesignCaseIdAndUserId(Long caseId, Long userId);
+
+    /**
+     * 统计用户笔记数量
+     */
+    long countByUserId(Long userId);
 }

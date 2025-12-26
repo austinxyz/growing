@@ -20,3 +20,10 @@ export const getAlgorithmCategories = () => {
 export const getSystemDesignSummary = () => {
   return apiClient.get('/dashboard/system-design-summary')
 }
+
+/**
+ * 获取用户笔记统计
+ */
+export const getUserNotesStatistics = () => {
+  return apiClient.get('/dashboard/user-notes')
+}

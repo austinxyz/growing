@@ -32,6 +32,18 @@ public class DashboardService {
     @Autowired
     private LearningContentRepository learningContentRepository;
 
+    @Autowired
+    private UserQuestionNoteRepository userQuestionNoteRepository;
+
+    @Autowired
+    private UserTemplateNoteRepository userTemplateNoteRepository;
+
+    @Autowired
+    private UserLearningContentNoteRepository userLearningContentNoteRepository;
+
+    @Autowired
+    private UserCaseNoteRepository userCaseNoteRepository;
+
     /**
      * 获取整体统计信息
      */
@@ -155,6 +167,30 @@ public class DashboardService {
                 .collect(Collectors.toList());
 
         result.put("cases", caseList);
+
+        return result;
+    }
+
+    /**
+     * 获取用户笔记统计信息
+     */
+    public Map<String, Object> getUserNotesStatistics(Long userId) {
+        Map<String, Object> result = new HashMap<>();
+
+        // 算法与数据结构笔记数量
+        long questionNotesCount = userQuestionNoteRepository.countByUserId(userId);
+        long templateNotesCount = userTemplateNoteRepository.countByUserId(userId);
+        long learningContentNotesCount = userLearningContentNoteRepository.countByUserId(userId);
+        long algorithmNotesTotal = questionNotesCount + templateNotesCount + learningContentNotesCount;
+
+        result.put("algorithmQuestionNotes", questionNotesCount);
+        result.put("algorithmTemplateNotes", templateNotesCount);
+        result.put("algorithmLearningNotes", learningContentNotesCount);
+        result.put("algorithmNotesTotal", algorithmNotesTotal);
+
+        // 系统设计案例笔记数量
+        long caseNotesCount = userCaseNoteRepository.countByUserId(userId);
+        result.put("systemDesignCaseNotes", caseNotesCount);
 
         return result;
     }

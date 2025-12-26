@@ -18,4 +18,9 @@ public interface UserTemplateNoteRepository extends JpaRepository<UserTemplateNo
      * 检查指定用户是否对指定模版有笔记
      */
     boolean existsByTemplateIdAndUserId(Long templateId, Long userId);
+
+    /**
+     * 统计用户笔记数量
+     */
+    long countByUserId(Long userId);
 }

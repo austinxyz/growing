@@ -18,4 +18,9 @@ public interface UserLearningContentNoteRepository extends JpaRepository<UserLea
      * 删除指定学习资料和用户的笔记
      */
     void deleteByLearningContentIdAndUserId(Long learningContentId, Long userId);
+
+    /**
+     * 统计用户笔记数量
+     */
+    long countByUserId(Long userId);
 }

@@ -34,4 +34,9 @@ public interface UserQuestionNoteRepository extends JpaRepository<UserQuestionNo
      * 删除用户对某试题的笔记
      */
     void deleteByQuestionIdAndUserId(Long questionId, Long userId);
+
+    /**
+     * 统计用户笔记数量
+     */
+    long countByUserId(Long userId);
 }
