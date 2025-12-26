@@ -32,6 +32,28 @@ public class UserCaseNote {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;  // 用户
 
+    // 结构化答案字段（Key Points）
+    @Column(name = "kp_requirement", columnDefinition = "TEXT")
+    private String kpRequirement;  // 需求分析
+
+    @Column(name = "kp_nfr", columnDefinition = "TEXT")
+    private String kpNfr;  // 非功能性需求
+
+    @Column(name = "kp_entity", columnDefinition = "TEXT")
+    private String kpEntity;  // 核心实体定义
+
+    @Column(name = "kp_components", columnDefinition = "TEXT")
+    private String kpComponents;  // 关键组件
+
+    @Column(name = "kp_api", columnDefinition = "TEXT")
+    private String kpApi;  // API设计
+
+    @Column(name = "kp_object1", columnDefinition = "TEXT")
+    private String kpObject1;  // 核心对象1设计
+
+    @Column(name = "kp_object2", columnDefinition = "TEXT")
+    private String kpObject2;  // 核心对象2设计
+
     // 用户答案（6个步骤，Markdown格式）
     @Column(name = "step1_requirements", columnDefinition = "TEXT")
     private String step1Requirements;  // 步骤1:需求澄清与功能列表

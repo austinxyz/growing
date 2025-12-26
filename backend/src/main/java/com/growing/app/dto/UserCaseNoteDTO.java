@@ -11,6 +11,15 @@ public class UserCaseNoteDTO {
     private Long caseId;
     private Long userId;
 
+    // 结构化答案字段（Key Points）
+    private String kpRequirement;  // 需求分析
+    private String kpNfr;  // 非功能性需求
+    private String kpEntity;  // 核心实体定义
+    private String kpComponents;  // 关键组件
+    private String kpApi;  // API设计
+    private String kpObject1;  // 核心对象1设计
+    private String kpObject2;  // 核心对象2设计
+
     // 用户答案（6个步骤，Markdown格式）
     private String step1Requirements;  // 步骤1:需求澄清与功能列表
     private String step2Entities;  // 步骤2:核心实体定义

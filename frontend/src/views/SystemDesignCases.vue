@@ -195,62 +195,61 @@
               <p v-else class="text-gray-400 text-sm">暂无描述</p>
             </div>
 
-            <!-- Bottom: Split view (Reference Solution left, My Answer right) -->
-            <div class="flex-1 grid grid-cols-2 gap-8 min-h-0">
+            <!-- Bottom: Three columns (Reference Solution | My Answer | Key Points) -->
+            <div class="flex-1 grid grid-cols-3 gap-6 min-h-0">
               <!-- Left: Reference Solution -->
-              <div class="flex flex-col border-r-2 border-gray-300 pr-6 min-h-0">
+              <div class="flex flex-col border-r-2 border-gray-300 pr-4 min-h-0">
                 <div class="flex items-center gap-3 mb-3">
-                  <h3 class="text-lg font-semibold whitespace-nowrap">参考答案:</h3>
-                  <select v-if="selectedCase.solutions && selectedCase.solutions.length > 0" v-model="selectedSolutionId" class="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  <h3 class="text-base font-semibold whitespace-nowrap">参考答案:</h3>
+                  <select v-if="selectedCase.solutions && selectedCase.solutions.length > 0" v-model="selectedSolutionId" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs">
                     <option v-for="solution in selectedCase.solutions" :key="solution.id" :value="solution.id">{{ solution.solutionName }}</option>
                   </select>
                 </div>
                 <div v-if="currentSolution" class="flex-1 flex flex-col min-h-0">
-                  <div class="flex border-b border-gray-200 flex-shrink-0">
+                  <div class="flex border-b border-gray-200 flex-shrink-0 overflow-x-auto">
                     <button
                       v-for="(step, index) in stepTabs"
                       :key="index"
                       @click="activeStepTab = index"
-                      :class="['px-3 py-1.5 text-xs font-medium transition-colors', activeStepTab === index ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-800']"
+                      :class="['px-2 py-1 text-xs font-medium transition-colors whitespace-nowrap', activeStepTab === index ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-800']"
                     >
                       {{ step.shortLabel }}
                     </button>
                   </div>
-                  <div class="flex-1 overflow-y-auto py-3 prose-compact max-w-none">
+                  <div class="flex-1 overflow-y-auto py-2 prose-compact max-w-none text-sm">
                     <div v-if="currentSolution[stepTabs[activeStepTab].field]" v-html="renderMarkdown(currentSolution[stepTabs[activeStepTab].field])"></div>
-                    <p v-else class="text-gray-400 text-sm">暂无内容</p>
+                    <p v-else class="text-gray-400 text-xs">暂无内容</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Right: My Answer -->
-              <div class="flex flex-col pl-3 min-h-0">
+              <!-- Middle: My Answer (步骤) -->
+              <div class="flex flex-col border-r-2 border-gray-300 pr-4 min-h-0">
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="text-lg font-semibold">我的答案</h3>
-                  <button @click="saveMyAnswer" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">保存</button>
+                  <h3 class="text-base font-semibold">我的答案</h3>
+                  <button @click="saveMyAnswer" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs">保存</button>
                 </div>
                 <div class="flex-1 flex flex-col min-h-0">
-                  <div class="flex border-b border-gray-200 flex-shrink-0">
+                  <div class="flex border-b border-gray-200 flex-shrink-0 overflow-x-auto">
                     <button
                       v-for="(step, index) in stepTabs"
                       :key="index"
                       @click="activeStepTab = index"
-                      :class="['px-3 py-1.5 text-xs font-medium transition-colors', activeStepTab === index ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-800']"
+                      :class="['px-2 py-1 text-xs font-medium transition-colors whitespace-nowrap', activeStepTab === index ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-800']"
                     >
                       {{ step.shortLabel }}
                     </button>
                   </div>
 
                   <!-- Image URL input for architecture diagram -->
-                  <div v-if="stepTabs[activeStepTab].type === 'image'" class="flex-1 flex flex-col mt-3 gap-3">
+                  <div v-if="stepTabs[activeStepTab].type === 'image'" class="flex-1 flex flex-col mt-2 gap-2">
                     <input
                       v-model="myAnswer[stepTabs[activeStepTab].field]"
                       type="text"
-                      class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      placeholder="输入架构图URL（支持图片直链，如 https://example.com/image.png）"
+                      class="px-2 py-1 border border-gray-300 rounded text-xs"
+                      placeholder="输入架构图URL"
                     />
-                    <!-- Image preview -->
-                    <div v-if="myAnswer[stepTabs[activeStepTab].field]" class="flex-1 border border-gray-200 rounded-lg p-3 overflow-auto bg-gray-50">
+                    <div v-if="myAnswer[stepTabs[activeStepTab].field]" class="flex-1 border border-gray-200 rounded p-2 overflow-auto bg-gray-50">
                       <img
                         :src="myAnswer[stepTabs[activeStepTab].field]"
                         alt="架构图预览"
@@ -258,16 +257,99 @@
                         @error="handleImageError"
                       />
                     </div>
-                    <p v-else class="text-gray-400 text-sm">输入图片URL后会显示预览</p>
+                    <p v-else class="text-gray-400 text-xs">输入图片URL后会显示预览</p>
                   </div>
 
                   <!-- Markdown textarea for other tabs -->
                   <textarea
                     v-else
                     v-model="myAnswer[stepTabs[activeStepTab].field]"
-                    class="flex-1 w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none mt-3"
+                    class="flex-1 w-full p-2 border border-gray-300 rounded font-mono text-xs resize-none mt-2"
                     :placeholder="`输入${stepTabs[activeStepTab].label}的内容...`"
                   ></textarea>
+                </div>
+              </div>
+
+              <!-- Right: Key Points (结构化要点) -->
+              <div class="flex flex-col min-h-0">
+                <h3 class="text-base font-semibold mb-3">要点拆分</h3>
+                <div class="flex-1 overflow-y-auto space-y-2 pr-1">
+                  <!-- Requirement -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Requirement</label>
+                    <textarea
+                      v-model="myAnswer.kpRequirement"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="功能需求..."
+                    ></textarea>
+                  </div>
+
+                  <!-- NFR -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">NFR</label>
+                    <textarea
+                      v-model="myAnswer.kpNfr"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="非功能性需求..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Entity -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Entity</label>
+                    <textarea
+                      v-model="myAnswer.kpEntity"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="核心实体..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Components -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Components</label>
+                    <textarea
+                      v-model="myAnswer.kpComponents"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="关键组件..."
+                    ></textarea>
+                  </div>
+
+                  <!-- API -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">API</label>
+                    <textarea
+                      v-model="myAnswer.kpApi"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="API设计..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Object1 -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Object1</label>
+                    <textarea
+                      v-model="myAnswer.kpObject1"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="核心对象1..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Object2 -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Object2</label>
+                    <textarea
+                      v-model="myAnswer.kpObject2"
+                      rows="2"
+                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      placeholder="核心对象2..."
+                    ></textarea>
+                  </div>
                 </div>
               </div>
             </div>
@@ -327,6 +409,15 @@ const selectedSolutionId = ref(null)
 const activeStepTab = ref(0)
 const isEditMode = ref(false)
 const myAnswer = ref({
+  // 结构化答案字段（Key Points）
+  kpRequirement: '',
+  kpNfr: '',
+  kpEntity: '',
+  kpComponents: '',
+  kpApi: '',
+  kpObject1: '',
+  kpObject2: '',
+  // 原有的step字段
   step1Requirements: '',
   step2Entities: '',
   step3Api: '',
@@ -428,6 +519,15 @@ const selectCase = async (caseItem) => {
       if (myNote) {
         // 映射后端字段到前端字段
         myAnswer.value = {
+          // 结构化字段（Key Points）
+          kpRequirement: myNote.kpRequirement || '',
+          kpNfr: myNote.kpNfr || '',
+          kpEntity: myNote.kpEntity || '',
+          kpComponents: myNote.kpComponents || '',
+          kpApi: myNote.kpApi || '',
+          kpObject1: myNote.kpObject1 || '',
+          kpObject2: myNote.kpObject2 || '',
+          // 原有的step字段
           step1Requirements: myNote.userStep1RequirementsAndNfr || '',
           step2Entities: myNote.userStep2CoreEntities || '',
           step3Api: myNote.userStep3ApiDesign || '',
@@ -457,6 +557,15 @@ const selectCase = async (caseItem) => {
 
 const resetMyAnswer = () => {
   myAnswer.value = {
+    // 结构化字段（Key Points）
+    kpRequirement: '',
+    kpNfr: '',
+    kpEntity: '',
+    kpComponents: '',
+    kpApi: '',
+    kpObject1: '',
+    kpObject2: '',
+    // 原有的step字段
     step1Requirements: '',
     step2Entities: '',
     step3Api: '',
@@ -484,6 +593,15 @@ const saveMyAnswer = async () => {
   try {
     // 映射前端字段到后端字段名（camelCase to snake_case）
     const data = {
+      // 结构化字段（Key Points）
+      kpRequirement: myAnswer.value.kpRequirement,
+      kpNfr: myAnswer.value.kpNfr,
+      kpEntity: myAnswer.value.kpEntity,
+      kpComponents: myAnswer.value.kpComponents,
+      kpApi: myAnswer.value.kpApi,
+      kpObject1: myAnswer.value.kpObject1,
+      kpObject2: myAnswer.value.kpObject2,
+      // 原有的step字段
       userStep1RequirementsAndNfr: myAnswer.value.step1Requirements,
       userStep2CoreEntities: myAnswer.value.step2Entities,
       userStep3ApiDesign: myAnswer.value.step3Api,
