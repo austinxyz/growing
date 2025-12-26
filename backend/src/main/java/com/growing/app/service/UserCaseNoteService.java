@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserCaseNoteService {
@@ -77,6 +78,31 @@ public class UserCaseNoteService {
         noteRepository.delete(note);
     }
 
+    /**
+     * 获取用户的学习总结（所有案例的要点汇总）
+     */
+    public List<Map<String, Object>> getUserSummary(Long userId) {
+        // 获取用户的所有答题记录
+        List<UserCaseNote> notes = noteRepository.findByUserId(userId);
+
+        // 转换为汇总数据
+        return notes.stream()
+                .map(note -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("caseId", note.getSystemDesignCase().getId());
+                    row.put("caseName", note.getSystemDesignCase().getTitle());
+                    row.put("kpRequirement", note.getKpRequirement());
+                    row.put("kpNfr", note.getKpNfr());
+                    row.put("kpEntity", note.getKpEntity());
+                    row.put("kpComponents", note.getKpComponents());
+                    row.put("kpApi", note.getKpApi());
+                    row.put("kpObject1", note.getKpObject1());
+                    row.put("kpObject2", note.getKpObject2());
+                    return row;
+                })
+                .collect(Collectors.toList());
+    }
+
     // ==================== DTO转换方法 ====================
 
     private UserCaseNoteDTO convertToDTO(UserCaseNote entity) {
@@ -84,6 +110,15 @@ public class UserCaseNoteService {
         dto.setId(entity.getId());
         dto.setCaseId(entity.getSystemDesignCase().getId());
         dto.setUserId(entity.getUser().getId());
+        // 结构化要点字段（Key Points）
+        dto.setKpRequirement(entity.getKpRequirement());
+        dto.setKpNfr(entity.getKpNfr());
+        dto.setKpEntity(entity.getKpEntity());
+        dto.setKpComponents(entity.getKpComponents());
+        dto.setKpApi(entity.getKpApi());
+        dto.setKpObject1(entity.getKpObject1());
+        dto.setKpObject2(entity.getKpObject2());
+        // 步骤字段
         dto.setStep1Requirements(entity.getStep1Requirements());
         dto.setStep2Entities(entity.getStep2Entities());
         dto.setStep3Api(entity.getStep3Api());
@@ -98,6 +133,15 @@ public class UserCaseNoteService {
     }
 
     private void updateEntityFromDTO(UserCaseNote entity, UserCaseNoteDTO dto) {
+        // 结构化要点字段（Key Points）
+        entity.setKpRequirement(dto.getKpRequirement());
+        entity.setKpNfr(dto.getKpNfr());
+        entity.setKpEntity(dto.getKpEntity());
+        entity.setKpComponents(dto.getKpComponents());
+        entity.setKpApi(dto.getKpApi());
+        entity.setKpObject1(dto.getKpObject1());
+        entity.setKpObject2(dto.getKpObject2());
+        // 步骤字段
         entity.setStep1Requirements(dto.getStep1Requirements());
         entity.setStep2Entities(dto.getStep2Entities());
         entity.setStep3Api(dto.getStep3Api());

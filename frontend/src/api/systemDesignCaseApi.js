@@ -174,3 +174,10 @@ export const saveOrUpdateMyNote = (caseId, data) => {
 export const deleteMyNote = (caseId) => {
   return apiClient.delete(`/system-design/cases/${caseId}/my-note`)
 }
+
+/**
+ * 获取我的学习总结（所有案例的要点汇总）
+ */
+export const getMySummary = () => {
+  return apiClient.get('/system-design/cases/my-summary')
+}

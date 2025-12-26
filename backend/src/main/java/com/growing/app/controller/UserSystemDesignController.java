@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -98,5 +99,17 @@ public class UserSystemDesignController {
         Long userId = authService.getUserIdFromToken(token);
         userNoteService.deleteUserNote(caseId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 获取我的学习总结（所有案例的要点汇总）
+     */
+    @GetMapping("/my-summary")
+    public ResponseEntity<List<Map<String, Object>>> getMySummary(
+            @RequestHeader("Authorization") String token) {
+
+        Long userId = authService.getUserIdFromToken(token);
+        List<Map<String, Object>> summary = userNoteService.getUserSummary(userId);
+        return ResponseEntity.ok(summary);
     }
 }

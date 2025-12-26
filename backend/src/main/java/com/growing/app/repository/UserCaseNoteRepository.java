@@ -17,9 +17,14 @@ public interface UserCaseNoteRepository extends JpaRepository<UserCaseNote, Long
     Optional<UserCaseNote> findBySystemDesignCaseIdAndUserId(Long caseId, Long userId);
 
     /**
-     * 查询用户的所有答题记录
+     * 查询用户的所有答题记录（按更新时间倒序）
      */
     List<UserCaseNote> findByUserIdOrderByUpdatedAtDesc(Long userId);
+
+    /**
+     * 查询用户的所有答题记录（用于学习总结）
+     */
+    List<UserCaseNote> findByUserId(Long userId);
 
     /**
      * 删除用户对某个案例的答题记录

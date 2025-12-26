@@ -412,10 +412,14 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import api from '@/api'
 import majorCategoryApi from '@/api/majorCategoryApi'
 import { marked } from 'marked'
 import VideoPlayer from '@/components/VideoPlayer.vue'
+
+// 必须在setup顶层调用useRoute
+const route = useRoute()
 
 // State
 const loading = ref({
@@ -795,7 +799,36 @@ const deleteKnowledgePoint = async (pointId) => {
 onMounted(async () => {
   // 先加载所有focus areas（带分类信息）
   await loadAllFocusAreas()
-  // 然后加载categories，这会自动选择第一个category和第一个focus area
-  await loadCategories()
+
+  // 加载分类数据（用于左侧导航）
+  try {
+    const data = await majorCategoryApi.getAllMajorCategories(SYSTEM_DESIGN_SKILL_ID)
+    majorCategories.value = data
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+  }
+
+  // 检查URL查询参数，如果有focusAreaId则自动选择对应的focus area
+  const focusAreaIdFromQuery = route.query.focusAreaId
+
+  if (focusAreaIdFromQuery) {
+    const targetFocusArea = allFocusAreas.value.find(fa => fa.id == focusAreaIdFromQuery)
+    if (targetFocusArea) {
+      // 找到对应的focus area，自动选择其分类
+      const categoryId = targetFocusArea.categoryIds?.[0]
+      if (categoryId) {
+        selectedCategoryId.value = categoryId
+        // 等待下一个tick确保focusAreas computed已更新
+        await nextTick()
+        selectFocusArea(targetFocusArea)
+        return
+      }
+    }
+  }
+
+  // 默认流程：选择第一个category和第一个focus area
+  if (majorCategories.value.length > 0) {
+    selectCategory(majorCategories.value[0].id)
+  }
 })
 </script>

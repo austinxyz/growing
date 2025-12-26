@@ -34,19 +34,6 @@
               />
             </div>
 
-            <!-- Description -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                案例描述 (Markdown)
-              </label>
-              <textarea
-                v-model="form.caseDescription"
-                rows="4"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="使用Markdown格式描述案例背景和要求..."
-              ></textarea>
-            </div>
-
             <!-- Difficulty & Rating -->
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -101,15 +88,72 @@
 
             <!-- Related Focus Areas -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                相关知识领域 (ID列表，逗号分隔)
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                相关知识领域
               </label>
-              <input
-                v-model="relatedFocusAreasInput"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="例如: 1, 5, 12"
-              />
+
+              <!-- Add Focus Area -->
+              <div class="mb-3 p-3 bg-gray-50 rounded-lg">
+                <div class="flex gap-3 items-end">
+                  <!-- Category Selector -->
+                  <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">选择大分类</label>
+                    <select
+                      v-model="selectedCategoryId"
+                      class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option :value="null">请选择分类</option>
+                      <option v-for="category in categories" :key="category.id" :value="category.id">
+                        {{ category.name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Focus Area Selector -->
+                  <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">选择知识领域</label>
+                    <select
+                      v-model="selectedFocusAreaId"
+                      :disabled="!selectedCategoryId || filteredFocusAreas.length === 0"
+                      class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                    >
+                      <option :value="null">请选择领域</option>
+                      <option v-for="fa in filteredFocusAreas" :key="fa.id" :value="fa.id">
+                        {{ fa.name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Add Button -->
+                  <button
+                    @click="addFocusArea"
+                    :disabled="!selectedFocusAreaId || isAlreadyAdded(selectedFocusAreaId)"
+                    class="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                  >
+                    {{ isAlreadyAdded(selectedFocusAreaId) ? '已添加' : '+ 添加' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Focus Areas List -->
+              <div v-if="form.relatedFocusAreas && form.relatedFocusAreas.length > 0" class="flex flex-wrap gap-2">
+                <div
+                  v-for="faId in form.relatedFocusAreas"
+                  :key="faId"
+                  class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg"
+                >
+                  <span class="text-sm text-gray-700">
+                    {{ getFocusAreaName(faId) }}
+                  </span>
+                  <button
+                    @click="removeFocusArea(faId)"
+                    class="text-red-600 hover:text-red-700 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <p v-else class="text-sm text-gray-400">暂无相关知识领域</p>
             </div>
 
             <!-- Display Order -->
@@ -163,7 +207,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import majorCategoryApi from '@/api/majorCategoryApi'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -186,18 +231,59 @@ const form = ref({
 })
 
 const companyTagsInput = ref('')
-const relatedFocusAreasInput = ref('')
+
+// Focus Area management
+const categories = ref([])
+const allFocusAreas = ref([])
+const selectedCategoryId = ref(null)
+const selectedFocusAreaId = ref(null)
+
+// Computed: filtered focus areas by selected category
+const filteredFocusAreas = computed(() => {
+  if (!selectedCategoryId.value) return []
+  return allFocusAreas.value.filter(fa =>
+    fa.categoryIds && fa.categoryIds.includes(selectedCategoryId.value)
+  )
+})
+
+// Load categories and focus areas
+const loadData = async () => {
+  try {
+    const SYSTEM_DESIGN_SKILL_ID = 2
+    categories.value = await majorCategoryApi.getAllMajorCategories(SYSTEM_DESIGN_SKILL_ID)
+    allFocusAreas.value = await majorCategoryApi.getFocusAreasWithCategories(SYSTEM_DESIGN_SKILL_ID)
+  } catch (error) {
+    console.error('加载分类和知识领域失败:', error)
+  }
+}
+
+// Focus area helper functions
+const getFocusAreaName = (faId) => {
+  const fa = allFocusAreas.value.find(f => f.id === faId)
+  return fa ? fa.name : `ID: ${faId}`
+}
+
+const isAlreadyAdded = (faId) => {
+  return form.value.relatedFocusAreas.includes(faId)
+}
+
+const addFocusArea = () => {
+  if (selectedFocusAreaId.value && !isAlreadyAdded(selectedFocusAreaId.value)) {
+    form.value.relatedFocusAreas.push(selectedFocusAreaId.value)
+    // Reset selectors
+    selectedCategoryId.value = null
+    selectedFocusAreaId.value = null
+  }
+}
+
+const removeFocusArea = (faId) => {
+  form.value.relatedFocusAreas = form.value.relatedFocusAreas.filter(id => id !== faId)
+}
 
 // Watch for input changes to update arrays
 watch(companyTagsInput, (newValue) => {
   form.value.companyTags = newValue
     ? newValue.split(',').map(tag => tag.trim()).filter(tag => tag)
-    : []
-})
-
-watch(relatedFocusAreasInput, (newValue) => {
-  form.value.relatedFocusAreas = newValue
-    ? newValue.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
     : []
 })
 
@@ -215,7 +301,6 @@ watch(() => props.caseData, (newData) => {
       isOfficial: newData.isOfficial !== false
     }
     companyTagsInput.value = (newData.companyTags || []).join(', ')
-    relatedFocusAreasInput.value = (newData.relatedFocusAreas || []).join(', ')
   }
 }, { immediate: true })
 
@@ -237,7 +322,8 @@ const close = () => {
     isOfficial: true
   }
   companyTagsInput.value = ''
-  relatedFocusAreasInput.value = ''
+  selectedCategoryId.value = null
+  selectedFocusAreaId.value = null
 }
 
 const handleSave = () => {
@@ -249,4 +335,8 @@ const handleSave = () => {
   })
   close()
 }
+
+onMounted(() => {
+  loadData()
+})
 </script>

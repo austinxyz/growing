@@ -108,6 +108,22 @@
                 <p v-else class="text-gray-400 text-sm">暂无描述</p>
               </div>
 
+              <!-- Related Focus Areas -->
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">相关知识领域 ({{ selectedCase.relatedFocusAreas?.length || 0 }})</h3>
+                <div v-if="selectedCase.relatedFocusAreas && selectedCase.relatedFocusAreas.length > 0" class="flex flex-wrap gap-2">
+                  <router-link
+                    v-for="faId in selectedCase.relatedFocusAreas"
+                    :key="faId"
+                    :to="{ name: 'SystemDesignBasics', query: { focusAreaId: faId } }"
+                    class="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-lg border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-colors cursor-pointer"
+                  >
+                    {{ getFocusAreaName(faId) }}
+                  </router-link>
+                </div>
+                <p v-else class="text-gray-400 text-sm">暂无相关知识领域</p>
+              </div>
+
               <!-- Learning Resources -->
               <div>
                 <h3 class="text-lg font-semibold mb-3">学习资源 ({{ selectedCase.resources?.length || 0 }})</h3>
@@ -143,18 +159,19 @@
 
             <!-- Right Column: Answer Selection + Tabs (最宽) -->
             <div class="flex-1 bg-white p-4 flex flex-col overflow-hidden">
-              <div v-if="selectedCase.solutions && selectedCase.solutions.length > 0" class="mb-3 flex-shrink-0">
+              <!-- 答案选择下拉框 - 始终显示 -->
+              <div class="mb-3 flex-shrink-0">
                 <div class="flex gap-3 items-center">
                   <h3 class="text-lg font-semibold whitespace-nowrap">答案选择:</h3>
                   <select v-model="selectedSolutionId" class="w-80 px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
                     <option value="my-answer">我的答案</option>
-                    <option v-for="solution in selectedCase.solutions" :key="solution.id" :value="solution.id">
+                    <option v-if="selectedCase.solutions && selectedCase.solutions.length > 0" v-for="solution in selectedCase.solutions" :key="solution.id" :value="solution.id">
                       {{ solution.solutionName }} {{ solution.author ? `(${solution.author})` : '' }}
                     </option>
                   </select>
                 </div>
               </div>
-              <div v-if="currentSolution" class="flex-1 flex flex-col min-h-0">
+              <div v-if="currentSolution || selectedSolutionId === 'my-answer'" class="flex-1 flex flex-col min-h-0">
                 <div class="flex border-b border-gray-200 flex-shrink-0">
                   <button
                     v-for="(step, index) in stepTabs"
@@ -175,6 +192,73 @@
                       @error="handleImageError"
                     />
                   </div>
+                  <!-- 要点拆分 - 卡片模式显示（我的答案专用） -->
+                  <div v-else-if="stepTabs[activeStepTab].field === 'keyPoints' && selectedSolutionId === 'my-answer'" class="grid grid-cols-2 gap-4">
+                    <!-- Requirement 卡片 -->
+                    <div v-if="myAnswer.kpRequirement" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-blue-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">Requirement</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpRequirement }}</div>
+                    </div>
+
+                    <!-- Components 卡片（跨两行，高度更大） -->
+                    <div v-if="myAnswer.kpComponents" class="row-span-2 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-purple-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">Components</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpComponents }}</div>
+                    </div>
+
+                    <!-- NFR 卡片 -->
+                    <div v-if="myAnswer.kpNfr" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-green-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">NFR</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpNfr }}</div>
+                    </div>
+
+                    <!-- Entity 卡片 -->
+                    <div v-if="myAnswer.kpEntity" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-yellow-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">Entity</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpEntity }}</div>
+                    </div>
+
+                    <!-- API 卡片 -->
+                    <div v-if="myAnswer.kpApi" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-red-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">API</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpApi }}</div>
+                    </div>
+
+                    <!-- Object1 卡片 -->
+                    <div v-if="myAnswer.kpObject1" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-indigo-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">Object1</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpObject1 }}</div>
+                    </div>
+
+                    <!-- Object2 卡片 -->
+                    <div v-if="myAnswer.kpObject2" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-5 bg-pink-500 rounded"></div>
+                        <h4 class="text-sm font-semibold text-gray-800">Object2</h4>
+                      </div>
+                      <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpObject2 }}</div>
+                    </div>
+
+                    <p v-if="!myAnswer.kpRequirement && !myAnswer.kpNfr && !myAnswer.kpEntity && !myAnswer.kpComponents && !myAnswer.kpApi && !myAnswer.kpObject1 && !myAnswer.kpObject2" class="col-span-2 text-gray-400">暂无要点内容</p>
+                  </div>
                   <!-- Markdown content for other tabs -->
                   <div v-else-if="stepTabs[activeStepTab].type === 'markdown' && currentSolution[stepTabs[activeStepTab].field]" v-html="renderMarkdown(currentSolution[stepTabs[activeStepTab].field])"></div>
                   <p v-else class="text-gray-400">暂无内容</p>
@@ -186,17 +270,28 @@
 
           <!-- Edit Mode: Description on top, split view below -->
           <div v-else class="flex-1 flex flex-col min-h-0 px-6 py-4">
-            <!-- Top: Case Description (read-only in edit mode) -->
+            <!-- Top: Case Description (read-only in edit mode, collapsible) -->
             <div class="mb-4 pb-4 border-b border-gray-200 flex-shrink-0">
-              <h3 class="text-lg font-semibold mb-3">案例描述</h3>
-              <div v-if="selectedCase.caseDescription" class="prose-compact max-w-none">
-                <div v-html="renderMarkdown(selectedCase.caseDescription)"></div>
+              <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-semibold">案例描述</h3>
+                <button
+                  @click="isDescriptionExpanded = !isDescriptionExpanded"
+                  class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <span>{{ isDescriptionExpanded ? '折叠' : '展开' }}</span>
+                  <span>{{ isDescriptionExpanded ? '▲' : '▼' }}</span>
+                </button>
               </div>
-              <p v-else class="text-gray-400 text-sm">暂无描述</p>
+              <div v-if="isDescriptionExpanded">
+                <div v-if="selectedCase.caseDescription" class="prose-compact max-w-none">
+                  <div v-html="renderMarkdown(selectedCase.caseDescription)"></div>
+                </div>
+                <p v-else class="text-gray-400 text-sm">暂无描述</p>
+              </div>
             </div>
 
-            <!-- Bottom: Three columns (Reference Solution | My Answer | Key Points) -->
-            <div class="flex-1 grid grid-cols-3 gap-6 min-h-0">
+            <!-- Bottom: Two columns (Reference Solution | My Answer) -->
+            <div class="flex-1 grid grid-cols-2 gap-6 min-h-0">
               <!-- Left: Reference Solution -->
               <div class="flex flex-col border-r-2 border-gray-300 pr-4 min-h-0">
                 <div class="flex items-center gap-3 mb-3">
@@ -223,8 +318,8 @@
                 </div>
               </div>
 
-              <!-- Middle: My Answer (步骤) -->
-              <div class="flex flex-col border-r-2 border-gray-300 pr-4 min-h-0">
+              <!-- Right: My Answer (步骤 + 要点拆分) -->
+              <div class="flex flex-col min-h-0">
                 <div class="flex justify-between items-center mb-3">
                   <h3 class="text-base font-semibold">我的答案</h3>
                   <button @click="saveMyAnswer" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs">保存</button>
@@ -260,6 +355,88 @@
                     <p v-else class="text-gray-400 text-xs">输入图片URL后会显示预览</p>
                   </div>
 
+                  <!-- Key Points 结构化编辑 (要点拆分) - 两列布局 -->
+                  <div v-else-if="stepTabs[activeStepTab].field === 'keyPoints'" class="flex-1 overflow-y-auto pr-1 mt-2">
+                    <div class="grid grid-cols-2 gap-3">
+                      <!-- Requirement -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">Requirement</label>
+                        <textarea
+                          v-model="myAnswer.kpRequirement"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="功能需求..."
+                        ></textarea>
+                      </div>
+
+                      <!-- Components (跨两行) -->
+                      <div class="row-span-2">
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">Components</label>
+                        <textarea
+                          v-model="myAnswer.kpComponents"
+                          rows="12"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="关键组件..."
+                        ></textarea>
+                      </div>
+
+                      <!-- NFR -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">NFR</label>
+                        <textarea
+                          v-model="myAnswer.kpNfr"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="非功能性需求..."
+                        ></textarea>
+                      </div>
+
+                      <!-- Entity -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">Entity</label>
+                        <textarea
+                          v-model="myAnswer.kpEntity"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="核心实体..."
+                        ></textarea>
+                      </div>
+
+                      <!-- API -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">API</label>
+                        <textarea
+                          v-model="myAnswer.kpApi"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="API设计..."
+                        ></textarea>
+                      </div>
+
+                      <!-- Object1 -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">Object1</label>
+                        <textarea
+                          v-model="myAnswer.kpObject1"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="核心对象1..."
+                        ></textarea>
+                      </div>
+
+                      <!-- Object2 -->
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-0.5">Object2</label>
+                        <textarea
+                          v-model="myAnswer.kpObject2"
+                          rows="5"
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                          placeholder="核心对象2..."
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Markdown textarea for other tabs -->
                   <textarea
                     v-else
@@ -267,89 +444,6 @@
                     class="flex-1 w-full p-2 border border-gray-300 rounded font-mono text-xs resize-none mt-2"
                     :placeholder="`输入${stepTabs[activeStepTab].label}的内容...`"
                   ></textarea>
-                </div>
-              </div>
-
-              <!-- Right: Key Points (结构化要点) -->
-              <div class="flex flex-col min-h-0">
-                <h3 class="text-base font-semibold mb-3">要点拆分</h3>
-                <div class="flex-1 overflow-y-auto space-y-2 pr-1">
-                  <!-- Requirement -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Requirement</label>
-                    <textarea
-                      v-model="myAnswer.kpRequirement"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="功能需求..."
-                    ></textarea>
-                  </div>
-
-                  <!-- NFR -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">NFR</label>
-                    <textarea
-                      v-model="myAnswer.kpNfr"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="非功能性需求..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Entity -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Entity</label>
-                    <textarea
-                      v-model="myAnswer.kpEntity"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="核心实体..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Components -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Components</label>
-                    <textarea
-                      v-model="myAnswer.kpComponents"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="关键组件..."
-                    ></textarea>
-                  </div>
-
-                  <!-- API -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">API</label>
-                    <textarea
-                      v-model="myAnswer.kpApi"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="API设计..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Object1 -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Object1</label>
-                    <textarea
-                      v-model="myAnswer.kpObject1"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="核心对象1..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Object2 -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-0.5">Object2</label>
-                    <textarea
-                      v-model="myAnswer.kpObject2"
-                      rows="2"
-                      class="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
-                      placeholder="核心对象2..."
-                    ></textarea>
-                  </div>
                 </div>
               </div>
             </div>
@@ -400,14 +494,23 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import * as systemDesignCaseApi from '@/api/systemDesignCaseApi'
+import majorCategoryApi from '@/api/majorCategoryApi'
 import { marked } from 'marked'
+
+// 必须在setup顶层调用useRoute
+const route = useRoute()
 
 const cases = ref([])
 const selectedCase = ref(null)
 const selectedSolutionId = ref(null)
 const activeStepTab = ref(0)
 const isEditMode = ref(false)
+const isDescriptionExpanded = ref(true) // 案例描述展开/折叠状态（默认展开）
+
+// Focus Areas data for displaying names
+const allFocusAreas = ref([])
 const myAnswer = ref({
   // 结构化答案字段（Key Points）
   kpRequirement: '',
@@ -475,7 +578,8 @@ watch(() => selectedCase.value?.solutions, (solutions) => {
   if (solutions && solutions.length > 0) {
     selectedSolutionId.value = solutions[0].id
   } else {
-    selectedSolutionId.value = null
+    // 没有官方答案时，默认选择"我的答案"
+    selectedSolutionId.value = 'my-answer'
   }
   activeStepTab.value = 0
 }, { immediate: true })
@@ -494,12 +598,41 @@ const renderMarkdown = (markdown) => {
   return marked(markdown || '')
 }
 
+// Helper function to get focus area name by ID
+const getFocusAreaName = (faId) => {
+  const fa = allFocusAreas.value.find(f => f.id === faId)
+  return fa ? fa.name : `ID: ${faId}`
+}
+
+// Load focus areas for displaying names
+const loadFocusAreas = async () => {
+  try {
+    const SYSTEM_DESIGN_SKILL_ID = 2
+    allFocusAreas.value = await majorCategoryApi.getFocusAreasWithCategories(SYSTEM_DESIGN_SKILL_ID)
+  } catch (error) {
+    console.error('加载知识领域失败:', error)
+  }
+}
+
 const loadCases = async () => {
   try {
     const data = await systemDesignCaseApi.getOfficialCases()
     cases.value = data || []
+
+    // 检查URL查询参数，如果有caseId则自动选择对应案例
+    const caseIdFromQuery = route.query.caseId
+
+    if (caseIdFromQuery) {
+      const targetCase = cases.value.find(c => c.id == caseIdFromQuery)
+      if (targetCase) {
+        await selectCase(targetCase)
+        return
+      }
+    }
+
+    // 默认选择第一个案例
     if (cases.value.length > 0 && !selectedCase.value) {
-      selectCase(cases.value[0])
+      await selectCase(cases.value[0])
     }
   } catch (error) {
     console.error('加载案例列表失败:', error)
@@ -508,7 +641,7 @@ const loadCases = async () => {
 
 const selectCase = async (caseItem) => {
   try {
-    const data = await systemDesignCaseApi.getCaseById(caseItem.id)
+    const data = await systemDesignCaseApi.getCaseByIdForUser(caseItem.id)
     selectedCase.value = data
     isEditMode.value = false
     activeStepTab.value = 0
@@ -680,6 +813,7 @@ const stopDrag = () => {
 }
 
 onMounted(() => {
+  loadFocusAreas()
   loadCases()
 })
 </script>

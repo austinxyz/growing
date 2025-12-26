@@ -146,6 +146,14 @@
             <Layers class="w-5 h-5" />
             <span>典型案例</span>
           </router-link>
+          <router-link
+            to="/system-design/summary"
+            class="nav-item"
+            :class="isActive('/system-design/summary')"
+          >
+            <FileText class="w-5 h-5" />
+            <span>学习总结</span>
+          </router-link>
         </div>
       </template>
 
@@ -267,7 +275,8 @@ import {
   Target,
   FileQuestion,
   BookCheck,
-  Layers
+  Layers,
+  FileText
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 

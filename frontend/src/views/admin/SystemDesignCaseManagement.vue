@@ -12,10 +12,10 @@
       </button>
     </div>
 
-    <!-- Main Content: Two-column layout -->
+    <!-- Main Content: Three-column layout -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- Left: Case List (Narrower) -->
-      <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
+      <!-- Left: Case List (Narrowest) -->
+      <div class="w-1/6 bg-white border-r border-gray-200 flex flex-col">
         <div class="p-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-700">案例列表 ({{ cases.length }})</h2>
         </div>
@@ -44,7 +44,7 @@
                 {{ difficultyText(caseItem.difficulty) }}
               </span>
             </div>
-            <div class="text-sm text-gray-600">
+            <div class="text-xs text-gray-500">
               <span v-if="caseItem.companyTags && caseItem.companyTags.length > 0">
                 🏢 {{ caseItem.companyTags.slice(0, 2).join(', ') }}
               </span>
@@ -53,20 +53,20 @@
         </div>
       </div>
 
-      <!-- Right: Case Details -->
-      <div class="flex-1 bg-white overflow-y-auto">
-        <div v-if="!selectedCase" class="h-full flex items-center justify-center text-gray-400">
+      <!-- Middle + Right Columns Container -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <div v-if="!selectedCase" class="h-full flex items-center justify-center text-gray-400 w-full">
           <p>← 请从左侧选择一个案例</p>
         </div>
-        <div v-else class="p-6 flex flex-col h-full">
-          <!-- Case Header -->
-          <div class="mb-4 pb-3 border-b border-gray-200 flex-shrink-0">
+        <template v-else>
+          <!-- Case Header (full width at top) -->
+          <div class="bg-white border-b border-gray-200 px-6 py-3 flex-shrink-0">
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-3 flex-1">
-                <h2 class="text-2xl font-bold text-gray-800">{{ selectedCase.title }}</h2>
+                <h2 class="text-xl font-bold text-gray-800">{{ selectedCase.title }}</h2>
                 <span
                   :class="[
-                    'px-3 py-1 text-xs rounded-full',
+                    'px-2 py-1 text-xs rounded-full',
                     selectedCase.difficulty === 'EASY' ? 'bg-green-100 text-green-700' :
                     selectedCase.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
                     'bg-red-100 text-red-700'
@@ -76,7 +76,7 @@
                 </span>
                 <span
                   v-if="selectedCase.isOfficial"
-                  class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+                  class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
                 >
                   官方案例
                 </span>
@@ -105,53 +105,101 @@
             </div>
           </div>
 
-          <!-- Top Section: Case Description (Left) + Learning Resources (Right) -->
-          <div class="grid grid-cols-2 gap-6 mb-6 flex-shrink-0">
-            <!-- Case Description -->
-            <div>
-              <h3 class="text-lg font-semibold mb-3">案例描述</h3>
-              <div v-if="selectedCase.caseDescription" class="prose max-w-none text-sm">
-                <div v-html="renderMarkdown(selectedCase.caseDescription)"></div>
-              </div>
-              <p v-else class="text-gray-400 text-sm">暂无描述</p>
-            </div>
+          <!-- Three columns: Description + Resources | Reference Solutions -->
+          <div class="flex-1 flex overflow-hidden">
+            <!-- Middle Column: Description + Resources (vertical layout) -->
+            <div class="w-1/4 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+              <!-- Case Description -->
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">案例描述</h3>
 
-            <!-- Learning Resources -->
-            <div>
-              <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-semibold">学习资源 ({{ selectedCase.resources?.length || 0 }})</h3>
-                <button
-                  @click="openResourceModal"
-                  class="text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  + 添加
-                </button>
+                <!-- Edit Mode -->
+                <div v-if="isEditingDescription" class="flex flex-col gap-2">
+                  <div class="flex gap-2">
+                    <button
+                      @click="saveDescription"
+                      class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      保存
+                    </button>
+                    <button
+                      @click="cancelEditDescription"
+                      class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                    >
+                      取消
+                    </button>
+                  </div>
+                  <textarea
+                    v-model="editingDescriptionContent"
+                    rows="12"
+                    class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none"
+                    placeholder="输入案例描述（支持Markdown）..."
+                  ></textarea>
+                </div>
+
+                <!-- View Mode -->
+                <div v-else class="relative">
+                  <button
+                    @click="startEditDescription"
+                    class="absolute top-0 right-0 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs bg-white shadow-sm border border-gray-200 z-10"
+                  >
+                    ✏️ 编辑
+                  </button>
+                  <div v-if="selectedCase.caseDescription" class="prose-compact max-w-none">
+                    <div v-html="renderMarkdown(selectedCase.caseDescription)"></div>
+                  </div>
+                  <p v-else class="text-gray-400 text-sm">暂无描述，点击"编辑"添加内容</p>
+                </div>
               </div>
-              <div v-if="selectedCase.resources && selectedCase.resources.length > 0" class="space-y-2">
-                <div
-                  v-for="resource in selectedCase.resources"
-                  :key="resource.id"
-                  class="p-2 bg-gray-50 rounded-lg"
-                >
-                  <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
-                          {{ resource.resourceType }}
-                        </span>
-                        <a
-                          :href="resource.url"
-                          target="_blank"
-                          class="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          {{ resource.title }}
-                        </a>
-                      </div>
-                      <p v-if="resource.description" class="text-xs text-gray-600">
-                        {{ truncate(resource.description, 80) }}
-                      </p>
+
+              <!-- Related Focus Areas -->
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">相关知识领域 ({{ selectedCase.relatedFocusAreas?.length || 0 }})</h3>
+                <div v-if="selectedCase.relatedFocusAreas && selectedCase.relatedFocusAreas.length > 0" class="flex flex-wrap gap-2">
+                  <span
+                    v-for="faId in selectedCase.relatedFocusAreas"
+                    :key="faId"
+                    class="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-lg border border-purple-200"
+                  >
+                    {{ getFocusAreaName(faId) }}
+                  </span>
+                </div>
+                <p v-else class="text-gray-400 text-sm">暂无相关知识领域</p>
+              </div>
+
+              <!-- Learning Resources -->
+              <div>
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="text-lg font-semibold">学习资源 ({{ selectedCase.resources?.length || 0 }})</h3>
+                  <button
+                    @click="openResourceModal"
+                    class="text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    + 添加
+                  </button>
+                </div>
+                <div v-if="selectedCase.resources && selectedCase.resources.length > 0" class="space-y-2">
+                  <div
+                    v-for="resource in selectedCase.resources"
+                    :key="resource.id"
+                    class="p-2 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                        {{ resource.resourceType }}
+                      </span>
+                      <a
+                        :href="resource.url"
+                        target="_blank"
+                        class="text-sm font-medium text-blue-600 hover:underline flex-1"
+                      >
+                        {{ resource.title }}
+                      </a>
                     </div>
-                    <div class="flex gap-2 ml-2">
+                    <p v-if="resource.description" class="text-xs text-gray-600 mb-2">
+                      {{ truncate(resource.description, 80) }}
+                    </p>
+                    <div class="flex gap-2">
                       <button
                         @click="openEditResourceModal(resource)"
                         class="text-blue-600 hover:text-blue-700 text-xs"
@@ -167,13 +215,14 @@
                     </div>
                   </div>
                 </div>
+                <p v-else class="text-gray-400 text-sm">暂无学习资源</p>
               </div>
-              <p v-else class="text-gray-400 text-sm">暂无学习资源</p>
             </div>
-          </div>
 
-          <!-- Bottom Section: Reference Solutions with Tabs -->
-          <div class="flex-1 flex flex-col border-t border-gray-200 pt-4 min-h-0">
+            <!-- Right Column: Reference Solutions with Tabs (widest) -->
+            <div class="flex-1 bg-white p-4 flex flex-col overflow-hidden">
+              <!-- Bottom Section: Reference Solutions with Tabs -->
+              <div class="flex-1 flex flex-col min-h-0">
             <!-- Merged: Title + Solution Selector + Actions -->
             <div v-if="selectedCase.solutions && selectedCase.solutions.length > 0" class="mb-3 flex-shrink-0">
               <div class="flex gap-3 items-center">
@@ -265,7 +314,27 @@
                           取消
                         </button>
                       </div>
+                      <!-- Image URL input for architecture diagram -->
+                      <div v-if="stepTabs[activeStepTab].type === 'image'" class="flex-1 flex flex-col gap-2">
+                        <input
+                          v-model="editingStepContent"
+                          type="text"
+                          class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="输入架构图URL"
+                        />
+                        <div v-if="editingStepContent" class="flex-1 border border-gray-200 rounded-lg p-3 overflow-auto bg-gray-50">
+                          <img
+                            :src="editingStepContent"
+                            alt="架构图预览"
+                            class="max-w-full h-auto"
+                            @error="handleImageError"
+                          />
+                        </div>
+                        <p v-else class="text-gray-400 text-sm">输入图片URL后会显示预览</p>
+                      </div>
+                      <!-- Markdown textarea for other tabs -->
                       <textarea
+                        v-else
                         v-model="editingStepContent"
                         class="flex-1 w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none"
                         placeholder="输入Markdown格式的内容..."
@@ -281,17 +350,28 @@
                       >
                         ✏️ 编辑
                       </button>
-                      <!-- Content -->
-                      <div v-if="currentSolution[stepTabs[activeStepTab].field]" v-html="renderMarkdown(currentSolution[stepTabs[activeStepTab].field])"></div>
+                      <!-- Image display for architecture diagram tab -->
+                      <div v-if="stepTabs[activeStepTab].type === 'image' && currentSolution[stepTabs[activeStepTab].field]" class="flex justify-center items-start">
+                        <img
+                          :src="currentSolution[stepTabs[activeStepTab].field]"
+                          alt="架构图"
+                          class="max-w-full h-auto border border-gray-200 rounded-lg"
+                          @error="handleImageError"
+                        />
+                      </div>
+                      <!-- Markdown content for other tabs -->
+                      <div v-else-if="stepTabs[activeStepTab].type === 'markdown' && currentSolution[stepTabs[activeStepTab].field]" v-html="renderMarkdown(currentSolution[stepTabs[activeStepTab].field])"></div>
                       <p v-else class="text-gray-400">暂无内容，点击"编辑"添加内容</p>
                     </div>
                   </div>
                 </div>
               </div>
+              </div>
+              <p v-else class="text-gray-400 text-sm">暂无参考答案</p>
             </div>
-            <p v-else class="text-gray-400 text-sm">暂无参考答案</p>
           </div>
         </div>
+        </template>
       </div>
     </div>
 
@@ -320,6 +400,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import * as systemDesignCaseApi from '@/api/systemDesignCaseApi'
+import majorCategoryApi from '@/api/majorCategoryApi'
 import { marked } from 'marked'
 import SystemDesignCaseEditModal from '@/components/admin/SystemDesignCaseEditModal.vue'
 import CaseResourceEditModal from '@/components/admin/CaseResourceEditModal.vue'
@@ -334,20 +415,29 @@ const editingResource = ref(null)
 const showSolutionModal = ref(false)
 const editingSolution = ref(null)
 
+// Focus Areas data for displaying names
+const allFocusAreas = ref([])
+
 // Solution tabs state
 const selectedSolutionId = ref(null)
 const activeStepTab = ref(0)
 const editingStepIndex = ref(null)
 const editingStepContent = ref('')
 
+// Description editing state
+const isEditingDescription = ref(false)
+const editingDescriptionContent = ref('')
+
 // Step tabs configuration
 const stepTabs = [
-  { label: 'Step 1: 需求', field: 'step1Requirements' },
-  { label: 'Step 2: 实体', field: 'step2Entities' },
-  { label: 'Step 3: API', field: 'step3Api' },
-  { label: 'Step 4: 数据流', field: 'step4DataFlow' },
-  { label: 'Step 5: 架构', field: 'step5Architecture' },
-  { label: 'Step 6: 深入', field: 'step6DeepDive' }
+  { label: 'Step 1: 需求', field: 'step1Requirements', type: 'markdown' },
+  { label: 'Step 2: 实体', field: 'step2Entities', type: 'markdown' },
+  { label: 'Step 3: API', field: 'step3Api', type: 'markdown' },
+  { label: 'Step 4: 数据流', field: 'step4DataFlow', type: 'markdown' },
+  { label: 'Step 5: 架构', field: 'step5Architecture', type: 'markdown' },
+  { label: 'Step 6: 深入', field: 'step6DeepDive', type: 'markdown' },
+  { label: '架构图', field: 'architectureDiagramUrl', type: 'image' },
+  { label: '要点总结', field: 'keyPoints', type: 'markdown' }
 ]
 
 // Computed: current selected solution
@@ -403,6 +493,9 @@ const selectCase = async (caseItem) => {
   try {
     const data = await systemDesignCaseApi.getCaseById(caseItem.id)
     selectedCase.value = data
+    // 重置编辑状态
+    isEditingDescription.value = false
+    editingDescriptionContent.value = ''
   } catch (error) {
     console.error('加载案例详情失败:', error)
   }
@@ -579,7 +672,61 @@ const saveStepContent = async (stepIndex) => {
   }
 }
 
+const handleImageError = (event) => {
+  console.error('图片加载失败:', event.target.src)
+  event.target.alt = '图片加载失败，请检查URL是否正确'
+}
+
+// Description editing functions
+const startEditDescription = () => {
+  if (!selectedCase.value) return
+  isEditingDescription.value = true
+  editingDescriptionContent.value = selectedCase.value.caseDescription || ''
+}
+
+const cancelEditDescription = () => {
+  isEditingDescription.value = false
+  editingDescriptionContent.value = ''
+}
+
+const saveDescription = async () => {
+  if (!selectedCase.value) return
+
+  try {
+    const updateData = {
+      ...selectedCase.value,
+      caseDescription: editingDescriptionContent.value
+    }
+
+    await systemDesignCaseApi.updateCase(selectedCase.value.id, updateData)
+    await selectCase(selectedCase.value)
+
+    isEditingDescription.value = false
+    editingDescriptionContent.value = ''
+  } catch (error) {
+    console.error('保存案例描述失败:', error)
+    alert('保存失败，请重试')
+  }
+}
+
+// Helper function to get focus area name by ID
+const getFocusAreaName = (faId) => {
+  const fa = allFocusAreas.value.find(f => f.id === faId)
+  return fa ? fa.name : `ID: ${faId}`
+}
+
+// Load focus areas for displaying names
+const loadFocusAreas = async () => {
+  try {
+    const SYSTEM_DESIGN_SKILL_ID = 2
+    allFocusAreas.value = await majorCategoryApi.getFocusAreasWithCategories(SYSTEM_DESIGN_SKILL_ID)
+  } catch (error) {
+    console.error('加载知识领域失败:', error)
+  }
+}
+
 onMounted(() => {
+  loadFocusAreas()
   loadCases()
 })
 </script>

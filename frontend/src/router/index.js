@@ -123,6 +123,12 @@ const routes = [
     path: '/system-design/cases',
     name: 'SystemDesignCases',
     component: () => import('../views/SystemDesignCases.vue')
+  },
+  // 用户端 - 系统设计学习总结（Phase 5.2）
+  {
+    path: '/system-design/summary',
+    name: 'SystemDesignSummary',
+    component: () => import('../views/SystemDesignSummary.vue')
   }
 ]
 
