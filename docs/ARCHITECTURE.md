@@ -806,6 +806,359 @@ CREATE INDEX idx_category_id ON focus_area_categories(major_category_id);
 
 ---
 
-**Document Version**: v2.0
-**Last Updated**: 2025-12-24 (added Phase 4 architecture)
+## Phase 5: System Design Learning Module (2025-12-25 至 2025-12-26)
+
+### Overview
+
+Phase 5 implements a **system design learning platform** with two sub-modules:
+1. **Basics Module** - Reuses Skill + Focus Area + Learning Content architecture
+2. **Cases Module** - New 5-table architecture for typical system design cases
+
+**Reference Design**: [HelloInterview](https://www.hellointerview.com/)
+
+### Data Model
+
+```
+skills (id=2 "系统设计")
+  ├─ major_categories (3 categories)
+  │    ├─ "核心概念" (Core Concepts: Network, API, CAP Theory, etc.)
+  │    ├─ "关键技术" (Key Technologies: Redis, Kafka, Cassandra, etc.)
+  │    └─ "设计模式" (Design Patterns: Real-time updates, file handling, etc.)
+  │         └─ focus_areas (specific knowledge points)
+  │              └─ learning_contents (articles, videos)
+  │
+  └─ system_design_cases (typical cases: Design Twitter, Uber, etc.)
+       ├─ case_resources (learning materials for cases)
+       ├─ case_solutions (reference answers, supports multiple solutions)
+       │    └─ solution_diagrams (architecture/data flow diagrams)
+       └─ user_case_notes (user answers with dual-track system)
+```
+
+**Key Design**: Basics reuse existing architecture; Cases use independent tables (not questions table due to structural differences)
+
+### Database Schema (V15 + V16 Migrations)
+
+**V15__create_system_design_tables.sql** (5 tables):
+
+```sql
+-- 1. Case master table
+CREATE TABLE system_design_cases (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    skill_id BIGINT NOT NULL COMMENT 'Always 2 (System Design)',
+
+    -- Basic info
+    title VARCHAR(500) NOT NULL,
+    case_description TEXT,
+    difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
+    difficulty_rating INT COMMENT '1-10',
+
+    -- Metadata (JSON)
+    company_tags TEXT COMMENT '["Google", "Meta"]',
+    related_focus_areas TEXT COMMENT '[1, 5, 12]',
+
+    -- Management
+    is_official BOOLEAN DEFAULT TRUE,
+    created_by_user_id BIGINT,
+    display_order INT DEFAULT 0,
+
+    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
+    INDEX idx_skill_id (skill_id),
+    INDEX idx_difficulty (difficulty_rating)
+);
+
+-- 2. Case learning resources
+CREATE TABLE case_resources (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    case_id BIGINT NOT NULL,
+    resource_type ENUM('VIDEO', 'ARTICLE') NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    url VARCHAR(1000) NOT NULL,
+    description TEXT,
+    display_order INT DEFAULT 0,
+
+    FOREIGN KEY (case_id) REFERENCES system_design_cases(id) ON DELETE CASCADE
+);
+
+-- 3. Reference answers (supports multiple solutions)
+CREATE TABLE case_solutions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    case_id BIGINT NOT NULL,
+    solution_name VARCHAR(200) NOT NULL COMMENT 'e.g., Solution A - Basic',
+    author VARCHAR(200),
+
+    -- 6-step framework (Markdown)
+    step1_requirements TEXT COMMENT 'Requirements clarification',
+    step2_entities TEXT COMMENT 'Core entities',
+    step3_api TEXT COMMENT 'API design',
+    step4_data_flow TEXT COMMENT 'Data flow',
+    step5_architecture TEXT COMMENT 'High-level architecture',
+    step6_deep_dive TEXT COMMENT 'Deep dive',
+
+    display_order INT DEFAULT 0,
+    FOREIGN KEY (case_id) REFERENCES system_design_cases(id) ON DELETE CASCADE
+);
+
+-- 4. Solution diagrams
+CREATE TABLE solution_diagrams (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    solution_id BIGINT NOT NULL,
+    diagram_type ENUM('ARCHITECTURE', 'DATA_FLOW', 'ENTITY', 'OTHER') NOT NULL,
+    title VARCHAR(200),
+    image_url VARCHAR(1000) NOT NULL,
+    description TEXT,
+    display_order INT DEFAULT 0,
+
+    FOREIGN KEY (solution_id) REFERENCES case_solutions(id) ON DELETE CASCADE
+);
+
+-- 5. User answers (dual-track: 6 steps + 7 key points)
+CREATE TABLE user_case_notes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    case_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+
+    -- 6-step answers (Markdown long text)
+    step1_requirements TEXT,
+    step2_entities TEXT,
+    step3_api TEXT,
+    step4_data_flow TEXT,
+    step5_architecture TEXT,
+    step6_deep_dive TEXT,
+
+    -- Attachments
+    architecture_diagram_url VARCHAR(1000),
+    key_points TEXT COMMENT 'Key takeaways',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (case_id) REFERENCES system_design_cases(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_case (case_id, user_id) COMMENT 'One note per user per case'
+);
+```
+
+**V16__add_structured_fields_to_user_case_notes.sql** (7 key point fields):
+
+```sql
+ALTER TABLE user_case_notes
+    ADD COLUMN kp_requirement TEXT COMMENT 'Requirement analysis' AFTER user_id,
+    ADD COLUMN kp_nfr TEXT COMMENT 'Non-Functional Requirements' AFTER kp_requirement,
+    ADD COLUMN kp_entity TEXT COMMENT 'Core entities' AFTER kp_nfr,
+    ADD COLUMN kp_components TEXT COMMENT 'Key components' AFTER kp_entity,
+    ADD COLUMN kp_api TEXT COMMENT 'API design' AFTER kp_components,
+    ADD COLUMN kp_object1 TEXT COMMENT 'Core object 1' AFTER kp_api,
+    ADD COLUMN kp_object2 TEXT COMMENT 'Core object 2' AFTER kp_object1;
+```
+
+**Dual-Track System**:
+- **step1-6 fields**: Complete 6-step design (Markdown long text)
+- **kp_* fields**: Quick key points (Markdown short text)
+- Users can choose which method or use both
+
+### Backend Architecture
+
+**DTOs**:
+```java
+SystemDesignCaseDTO      // Case basic info + resources
+CaseResourceDTO          // Learning resources
+CaseSolutionDTO          // Reference answer + diagrams
+SolutionDiagramDTO       // Diagram metadata
+UserCaseNoteDTO          // User answer (dual-track: step1-6 + kp_*)
+```
+
+**Services**:
+```java
+SystemDesignCaseService   // Case CRUD
+CaseResourceService       // Resource management
+CaseSolutionService       // Solution management (multi-solution support)
+UserCaseNoteService       // User answer CRUD (UPSERT pattern)
+```
+
+**Controllers**:
+```java
+// Admin APIs
+SystemDesignCaseController    // Case management
+CaseResourceController        // Resource management
+CaseSolutionController        // Solution management
+
+// User APIs
+UserSystemDesignController    // Browse cases, save answers
+```
+
+**Service Layer Patterns**:
+```java
+@Service
+public class UserCaseNoteService {
+    // UPSERT pattern: findByCaseIdAndUserId → update or create
+    @Transactional
+    public UserCaseNoteDTO saveOrUpdateNote(Long caseId, Long userId, UserCaseNoteDTO dto) {
+        Optional<UserCaseNote> existing = repository.findByCaseIdAndUserId(caseId, userId);
+        UserCaseNote note = existing.orElse(new UserCaseNote());
+
+        // Save 6-step fields
+        note.setStep1Requirements(dto.getStep1Requirements());
+        // ... step2-6
+
+        // Save 7 key point fields (V16)
+        note.setKpRequirement(dto.getKpRequirement());
+        note.setKpNfr(dto.getKpNfr());
+        // ... kp_entity, kp_components, kp_api, kp_object1, kp_object2
+
+        // Save attachments
+        note.setArchitectureDiagramUrl(dto.getArchitectureDiagramUrl());
+        note.setKeyPoints(dto.getKeyPoints());
+
+        return toDTO(repository.save(note));
+    }
+}
+```
+
+### Frontend Architecture
+
+**Pages**:
+
+1. **Admin - Basics Management** (`/admin/system-design-basics`)
+   - Component: `SystemDesignBasicsManagement.vue`
+   - Layout: Two-column (Focus Area tree + Learning contents)
+   - Reuses Phase 4 algorithm management layout
+
+2. **Admin - Cases Management** (`/admin/system-design-cases`)
+   - Component: `SystemDesignCaseManagement.vue`
+   - Layout: Three-column (Case list + Details + Solutions)
+   - Features: Case CRUD, resource management, multi-solution editing
+   - 8 tabs: 6 steps + Architecture diagram + Key points
+
+3. **User - Basics Learning** (`/system-design/basics`)
+   - Component: `SystemDesignBasics.vue`
+   - Layout: Two-column (Focus Area tree + Learning contents)
+   - Reuses Phase 4 algorithm learning layout
+
+4. **User - Cases Practice** (`/system-design/cases`)
+   - Component: `SystemDesignCases.vue`
+   - Two modes:
+     - **View mode**: Case list + Case details + Reference answers
+     - **Edit mode**: Left-right comparison (Reference answer | My answer)
+   - 14 tabs in edit mode: 6 steps + 7 key points + 1 diagram upload
+   - **Answer visibility control**: Toggle show/hide reference answer
+
+5. **User - Learning Summary** (`/system-design/summary`) - **New in V16**
+   - Component: `SystemDesignSummary.vue`
+   - Layout: Full-screen table
+   - Features: Horizontal comparison of all cases' key points
+   - Columns: Case name + 7 key points (kp_*)
+   - Click case name → navigate to case details
+
+**API Client**:
+```javascript
+// frontend/src/api/systemDesignCaseApi.js
+
+// Admin APIs
+export const getAllCases = () => apiClient.get('/admin/system-design-cases')
+export const createCase = (data) => apiClient.post('/admin/system-design-cases', data)
+export const updateCase = (id, data) => apiClient.put(`/admin/system-design-cases/${id}`, data)
+export const deleteCase = (id) => apiClient.delete(`/admin/system-design-cases/${id}`)
+
+export const addResource = (caseId, data) =>
+  apiClient.post(`/admin/system-design-cases/${caseId}/resources`, data)
+export const deleteResource = (id) => apiClient.delete(`/admin/case-resources/${id}`)
+
+export const addSolution = (caseId, data) =>
+  apiClient.post(`/admin/system-design-cases/${caseId}/solutions`, data)
+export const updateSolution = (id, data) =>
+  apiClient.put(`/admin/case-solutions/${id}`, data)
+export const deleteSolution = (id) => apiClient.delete(`/admin/case-solutions/${id}`)
+
+// User APIs
+export const getCases = () => apiClient.get('/system-design-cases')
+export const getCaseDetail = (id) => apiClient.get(`/system-design-cases/${id}`)
+export const getSolutions = (caseId) =>
+  apiClient.get(`/system-design-cases/${caseId}/solutions`)
+
+export const getMyNote = (caseId) =>
+  apiClient.get(`/system-design-cases/${caseId}/my-note`)
+export const saveMyNote = (caseId, data) =>
+  apiClient.post(`/system-design-cases/${caseId}/my-note`, data)
+
+export const getMySummary = () => apiClient.get('/system-design/my-notes')
+```
+
+### Key Design Decisions
+
+**1. Why separate cases table instead of reusing questions?**
+- System design cases have very different structure (6-step framework, multiple solutions, diagrams)
+- `questions` table is for generic Q&A (problem + answer requirement + red flags)
+- Avoiding NULL fields and complex polymorphism
+- Easier to extend with case-specific features (company tags, related focus areas)
+
+**2. Why dual-track system (step1-6 + kp_*)?**
+- Different learning styles: some users prefer complete essays, others prefer bullet points
+- Learning summary page needs structured data (kp_* fields) for horizontal comparison
+- kp_* fields added in V16 based on user feedback during development
+- Both coexist: users can choose which method or use both
+
+**3. Why support multiple reference solutions per case?**
+- Real-world system design has multiple valid approaches
+- Different solutions may optimize for different trade-offs (CAP, consistency, performance)
+- Users can learn from comparing different design strategies
+- No `is_primary` field: all solutions are equal (simplified design)
+
+**4. Why add learning summary page?**
+- User need: Quickly review key points across all cases
+- Avoids repetitive clicking into individual cases
+- Horizontal comparison helps identify patterns and differences
+- Only shows kp_* fields (not full step1-6 essays) for compact display
+
+**5. Why add answer visibility control?**
+- Pedagogical best practice: encourage independent thinking first
+- Users can hide reference answer, design their solution, then compare
+- Improves learning effectiveness vs passive reading
+
+### Implementation Lessons
+
+**✅ What Went Well**:
+1. **Clear requirements upfront** - User provided reference design (HelloInterview) and detailed requirements
+2. **Architecture guidance** - User explicitly said "reuse Skill-FocusArea for basics, separate tables for cases"
+3. **Iterative approach** - User requested requirements outline first, reviewed, then UI design
+4. **No axios bugs** - Learned from Phase 3/4 mistakes, no `response.data` or `/api/api` errors
+
+**⚠️ Design Evolution**:
+1. **V16 migration** - Added kp_* fields mid-development based on learning summary page need
+2. **Removed is_primary field** - Simplified to treat all solutions equally
+3. **Answer visibility toggle** - UX improvement added after initial implementation
+4. **Focus Area navigation** - Added clickable links from cases to basics learning page
+
+**Contrast with Phase 3/4**:
+- Phase 3: Had 2 axios bugs (response.data unwrapping)
+- Phase 4: Had 1 axios bug (/api prefix duplication) + incomplete DTO
+- **Phase 5: Zero axios bugs, zero DTO bugs** - Prevention checklists worked!
+
+### Performance
+
+**Database Indexes**:
+```sql
+-- system_design_cases
+INDEX idx_skill_id (skill_id)
+INDEX idx_difficulty (difficulty_rating)
+INDEX idx_display_order (display_order)
+
+-- case_resources, case_solutions, solution_diagrams
+INDEX idx_case_id (case_id)  -- or idx_solution_id
+INDEX idx_display_order (display_order)
+
+-- user_case_notes
+UNIQUE KEY unique_user_case (case_id, user_id)
+INDEX idx_user_id (user_id)
+```
+
+**Query Optimization**:
+- Case list: Pagination support
+- Solution switching: Lazy load (only fetch when user selects)
+- Learning summary: Batch load all user notes in one query, only fetch kp_* fields (not step1-6)
+- Image upload: Separate API endpoint for diagram uploads
+
+---
+
+**Document Version**: v3.0
+**Last Updated**: 2025-12-26 (added Phase 5 architecture)
 **Maintainer**: Austin Xu
