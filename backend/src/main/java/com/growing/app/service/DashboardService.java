@@ -29,6 +29,9 @@ public class DashboardService {
     @Autowired
     private SystemDesignCaseRepository systemDesignCaseRepository;
 
+    @Autowired
+    private LearningContentRepository learningContentRepository;
+
     /**
      * 获取整体统计信息
      */
@@ -58,6 +61,12 @@ public class DashboardService {
         // 系统设计案例数量
         long systemDesignCasesCount = systemDesignCaseRepository.count();
         stats.put("systemDesignCases", systemDesignCasesCount);
+
+        // 算法模板数量（content_type = 'template' AND focus_area_id IS NULL）
+        long algorithmTemplatesCount = learningContentRepository
+                .findByContentTypeAndFocusAreaIsNullOrderBySortOrderAsc(
+                        LearningContent.ContentType.template).size();
+        stats.put("algorithmTemplates", algorithmTemplatesCount);
 
         return stats;
     }
