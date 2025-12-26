@@ -27,9 +27,14 @@ public class MajorCategoryController {
     /**
      * 获取所有大分类
      * GET /api/major-categories
+     * GET /api/major-categories?skillId=1  (获取指定skill的分类)
      */
     @GetMapping("/major-categories")
-    public ResponseEntity<List<MajorCategoryDTO>> getAllMajorCategories() {
+    public ResponseEntity<List<MajorCategoryDTO>> getAllMajorCategories(
+            @RequestParam(required = false) Long skillId) {
+        if (skillId != null) {
+            return ResponseEntity.ok(majorCategoryService.getMajorCategoriesBySkillId(skillId));
+        }
         return ResponseEntity.ok(majorCategoryService.getAllMajorCategories());
     }
 

@@ -29,6 +29,16 @@ public class MajorCategoryService {
     }
 
     /**
+     * 获取指定skill的大分类（按sort_order排序）
+     */
+    public List<MajorCategoryDTO> getMajorCategoriesBySkillId(Long skillId) {
+        return majorCategoryRepository.findBySkillIdOrderBySortOrderAsc(skillId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 转换为DTO
      */
     private MajorCategoryDTO convertToDTO(MajorCategory category) {
@@ -37,6 +47,7 @@ public class MajorCategoryService {
         dto.setName(category.getName());
         dto.setDescription(category.getDescription());
         dto.setSortOrder(category.getSortOrder());
+        dto.setSkillId(category.getSkillId());
         return dto;
     }
 }

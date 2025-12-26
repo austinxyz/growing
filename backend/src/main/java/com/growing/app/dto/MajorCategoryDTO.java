@@ -11,4 +11,5 @@ public class MajorCategoryDTO {
     private String name;
     private String description;
     private Integer sortOrder;
+    private Long skillId;
 }

@@ -27,6 +27,9 @@ public class MajorCategory {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "skill_id", nullable = false)
+    private Long skillId;
+
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
 

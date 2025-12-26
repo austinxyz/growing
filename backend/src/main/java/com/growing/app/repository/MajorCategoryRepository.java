@@ -19,6 +19,11 @@ public interface MajorCategoryRepository extends JpaRepository<MajorCategory, Lo
     List<MajorCategory> findAllByOrderBySortOrderAsc();
 
     /**
+     * 按skill_id和sort_order排序查询大分类
+     */
+    List<MajorCategory> findBySkillIdOrderBySortOrderAsc(Long skillId);
+
+    /**
      * 按名称查询
      */
     Optional<MajorCategory> findByName(String name);

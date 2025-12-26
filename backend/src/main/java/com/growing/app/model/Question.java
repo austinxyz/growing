@@ -57,6 +57,10 @@ public class Question {
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_type")
+    private QuestionType questionType = QuestionType.technical;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -68,6 +72,10 @@ public class Question {
     // 枚举定义
     public enum Difficulty {
         EASY, MEDIUM, HARD
+    }
+
+    public enum QuestionType {
+        behavioral, technical, design, programming
     }
 
     // Red Flags JSON序列化/反序列化辅助方法

@@ -75,6 +75,13 @@ public class FocusAreaService {
         focusArea.setDescription(dto.getDescription());
         focusArea.setDisplayOrder(dto.getDisplayOrder());
 
+        // 如果提供了新的skillId，则更新所属技能
+        if (dto.getSkillId() != null && !dto.getSkillId().equals(focusArea.getSkill().getId())) {
+            Skill newSkill = skillRepository.findById(dto.getSkillId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "技能不存在"));
+            focusArea.setSkill(newSkill);
+        }
+
         focusArea = focusAreaRepository.save(focusArea);
         return convertToDTO(focusArea);
     }

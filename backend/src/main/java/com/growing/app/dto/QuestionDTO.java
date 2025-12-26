@@ -22,6 +22,7 @@ public class QuestionDTO {
     private Boolean isOfficial;
     private Long createdByUserId;
     private Integer displayOrder;
+    private String questionType;  // 试题类型：behavioral, technical, design, programming
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

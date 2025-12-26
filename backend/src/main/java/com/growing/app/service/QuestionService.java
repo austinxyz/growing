@@ -139,7 +139,25 @@ public class QuestionService {
             question.setDisplayOrder(dto.getDisplayOrder());
         }
 
-        return convertToDTO(questionRepository.save(question));
+        // 设置questionType（如果提供了programmingDetails，则设置为programming）
+        if (dto.getQuestionType() != null) {
+            question.setQuestionType(Question.QuestionType.valueOf(dto.getQuestionType()));
+        } else if (dto.getProgrammingDetails() != null) {
+            question.setQuestionType(Question.QuestionType.programming);
+        }
+        // 如果未指定且无programmingDetails，保持默认值technical
+
+        Question savedQuestion = questionRepository.save(question);
+        QuestionDTO result = convertToDTO(savedQuestion);
+
+        // 如果提供了编程题详情，创建ProgrammingQuestionDetails
+        if (dto.getProgrammingDetails() != null) {
+            ProgrammingQuestionDetailsDTO createdDetails =
+                    programmingDetailsService.createDetails(savedQuestion.getId(), dto.getProgrammingDetails());
+            result.setProgrammingDetails(createdDetails);
+        }
+
+        return result;
     }
 
     /**
@@ -178,7 +196,24 @@ public class QuestionService {
             question.setDisplayOrder(dto.getDisplayOrder());
         }
 
-        return convertToDTO(questionRepository.save(question));
+        // 更新questionType（如果提供了programmingDetails，则设置为programming）
+        if (dto.getQuestionType() != null) {
+            question.setQuestionType(Question.QuestionType.valueOf(dto.getQuestionType()));
+        } else if (dto.getProgrammingDetails() != null) {
+            question.setQuestionType(Question.QuestionType.programming);
+        }
+
+        Question savedQuestion = questionRepository.save(question);
+        QuestionDTO result = convertToDTO(savedQuestion);
+
+        // 如果提供了编程题详情，更新或创建ProgrammingQuestionDetails
+        if (dto.getProgrammingDetails() != null) {
+            ProgrammingQuestionDetailsDTO updatedDetails =
+                    programmingDetailsService.updateDetails(savedQuestion.getId(), dto.getProgrammingDetails());
+            result.setProgrammingDetails(updatedDetails);
+        }
+
+        return result;
     }
 
     /**
@@ -215,6 +250,7 @@ public class QuestionService {
         dto.setIsOfficial(question.getIsOfficial());
         dto.setCreatedByUserId(question.getCreatedByUser() != null ? question.getCreatedByUser().getId() : null);
         dto.setDisplayOrder(question.getDisplayOrder());
+        dto.setQuestionType(question.getQuestionType() != null ? question.getQuestionType().name() : null);
         dto.setCreatedAt(question.getCreatedAt());
         dto.setUpdatedAt(question.getUpdatedAt());
         return dto;

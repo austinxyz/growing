@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +36,9 @@ public class SkillService {
 
     @Autowired
     private CareerPathRepository careerPathRepository;
+
+    @Autowired
+    private FocusAreaCategoryRepository focusAreaCategoryRepository;
 
     // 获取所有技能（按显示顺序）
     public List<SkillDTO> getAllSkills() {
@@ -142,6 +147,21 @@ public class SkillService {
         skill.setDisplayOrder(skillDTO.getDisplayOrder() != null ? skillDTO.getDisplayOrder() : 0);
 
         skill = skillRepository.save(skill);
+
+        // 处理职业路径关联
+        if (skillDTO.getCareerPathIds() != null && !skillDTO.getCareerPathIds().isEmpty()) {
+            for (Long careerPathId : skillDTO.getCareerPathIds()) {
+                try {
+                    associateSkillToCareerPath(careerPathId, skill.getId());
+                } catch (ResponseStatusException e) {
+                    // 忽略已存在的关联
+                    if (!e.getMessage().contains("已关联")) {
+                        throw e;
+                    }
+                }
+            }
+        }
+
         return convertToDTO(skill);
     }
 
@@ -158,6 +178,39 @@ public class SkillService {
         skill.setDisplayOrder(skillDTO.getDisplayOrder());
 
         skill = skillRepository.save(skill);
+
+        // 更新职业路径关联
+        if (skillDTO.getCareerPathIds() != null) {
+            // 获取当前的职业路径关联
+            List<CareerPathSkill> currentAssociations = careerPathSkillRepository.findBySkillId(skillId);
+            Set<Long> currentCareerPathIds = currentAssociations.stream()
+                    .map(cps -> cps.getCareerPath().getId())
+                    .collect(Collectors.toSet());
+
+            Set<Long> newCareerPathIds = new HashSet<>(skillDTO.getCareerPathIds());
+
+            // 删除不再关联的职业路径
+            for (Long currentId : currentCareerPathIds) {
+                if (!newCareerPathIds.contains(currentId)) {
+                    dissociateSkillFromCareerPath(currentId, skillId);
+                }
+            }
+
+            // 添加新关联的职业路径
+            for (Long newId : newCareerPathIds) {
+                if (!currentCareerPathIds.contains(newId)) {
+                    try {
+                        associateSkillToCareerPath(newId, skillId);
+                    } catch (ResponseStatusException e) {
+                        // 忽略已存在的关联
+                        if (!e.getMessage().contains("已关联")) {
+                            throw e;
+                        }
+                    }
+                }
+            }
+        }
+
         return convertToDTO(skill);
     }
 
@@ -218,6 +271,17 @@ public class SkillService {
         dto.setDisplayOrder(focusArea.getDisplayOrder());
         dto.setCreatedAt(focusArea.getCreatedAt());
         dto.setUpdatedAt(focusArea.getUpdatedAt());
+
+        // 只为算法与数据结构(skillId=1)和系统设计(skillId=2)添加categoryIds
+        Long skillId = focusArea.getSkill().getId();
+        if (skillId == 1L || skillId == 2L) {
+            List<Long> categoryIds = focusAreaCategoryRepository.findByFocusAreaId(focusArea.getId())
+                    .stream()
+                    .map(fac -> fac.getCategoryId())
+                    .collect(Collectors.toList());
+            dto.setCategoryIds(categoryIds);
+        }
+
         return dto;
     }
 

@@ -3,6 +3,8 @@ package com.growing.app.controller;
 import com.growing.app.dto.FocusAreaLearningDTO;
 import com.growing.app.dto.LearningContentDTO;
 import com.growing.app.dto.UserTemplateNoteDTO;
+import com.growing.app.dto.UserLearningContentNoteDTO;
+import com.growing.app.dto.UserLearningContentKnowledgePointDTO;
 import com.growing.app.model.User;
 import com.growing.app.repository.UserRepository;
 import com.growing.app.service.LearningContentService;
@@ -209,5 +211,212 @@ public class LearningContentController {
 
         userTemplateNoteService.deleteNote(templateId, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    // ==================== 学习资料笔记API ====================
+
+    /**
+     * 获取用户学习资料笔记
+     *
+     * GET /api/learning-contents/{contentId}/note
+     */
+    @GetMapping("/{contentId}/note")
+    public ResponseEntity<UserLearningContentNoteDTO> getContentNote(
+            @PathVariable Long contentId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        UserLearningContentNoteDTO note = learningContentService.getNote(contentId, user.getId());
+        if (note == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(note);
+    }
+
+    /**
+     * 保存或更新用户学习资料笔记（UPSERT）
+     *
+     * POST /api/learning-contents/{contentId}/note
+     * Request Body: { "noteContent": "..." }
+     */
+    @PostMapping("/{contentId}/note")
+    public ResponseEntity<UserLearningContentNoteDTO> saveOrUpdateContentNote(
+            @PathVariable Long contentId,
+            @RequestBody Map<String, String> request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        String noteContent = request.get("noteContent");
+        if (noteContent == null || noteContent.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "笔记内容不能为空");
+        }
+
+        UserLearningContentNoteDTO savedNote = learningContentService
+                .saveOrUpdateNote(contentId, user.getId(), noteContent);
+
+        return ResponseEntity.ok(savedNote);
+    }
+
+    /**
+     * 删除用户学习资料笔记
+     *
+     * DELETE /api/learning-contents/{contentId}/note
+     */
+    @DeleteMapping("/{contentId}/note")
+    public ResponseEntity<Void> deleteContentNote(
+            @PathVariable Long contentId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        learningContentService.deleteNote(contentId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==================== 知识点API ====================
+
+    /**
+     * 获取用户学习资料的所有知识点
+     *
+     * GET /api/learning-contents/{contentId}/knowledge-points
+     */
+    @GetMapping("/{contentId}/knowledge-points")
+    public ResponseEntity<List<UserLearningContentKnowledgePointDTO>> getKnowledgePoints(
+            @PathVariable Long contentId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        List<UserLearningContentKnowledgePointDTO> points =
+                learningContentService.getKnowledgePoints(contentId, user.getId());
+        return ResponseEntity.ok(points);
+    }
+
+    /**
+     * 创建知识点
+     *
+     * POST /api/learning-contents/{contentId}/knowledge-points
+     * Request Body: { "title": "...", "summary": "..." }
+     */
+    @PostMapping("/{contentId}/knowledge-points")
+    public ResponseEntity<UserLearningContentKnowledgePointDTO> createKnowledgePoint(
+            @PathVariable Long contentId,
+            @RequestBody Map<String, String> request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        String title = request.get("title");
+        String summary = request.get("summary");
+
+        if (title == null || title.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "知识点标题不能为空");
+        }
+        if (summary == null || summary.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "知识点总结不能为空");
+        }
+
+        UserLearningContentKnowledgePointDTO savedPoint =
+                learningContentService.createKnowledgePoint(contentId, user.getId(), title, summary);
+
+        return ResponseEntity.ok(savedPoint);
+    }
+
+    /**
+     * 更新知识点
+     *
+     * PUT /api/learning-contents/knowledge-points/{pointId}
+     * Request Body: { "title": "...", "summary": "..." }
+     */
+    @PutMapping("/knowledge-points/{pointId}")
+    public ResponseEntity<UserLearningContentKnowledgePointDTO> updateKnowledgePoint(
+            @PathVariable Long pointId,
+            @RequestBody Map<String, String> request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        String title = request.get("title");
+        String summary = request.get("summary");
+
+        if (title == null || title.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "知识点标题不能为空");
+        }
+        if (summary == null || summary.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "知识点总结不能为空");
+        }
+
+        UserLearningContentKnowledgePointDTO updatedPoint =
+                learningContentService.updateKnowledgePoint(pointId, user.getId(), title, summary);
+
+        return ResponseEntity.ok(updatedPoint);
+    }
+
+    /**
+     * 删除知识点
+     *
+     * DELETE /api/learning-contents/knowledge-points/{pointId}
+     */
+    @DeleteMapping("/knowledge-points/{pointId}")
+    public ResponseEntity<Void> deleteKnowledgePoint(
+            @PathVariable Long pointId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        learningContentService.deleteKnowledgePoint(pointId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 重新排序知识点
+     *
+     * PUT /api/learning-contents/{contentId}/knowledge-points/reorder
+     * Request Body: { "pointIds": [3, 1, 2, 5, 4] }
+     */
+    @PutMapping("/{contentId}/knowledge-points/reorder")
+    public ResponseEntity<List<UserLearningContentKnowledgePointDTO>> reorderKnowledgePoints(
+            @PathVariable Long contentId,
+            @RequestBody Map<String, List<Long>> request,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        List<Long> pointIds = request.get("pointIds");
+        if (pointIds == null || pointIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "知识点ID列表不能为空");
+        }
+
+        List<UserLearningContentKnowledgePointDTO> reorderedPoints =
+                learningContentService.reorderKnowledgePoints(contentId, user.getId(), pointIds);
+
+        return ResponseEntity.ok(reorderedPoints);
     }
 }

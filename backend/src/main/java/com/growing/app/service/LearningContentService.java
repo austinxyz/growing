@@ -39,6 +39,12 @@ public class LearningContentService {
     @Autowired
     private FocusAreaCategoryRepository focusAreaCategoryRepository;
 
+    @Autowired
+    private UserLearningContentNoteRepository userLearningContentNoteRepository;
+
+    @Autowired
+    private UserLearningContentKnowledgePointRepository knowledgePointRepository;
+
     // ==================== 用户端API ====================
 
     /**
@@ -366,6 +372,196 @@ public class LearningContentService {
             dto.setSupportsIframe(content.getWebsite().getSupportsIframe());
         }
 
+        return dto;
+    }
+
+    // ==================== 学习笔记相关方法 ====================
+
+    /**
+     * 获取用户对某个学习资料的笔记
+     */
+    public UserLearningContentNoteDTO getNote(Long contentId, Long userId) {
+        return userLearningContentNoteRepository.findByLearningContentIdAndUserId(contentId, userId)
+                .map(this::convertToNoteDTO)
+                .orElse(null);
+    }
+
+    /**
+     * 保存或更新笔记（UPSERT逻辑）
+     */
+    @Transactional
+    public UserLearningContentNoteDTO saveOrUpdateNote(Long contentId, Long userId, String noteContent) {
+        // 验证学习资料存在
+        LearningContent content = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习资料不存在"));
+
+        // 验证用户存在
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
+
+        // 查找是否已有笔记
+        UserLearningContentNote note = userLearningContentNoteRepository
+                .findByLearningContentIdAndUserId(contentId, userId)
+                .orElse(new UserLearningContentNote());
+
+        // 更新笔记内容
+        note.setLearningContent(content);
+        note.setUser(user);
+        note.setNoteContent(noteContent);
+
+        UserLearningContentNote saved = userLearningContentNoteRepository.save(note);
+        return convertToNoteDTO(saved);
+    }
+
+    /**
+     * 删除笔记
+     */
+    @Transactional
+    public void deleteNote(Long contentId, Long userId) {
+        userLearningContentNoteRepository.deleteByLearningContentIdAndUserId(contentId, userId);
+    }
+
+    /**
+     * 转换为DTO
+     */
+    private UserLearningContentNoteDTO convertToNoteDTO(UserLearningContentNote note) {
+        UserLearningContentNoteDTO dto = new UserLearningContentNoteDTO();
+        dto.setId(note.getId());
+        dto.setLearningContentId(note.getLearningContent().getId());
+        dto.setUserId(note.getUser().getId());
+        dto.setNoteContent(note.getNoteContent());
+        dto.setCreatedAt(note.getCreatedAt());
+        dto.setUpdatedAt(note.getUpdatedAt());
+        return dto;
+    }
+
+    // ==================== 知识点相关方法 ====================
+
+    /**
+     * 获取用户对某个学习资料的所有知识点
+     */
+    public List<UserLearningContentKnowledgePointDTO> getKnowledgePoints(Long contentId, Long userId) {
+        List<UserLearningContentKnowledgePoint> points = knowledgePointRepository
+                .findByLearningContentIdAndUserIdOrderByDisplayOrderAsc(contentId, userId);
+        return points.stream()
+                .map(this::convertToKnowledgePointDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 创建知识点
+     */
+    @Transactional
+    public UserLearningContentKnowledgePointDTO createKnowledgePoint(
+            Long contentId, Long userId, String title, String summary) {
+
+        // 验证学习资料存在
+        LearningContent content = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习资料不存在"));
+
+        // 验证用户存在
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
+
+        // 获取当前最大的displayOrder
+        List<UserLearningContentKnowledgePoint> existingPoints =
+                knowledgePointRepository.findByLearningContentIdAndUserIdOrderByDisplayOrderAsc(contentId, userId);
+        int maxOrder = existingPoints.isEmpty() ? -1 :
+                existingPoints.stream()
+                        .mapToInt(UserLearningContentKnowledgePoint::getDisplayOrder)
+                        .max()
+                        .orElse(-1);
+
+        UserLearningContentKnowledgePoint point = new UserLearningContentKnowledgePoint();
+        point.setLearningContent(content);
+        point.setUser(user);
+        point.setTitle(title);
+        point.setSummary(summary);
+        point.setDisplayOrder(maxOrder + 1);
+
+        UserLearningContentKnowledgePoint saved = knowledgePointRepository.save(point);
+        return convertToKnowledgePointDTO(saved);
+    }
+
+    /**
+     * 更新知识点
+     */
+    @Transactional
+    public UserLearningContentKnowledgePointDTO updateKnowledgePoint(
+            Long pointId, Long userId, String title, String summary) {
+
+        UserLearningContentKnowledgePoint point = knowledgePointRepository.findById(pointId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "知识点不存在"));
+
+        // 验证所有权
+        if (!point.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此知识点");
+        }
+
+        point.setTitle(title);
+        point.setSummary(summary);
+
+        UserLearningContentKnowledgePoint saved = knowledgePointRepository.save(point);
+        return convertToKnowledgePointDTO(saved);
+    }
+
+    /**
+     * 删除知识点
+     */
+    @Transactional
+    public void deleteKnowledgePoint(Long pointId, Long userId) {
+        UserLearningContentKnowledgePoint point = knowledgePointRepository.findById(pointId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "知识点不存在"));
+
+        // 验证所有权
+        if (!point.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除此知识点");
+        }
+
+        knowledgePointRepository.delete(point);
+    }
+
+    /**
+     * 重新排序知识点
+     */
+    @Transactional
+    public List<UserLearningContentKnowledgePointDTO> reorderKnowledgePoints(
+            Long contentId, Long userId, List<Long> pointIds) {
+
+        // 验证所有知识点都属于该用户和该学习资料
+        List<UserLearningContentKnowledgePoint> points = knowledgePointRepository
+                .findByLearningContentIdAndUserIdOrderByDisplayOrderAsc(contentId, userId);
+
+        Map<Long, UserLearningContentKnowledgePoint> pointMap = points.stream()
+                .collect(Collectors.toMap(UserLearningContentKnowledgePoint::getId, p -> p));
+
+        // 更新displayOrder
+        for (int i = 0; i < pointIds.size(); i++) {
+            Long pointId = pointIds.get(i);
+            UserLearningContentKnowledgePoint point = pointMap.get(pointId);
+            if (point != null) {
+                point.setDisplayOrder(i);
+                knowledgePointRepository.save(point);
+            }
+        }
+
+        // 返回更新后的列表
+        return getKnowledgePoints(contentId, userId);
+    }
+
+    /**
+     * 转换为DTO
+     */
+    private UserLearningContentKnowledgePointDTO convertToKnowledgePointDTO(UserLearningContentKnowledgePoint point) {
+        UserLearningContentKnowledgePointDTO dto = new UserLearningContentKnowledgePointDTO();
+        dto.setId(point.getId());
+        dto.setLearningContentId(point.getLearningContent().getId());
+        dto.setUserId(point.getUser().getId());
+        dto.setTitle(point.getTitle());
+        dto.setSummary(point.getSummary());
+        dto.setDisplayOrder(point.getDisplayOrder());
+        dto.setCreatedAt(point.getCreatedAt());
+        dto.setUpdatedAt(point.getUpdatedAt());
         return dto;
     }
 }
