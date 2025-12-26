@@ -1,18 +1,18 @@
 <template>
-  <div class="h-screen flex flex-col bg-gray-50">
-    <!-- 顶部标题栏 -->
-    <div class="bg-white border-b border-gray-200">
-      <div class="px-6 py-2">
-        <h1 class="text-xl font-bold text-gray-900">系统设计 - 基础知识</h1>
-        <p class="text-xs text-gray-600 mt-0.5">系统设计核心概念、关键技术和设计模式</p>
+  <div class="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <!-- 顶部标题栏 - 添加渐变背景 -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
+      <div class="px-6 py-4">
+        <h1 class="text-2xl font-bold text-white">系统设计 - 基础知识</h1>
+        <p class="text-xs text-blue-100 mt-1">系统设计核心概念、关键技术和设计模式</p>
       </div>
     </div>
 
     <!-- 两栏布局 -->
     <div class="flex-1 flex overflow-hidden">
       <!-- 左侧：大分类 + Focus Area列表 -->
-      <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <!-- 大分类Tab -->
+      <div class="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+        <!-- 大分类Tab - 增强样式 -->
         <div class="border-b border-gray-200">
           <nav class="flex flex-col space-y-1 p-2" aria-label="Categories">
             <button
@@ -20,10 +20,10 @@
               :key="category.id"
               @click="selectCategory(category.id)"
               :class="[
-                'px-4 py-2 text-sm font-medium rounded-md text-left transition-colors',
+                'px-4 py-2 text-sm font-medium rounded-md text-left transition-all duration-200',
                 selectedCategoryId === category.id
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 border-l-4 border-l-blue-600 shadow-md'
+                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-sm'
               ]"
             >
               {{ category.name }}
@@ -47,10 +47,10 @@
               :key="fa.id"
               @click="selectFocusArea(fa)"
               :class="[
-                'w-full text-left px-4 py-3 rounded-md transition-colors',
+                'w-full text-left px-4 py-3 rounded-md transition-all duration-200',
                 selectedFocusArea?.id === fa.id
-                  ? 'bg-blue-50 text-blue-700 font-medium border-l-4 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-medium border-l-4 border-blue-600 shadow-md'
+                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-sm'
               ]"
             >
               {{ fa.name }}
@@ -60,7 +60,7 @@
       </div>
 
       <!-- 右侧：学习资料单页显示 -->
-      <div class="flex-1 overflow-y-auto bg-gray-50">
+      <div class="flex-1 overflow-y-auto">
         <!-- 未选中Focus Area -->
         <div v-if="!selectedFocusArea" class="flex items-center justify-center h-full">
           <div class="text-center text-gray-400">
@@ -72,20 +72,20 @@
         </div>
 
         <!-- 学习内容区域 -->
-        <div v-else class="p-6 bg-gray-50">
+        <div v-else class="p-6">
           <!-- 顶部：Focus Area标题 + 学习资料下拉选择 -->
-          <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+          <div class="mb-6 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl shadow-md p-4">
             <!-- 标题 + 下拉选择 -->
             <div class="flex items-center gap-4">
-              <h2 class="text-base font-bold text-gray-900">{{ selectedFocusArea.name }}</h2>
+              <h2 class="text-lg font-bold text-white">{{ selectedFocusArea.name }}</h2>
 
               <!-- 学习资料下拉选择（靠右） -->
               <div v-if="learningContents.length > 0" class="flex items-center gap-2 ml-auto">
-                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">学习资料：</label>
+                <label class="text-sm font-medium text-white whitespace-nowrap">学习资料：</label>
                 <select
                   :value="selectedContentItem?.id"
                   @change="onContentSelectChange"
-                  class="w-80 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  class="w-80 px-3 py-1.5 text-sm border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent bg-white/90 text-gray-900 shadow-sm"
                 >
                   <option
                     v-for="(content, index) in learningContents"
@@ -98,7 +98,7 @@
               </div>
 
               <!-- Loading状态（靠右） -->
-              <div v-else-if="loading.contents" class="flex items-center gap-2 text-blue-500 ml-auto">
+              <div v-else-if="loading.contents" class="flex items-center gap-2 text-white ml-auto">
                 <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -107,7 +107,7 @@
               </div>
 
               <!-- 无学习资料（靠右） -->
-              <div v-else class="text-gray-400 text-sm ml-auto">
+              <div v-else class="text-purple-100 text-sm ml-auto">
                 暂无学习资料
               </div>
             </div>
@@ -115,16 +115,19 @@
 
           <!-- 全屏卡片网格布局 -->
           <div v-if="selectedContentItem" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max">
-            <!-- 卡片1: 学习资料信息 -->
+            <!-- 卡片1: 学习资料信息 - 使用渐变背景 -->
                   <div :class="[
-                    'bg-white rounded-lg shadow-md flex flex-col',
+                    'bg-gradient-to-br from-blue-50 to-white rounded-xl border-2 border-blue-200 shadow-md hover:shadow-xl transition-all flex flex-col',
                     selectedContentItem.contentType === 'video' ? 'md:col-span-2 md:row-span-2' : ''
                   ]">
                     <div
                       @click="cardStates.resourceInfo = !cardStates.resourceInfo"
-                      class="px-3 py-2 bg-blue-600 text-white flex items-center justify-between cursor-pointer hover:bg-blue-700 transition-colors flex-shrink-0"
+                      class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex-shrink-0 rounded-t-xl"
                     >
-                      <h3 class="font-medium text-xs">📚 学习资料</h3>
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-6 bg-gradient-to-b from-blue-300 to-white rounded-full"></div>
+                        <h3 class="font-semibold text-sm">📚 学习资料</h3>
+                      </div>
                       <svg
                         :class="['w-4 h-4 transition-transform', cardStates.resourceInfo ? 'rotate-180' : '']"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -161,21 +164,22 @@
                     </div>
                   </div>
 
-                  <!-- 卡片2: 整体笔记 -->
-                  <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="px-3 py-2 bg-green-600 text-white flex items-center justify-between">
+                  <!-- 卡片2: 整体笔记 - 使用渐变背景 -->
+                  <div class="bg-gradient-to-br from-green-50 to-white rounded-xl border-2 border-green-200 shadow-md hover:shadow-xl transition-all overflow-hidden">
+                    <div class="px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center justify-between">
                       <div
                         @click="cardStates.overallNote = !cardStates.overallNote"
                         class="flex items-center gap-2 cursor-pointer flex-1"
                       >
-                        <h3 class="font-medium text-xs">📝 整体笔记</h3>
+                        <div class="w-2 h-6 bg-gradient-to-b from-green-300 to-white rounded-full"></div>
+                        <h3 class="font-semibold text-sm">📝 整体笔记</h3>
                       </div>
                       <div class="flex items-center gap-1">
                         <!-- 编辑/删除按钮 -->
                         <button
                           v-if="currentNote && !isEditingNote"
                           @click.stop="startEditNote"
-                          class="p-1 hover:bg-green-700 rounded transition-colors"
+                          class="p-1 hover:bg-green-600 rounded transition-all"
                           title="编辑"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +189,7 @@
                         <button
                           v-if="currentNote && !isEditingNote"
                           @click.stop="deleteNote"
-                          class="p-1 hover:bg-green-700 rounded transition-colors"
+                          class="p-1 hover:bg-green-600 rounded transition-all"
                           title="删除"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +199,7 @@
                         <!-- 折叠按钮 -->
                         <button
                           @click.stop="cardStates.overallNote = !cardStates.overallNote"
-                          class="p-1 hover:bg-green-700 rounded transition-colors"
+                          class="p-1 hover:bg-green-600 rounded transition-all"
                         >
                           <svg
                             :class="['w-3.5 h-3.5 transition-transform', cardStates.overallNote ? 'rotate-180' : '']"
@@ -267,38 +271,39 @@
                     </div>
                   </div>
 
-                  <!-- 添加知识点卡片 -->
+                  <!-- 添加知识点卡片 - 使用渐变背景 -->
                   <div
                     @click="showAddKnowledgePointModal = true"
-                    class="bg-white rounded-lg shadow-md overflow-hidden border-2 border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50 transition-all cursor-pointer"
+                    class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-md overflow-hidden border-2 border-dashed border-purple-300 hover:border-purple-500 hover:from-purple-100 hover:shadow-xl transition-all cursor-pointer"
                   >
                     <div class="flex flex-col items-center justify-center h-full py-6">
-                      <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-10 h-10 text-purple-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
-                      <p class="text-xs font-medium text-gray-600">添加知识点</p>
+                      <p class="text-sm font-medium text-purple-600">添加知识点</p>
                     </div>
                   </div>
 
-                  <!-- 知识点卡片列表 -->
+                  <!-- 知识点卡片列表 - 使用渐变背景 -->
                   <div
                     v-for="(point, index) in knowledgePoints"
                     :key="point.id"
-                    class="bg-white rounded-lg shadow-md overflow-hidden"
+                    class="bg-gradient-to-br from-purple-50 to-white rounded-xl border-2 border-purple-200 shadow-md hover:shadow-xl transition-all overflow-hidden"
                   >
-                    <div class="px-3 py-2 bg-purple-600 text-white flex items-center justify-between">
+                    <div class="px-3 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white flex items-center justify-between">
                       <div
                         @click="toggleKnowledgePointCard(point.id)"
                         class="flex items-center gap-2 cursor-pointer flex-1 min-w-0"
                       >
-                        <span class="text-xs">💡</span>
-                        <h3 class="font-medium text-xs truncate">{{ index + 1 }}. {{ point.title }}</h3>
+                        <div class="w-2 h-6 bg-gradient-to-b from-purple-300 to-white rounded-full"></div>
+                        <span class="text-sm">💡</span>
+                        <h3 class="font-semibold text-sm truncate">{{ index + 1 }}. {{ point.title }}</h3>
                       </div>
                       <div class="flex items-center gap-1 flex-shrink-0">
                         <!-- 编辑/删除按钮 -->
                         <button
                           @click.stop="editKnowledgePoint(point)"
-                          class="p-1 hover:bg-purple-700 rounded transition-colors"
+                          class="p-1 hover:bg-purple-600 rounded transition-all"
                           title="编辑"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,7 +312,7 @@
                         </button>
                         <button
                           @click.stop="deleteKnowledgePoint(point.id)"
-                          class="p-1 hover:bg-purple-700 rounded transition-colors"
+                          class="p-1 hover:bg-purple-600 rounded transition-all"
                           title="删除"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,7 +322,7 @@
                         <!-- 折叠按钮 -->
                         <button
                           @click.stop="toggleKnowledgePointCard(point.id)"
-                          class="p-1 hover:bg-purple-700 rounded transition-colors"
+                          class="p-1 hover:bg-purple-600 rounded transition-all"
                         >
                           <svg
                             :class="['w-3.5 h-3.5 transition-transform', cardStates.knowledgePoints[point.id] ? 'rotate-180' : '']"

@@ -1,59 +1,75 @@
 <template>
-  <div class="h-screen flex flex-col bg-gray-50">
-    <!-- 顶部标题栏 -->
-    <div class="bg-white border-b border-gray-200">
-      <div class="px-6 py-2">
-        <h1 class="text-xl font-bold text-gray-900">算法学习</h1>
-        <p class="text-xs text-gray-600 mt-0.5">浏览算法与数据结构学习内容</p>
+  <div class="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <!-- 顶部标题栏 - 添加渐变背景 -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
+      <div class="px-6 py-4">
+        <h1 class="text-2xl font-bold text-white">算法学习</h1>
+        <p class="text-xs text-blue-100 mt-1">浏览算法与数据结构学习内容</p>
       </div>
     </div>
 
     <!-- 两栏布局 -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- 左侧：大分类 + Focus Area树 -->
-      <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <!-- 大分类Tab -->
-        <div class="border-b border-gray-200">
-          <nav class="flex flex-col space-y-1 p-2" aria-label="Categories">
+      <!-- 左侧：大分类 + Focus Area树 - 增强样式 -->
+      <div class="w-64 bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 flex flex-col shadow-lg">
+        <!-- 大分类Tab - 增强样式 -->
+        <div class="border-b-2 border-gray-200 bg-white">
+          <nav class="flex flex-col space-y-1 p-3" aria-label="Categories">
             <button
               v-for="category in majorCategories"
               :key="category.id"
               @click="selectCategory(category.id)"
               :class="[
-                'px-4 py-2 text-sm font-medium rounded-md text-left transition-colors',
+                'px-4 py-2.5 text-sm font-semibold rounded-lg text-left transition-all duration-200 relative',
                 selectedCategoryId === category.id
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:shadow-md hover:text-blue-700'
               ]"
             >
+              <!-- 选中指示器 -->
+              <div v-if="selectedCategoryId === category.id" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
               {{ category.name }}
             </button>
           </nav>
         </div>
 
-        <!-- Focus Area列表 -->
-        <div class="flex-1 overflow-y-auto p-4">
+        <!-- Focus Area列表 - 增强样式 -->
+        <div class="flex-1 overflow-y-auto p-3">
           <div v-if="loading.focusAreas" class="text-center text-gray-500 py-8">
+            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
             加载中...
           </div>
 
-          <div v-else-if="filteredFocusAreas.length === 0" class="text-center text-gray-400 py-8">
-            该分类下暂无学习主题
+          <div v-else-if="filteredFocusAreas.length === 0" class="text-center text-gray-400 py-8 bg-gradient-to-br from-gray-50 to-white rounded-lg border-2 border-gray-200 mx-2">
+            <svg class="mx-auto h-10 w-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <p class="text-xs font-medium">该分类下暂无学习主题</p>
           </div>
 
-          <div v-else class="space-y-1">
+          <div v-else class="space-y-2">
             <button
               v-for="fa in filteredFocusAreas"
               :key="fa.id"
               @click="selectFocusArea(fa)"
               :class="[
-                'w-full text-left px-4 py-3 rounded-md transition-colors',
+                'w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group relative',
                 selectedFocusArea?.id === fa.id
-                  ? 'bg-blue-50 text-blue-700 font-medium border-l-4 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-semibold shadow-md border-2 border-blue-200'
+                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-md hover:text-blue-700 border-2 border-transparent'
               ]"
             >
-              {{ fa.name }}
+              <!-- 装饰性accent bar -->
+              <div :class="[
+                'absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full transition-all',
+                selectedFocusArea?.id === fa.id
+                  ? 'bg-gradient-to-b from-blue-500 to-purple-500'
+                  : 'bg-gray-300 group-hover:bg-gradient-to-b group-hover:from-blue-400 group-hover:to-purple-400'
+              ]"></div>
+              <span class="pl-2 text-sm">{{ fa.name }}</span>
             </button>
           </div>
         </div>
@@ -72,58 +88,64 @@
         </div>
 
         <!-- 学习内容区域 -->
-        <div v-else class="p-2">
-          <!-- Focus Area标题 -->
-          <div class="mb-2">
-            <h2 class="text-lg font-bold text-gray-900">{{ selectedFocusArea.name }}</h2>
-            <p v-if="selectedFocusArea.categoryName" class="text-xs text-gray-500 mt-0.5">
+        <div v-else class="p-6">
+          <!-- Focus Area标题 - 增强样式 -->
+          <div class="mb-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl shadow-md p-4">
+            <h2 class="text-xl font-bold text-white">{{ selectedFocusArea.name }}</h2>
+            <p v-if="selectedFocusArea.categoryName" class="text-sm text-indigo-100 mt-1">
               {{ selectedFocusArea.categoryName }}
             </p>
           </div>
 
-          <!-- 学习阶段Tab -->
-          <div class="bg-white rounded-lg shadow mb-2">
+          <!-- 学习阶段Tab - 增强样式 -->
+          <div class="bg-white rounded-xl shadow-lg mb-4">
               <div class="border-b border-gray-200">
-                <div class="flex">
+                <div class="flex overflow-x-auto">
                   <button
                     v-for="stage in learningStages"
                     :key="stage.id"
                     @click="selectStage(stage.id)"
                     :class="[
-                      'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                      'px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap',
                       selectedStageId === stage.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-blue-600 text-blue-600 bg-blue-50'
+                        : 'border-transparent text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                     ]"
                   >
                     {{ stage.stageName }}
-                    <span class="ml-2 text-xs text-gray-400">({{ stage.contents ? stage.contents.length : 0 }})</span>
+                    <span class="ml-2 text-xs font-medium" :class="selectedStageId === stage.id ? 'text-blue-500' : 'text-gray-400'">
+                      ({{ stage.contents ? stage.contents.length : 0 }})
+                    </span>
                   </button>
                   <!-- 试题总结Tab -->
                   <button
                     @click="selectStage('questions-summary')"
                     :class="[
-                      'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                      'px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap',
                       selectedStageId === 'questions-summary'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-purple-600 text-purple-600 bg-purple-50'
+                        : 'border-transparent text-gray-500 hover:text-purple-600 hover:bg-purple-50'
                     ]"
                   >
-                    试题总结
-                    <span class="ml-2 text-xs text-gray-400">({{ questionCount }})</span>
+                    📋 试题总结
+                    <span class="ml-2 text-xs font-medium" :class="selectedStageId === 'questions-summary' ? 'text-purple-500' : 'text-gray-400'">
+                      ({{ questionCount }})
+                    </span>
                   </button>
                   <!-- 试题库Tab -->
                   <button
                     @click="selectStage('questions-detail')"
                     :class="[
-                      'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                      'px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap',
                       selectedStageId === 'questions-detail'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-green-600 text-green-600 bg-green-50'
+                        : 'border-transparent text-gray-500 hover:text-green-600 hover:bg-green-50'
                     ]"
                   >
-                    试题库
-                    <span class="ml-2 text-xs text-gray-400">({{ questionCount }})</span>
+                    📚 试题库
+                    <span class="ml-2 text-xs font-medium" :class="selectedStageId === 'questions-detail' ? 'text-green-500' : 'text-gray-400'">
+                      ({{ questionCount }})
+                    </span>
                   </button>
                 </div>
               </div>
@@ -144,29 +166,39 @@
                   该阶段暂无学习内容
                 </div>
 
-                <!-- 学习内容：左右分栏布局 -->
+                <!-- 学习内容:左右分栏布局 -->
                 <div v-else-if="!isQuestionTab" class="flex h-[calc(100vh-240px)]">
-                  <!-- 左侧：资料列表 -->
-                  <div class="w-56 border-r border-gray-200 overflow-y-auto">
+                  <!-- 左侧:资料列表 - 增强样式 -->
+                  <div class="w-56 border-r border-gray-200 overflow-y-auto bg-gradient-to-b from-gray-50 to-white shadow-inner">
                     <div
                       v-for="(content, index) in currentStageContents"
                       :key="content.id"
                       @click="selectContentItem(content)"
                       :class="[
-                        'p-3 border-b border-gray-100 cursor-pointer transition-colors',
+                        'p-3 m-2 border-b border-gray-100 cursor-pointer transition-all duration-200 rounded-lg',
                         selectedContentItem?.id === content.id
-                          ? 'bg-blue-50 border-l-4 border-l-blue-600'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-600 shadow-md border-2 border-blue-200'
+                          : 'bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-md hover:border-blue-100 border border-transparent'
                       ]"
                     >
-                      <h3 :class="[
-                        'text-sm font-medium',
-                        selectedContentItem?.id === content.id
-                          ? 'text-blue-700'
-                          : 'text-gray-900'
-                      ]">
-                        {{ index + 1 }}. {{ content.title }}
-                      </h3>
+                      <div class="flex items-center gap-2">
+                        <div :class="[
+                          'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm',
+                          selectedContentItem?.id === content.id
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                            : 'bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700'
+                        ]">
+                          {{ index + 1 }}
+                        </div>
+                        <h3 :class="[
+                          'text-sm font-medium flex-1',
+                          selectedContentItem?.id === content.id
+                            ? 'text-blue-700'
+                            : 'text-gray-900'
+                        ]">
+                          {{ content.title }}
+                        </h3>
+                      </div>
                     </div>
                   </div>
 
@@ -183,30 +215,34 @@
                     </div>
 
                     <!-- 资料详情 -->
-                    <div v-else class="p-4 h-full flex flex-col">
-                      <!-- 标题 -->
-                      <h2 class="text-xl font-bold text-gray-900 mb-3">{{ selectedContentItem.title }}</h2>
-
-                      <!-- 不支持iframe：显示跳转链接 -->
-                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === false">
-                        <a
-                          :href="selectedContentItem.url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <div v-else class="h-full flex flex-col">
+                      <!-- 不支持iframe:显示跳转链接 -->
+                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === false" class="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 to-white p-8">
+                        <div class="text-center">
+                          <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                           </svg>
-                          在新标签页打开
-                        </a>
+                          <h3 class="text-lg font-bold text-gray-900 mb-2">{{ selectedContentItem.title }}</h3>
+                          <p class="text-sm text-gray-600 mb-6">此资源需要在新标签页中打开</p>
+                          <a
+                            :href="selectedContentItem.url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold rounded-lg hover:from-blue-600 hover:to-purple-600 hover:shadow-xl transition-all shadow-md"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            在新标签页打开
+                          </a>
+                        </div>
                       </div>
 
-                      <!-- 支持iframe：直接显示 -->
-                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === true" class="flex-1 flex flex-col">
+                      <!-- 支持iframe:直接全屏显示 -->
+                      <div v-if="selectedContentItem.url && selectedContentItem.supportsIframe === true" class="flex-1 overflow-hidden">
                         <iframe
                           :src="selectedContentItem.url"
-                          class="w-full h-full border border-gray-300 rounded"
+                          class="w-full h-full border-0"
                           frameborder="0"
                           sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                         ></iframe>
@@ -215,51 +251,59 @@
                   </div>
                 </div>
 
-                <!-- 试题总结：紧凑列表显示 -->
+                <!-- 试题总结:紧凑列表显示 -->
                 <div v-else-if="selectedStageId === 'questions-summary'">
-                  <div v-if="questions.length === 0" class="text-center text-gray-400 py-12">
-                    该Focus Area暂无试题
+                  <div v-if="questions.length === 0" class="text-center text-gray-400 py-12 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-gray-200 shadow-md">
+                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="mt-3 text-sm font-medium">该Focus Area暂无试题</p>
                   </div>
 
-                  <div v-else class="space-y-0 divide-y divide-gray-100">
+                  <div v-else class="space-y-2">
                     <div
                       v-for="question in questions"
                       :key="question.id"
                       @click="openQuestionModal(question)"
-                      class="p-2 bg-white hover:bg-gray-50 transition-colors cursor-pointer group"
+                      class="p-3 bg-gradient-to-br from-white to-gray-50 hover:from-blue-50 hover:to-purple-50 rounded-xl transition-all cursor-pointer group shadow-sm hover:shadow-lg border-2 border-transparent hover:border-blue-200"
                     >
-                      <!-- 紧凑显示：难度+题目 | 核心思路 -->
+                      <!-- 紧凑显示:难度+题目 | 核心思路 -->
                       <div class="flex items-start gap-3">
-                        <!-- 左侧：难度 + 重要标识 + 题目标题 -->
+                        <!-- 左侧:难度 + 重要标识 + 题目标题 -->
                         <div class="flex items-start gap-2 w-64 flex-shrink-0">
-                          <!-- 难度图标 -->
-                          <span :class="getDifficultyIconClass(question.difficulty)" class="flex-shrink-0 mt-0.5" :title="question.difficulty">
-                            {{ getDifficultyIcon(question.difficulty) }}
+                          <!-- 难度徽章 - 渐变样式 -->
+                          <span :class="[
+                            'flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm',
+                            question.difficulty === 'EASY' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' :
+                            question.difficulty === 'MEDIUM' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
+                            'bg-gradient-to-r from-red-400 to-pink-500 text-white'
+                          ]" :title="question.difficulty">
+                            {{ question.difficulty === 'EASY' ? '简单' : question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
                           </span>
 
                           <!-- 重要标识 -->
-                          <span v-if="question.programmingDetails?.isImportant" class="text-orange-500 text-sm flex-shrink-0 mt-0.5" title="重要题目">
+                          <span v-if="question.programmingDetails?.isImportant" class="text-orange-500 text-base flex-shrink-0" title="重要题目">
                             ⭐
                           </span>
 
-                          <!-- 题目标题（作为LeetCode链接，文字超出省略） -->
+                          <!-- 题目标题(作为LeetCode链接,文字超出省略) -->
                           <a
                             v-if="question.programmingDetails?.leetcodeUrl"
                             :href="question.programmingDetails.leetcodeUrl"
                             @click.stop
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate"
+                            class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate group-hover:text-blue-700"
                             :title="question.title"
                           >
                             {{ question.title }}
                           </a>
-                          <h3 v-else class="text-xs font-medium text-gray-900 flex-1 truncate" :title="question.title">
+                          <h3 v-else class="text-sm font-semibold text-gray-900 flex-1 truncate group-hover:text-blue-700" :title="question.title">
                             {{ question.title }}
                           </h3>
                         </div>
 
-                        <!-- 右侧：核心思路（完整显示，自动换行） -->
+                        <!-- 右侧:核心思路(完整显示,自动换行) -->
                         <p class="text-xs text-gray-600 flex-1 leading-relaxed group-hover:text-gray-800">
                           {{ question.note?.coreStrategy || '暂无核心思路' }}
                         </p>
@@ -270,13 +314,13 @@
 
                 <!-- 试题库：左右分栏详细显示 -->
                 <div v-else-if="selectedStageId === 'questions-detail'" class="flex h-[calc(100vh-240px)]">
-                  <!-- 左侧：试题列表（紧凑模式） -->
-                  <div class="w-80 border-r border-gray-200 overflow-y-auto">
-                    <!-- 添加算法题按钮 -->
-                    <div class="sticky top-0 bg-white border-b border-gray-200 p-2 z-10">
+                  <!-- 左侧：试题列表（紧凑模式） - 增强样式 -->
+                  <div class="w-80 border-r border-gray-200 overflow-y-auto bg-gray-50">
+                    <!-- 添加算法题按钮 - 增强样式 -->
+                    <div class="sticky top-0 bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-300 p-3 z-10 shadow-sm">
                       <button
                         @click="showAddQuestionModal"
-                        class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+                        class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg hover:from-green-600 hover:to-emerald-600 hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-md"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -294,10 +338,10 @@
                       :key="question.id"
                       @click="selectQuestionForDetail(question)"
                       :class="[
-                        'p-2 border-b border-gray-100 cursor-pointer transition-colors',
+                        'p-3 m-2 rounded-lg cursor-pointer transition-all duration-200 border border-transparent',
                         selectedQuestionForDetail?.id === question.id
-                          ? 'bg-blue-50 border-l-4 border-l-blue-600'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-600 shadow-md'
+                          : 'bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-sm hover:border-blue-200'
                       ]"
                     >
                       <div class="flex items-center gap-2">
@@ -338,19 +382,19 @@
 
                     <!-- 试题详情（内联显示） -->
                     <div v-else class="p-4">
-                      <!-- 操作按钮（仅针对用户自己创建的试题） -->
-                      <div v-if="selectedQuestionForDetail && !selectedQuestionForDetail.isOfficial" class="mb-4 flex justify-end gap-2">
+                      <!-- 操作按钮（仅针对用户自己创建的试题） - 增强样式 -->
+                      <div v-if="selectedQuestionForDetail && !selectedQuestionForDetail.isOfficial" class="mb-4 flex justify-end gap-3">
                         <button
                           @click="editQuestion(selectedQuestionForDetail)"
-                          class="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100"
+                          class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg hover:from-blue-600 hover:to-blue-700 hover:shadow-md transition-all shadow-sm"
                         >
-                          编辑
+                          ✏️ 编辑
                         </button>
                         <button
                           @click="deleteQuestion(selectedQuestionForDetail.id)"
-                          class="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+                          class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-lg hover:from-red-600 hover:to-pink-600 hover:shadow-md transition-all shadow-sm"
                         >
-                          删除
+                          🗑️ 删除
                         </button>
                       </div>
 

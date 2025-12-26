@@ -2,6 +2,7 @@
 
 > **Purpose**: Detailed technical architecture reference
 > **For quick context recovery, see**: `/CLAUDE.md`
+> **For UI design patterns, see**: `/docs/FRONTEND_UI_DESIGN_GUIDE.md`
 
 ## System Architecture
 

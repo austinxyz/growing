@@ -1,21 +1,21 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     <!-- 顶部标题和职业路径tabs -->
-    <div class="bg-white border-b border-gray-200">
-      <div class="max-w-full px-6 py-4">
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">我的题库</h1>
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg">
+      <div class="max-w-full px-6 py-5">
+        <h1 class="text-2xl font-bold text-white mb-4">📚 我的题库</h1>
 
         <!-- 职业路径 Tabs -->
-        <div class="flex space-x-2 overflow-x-auto">
+        <div class="flex space-x-2 overflow-x-auto pb-1">
           <button
             v-for="cp in careerPaths"
             :key="cp.id"
             @click="selectCareerPath(cp.id)"
             :class="[
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
+              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm',
               selectedCareerPathId === cp.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-white text-indigo-700 shadow-md'
+                : 'bg-white/20 text-white hover:bg-white/30 hover:shadow-md'
             ]"
           >
             {{ cp.icon }} {{ cp.name }}
@@ -27,9 +27,12 @@
     <!-- 三栏布局 -->
     <div class="flex h-[calc(100vh-140px)]">
       <!-- 左侧：技能-Focus Area树 (25%) -->
-      <aside class="w-1/4 bg-white border-r border-gray-200 overflow-y-auto">
+      <aside class="w-1/4 bg-white border-r border-gray-200 overflow-y-auto shadow-lg">
         <div class="p-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">技能与专注领域</h3>
+          <h3 class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4 flex items-center">
+            <span class="mr-2">🎯</span>
+            技能与专注领域
+          </h3>
 
           <div v-if="loading.skills" class="text-center text-gray-500 py-4">
             加载中...
@@ -89,10 +92,10 @@
               <button
                 @click="setDifficulty('ALL')"
                 :class="[
-                  'px-3 py-1 text-xs font-medium rounded-full',
+                  'px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 shadow-sm',
                   difficultyFilter === 'ALL'
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-gray-700 to-gray-900 text-white shadow-md'
+                    : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:shadow-md'
                 ]"
               >
                 全部
@@ -100,10 +103,10 @@
               <button
                 @click="setDifficulty('EASY')"
                 :class="[
-                  'px-3 py-1 text-xs font-medium rounded-full',
+                  'px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 shadow-sm',
                   difficultyFilter === 'EASY'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-md'
+                    : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:shadow-md'
                 ]"
               >
                 Easy
@@ -111,10 +114,10 @@
               <button
                 @click="setDifficulty('MEDIUM')"
                 :class="[
-                  'px-3 py-1 text-xs font-medium rounded-full',
+                  'px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 shadow-sm',
                   difficultyFilter === 'MEDIUM'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md'
+                    : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 hover:text-orange-700 hover:shadow-md'
                 ]"
               >
                 Medium
@@ -122,10 +125,10 @@
               <button
                 @click="setDifficulty('HARD')"
                 :class="[
-                  'px-3 py-1 text-xs font-medium rounded-full',
+                  'px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 shadow-sm',
                   difficultyFilter === 'HARD'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-red-400 to-pink-500 text-white shadow-md'
+                    : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700 hover:shadow-md'
                 ]"
               >
                 Hard
@@ -135,9 +138,9 @@
             <button
               @click="showAddQuestionModal"
               :disabled="!selectedFocusAreaId"
-              class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg hover:from-blue-600 hover:to-purple-600 hover:shadow-lg transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed shadow-md"
             >
-              + 添加我的试题
+              ➕ 添加我的试题
             </button>
           </div>
 
@@ -180,26 +183,26 @@
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                   <DifficultyBadge :difficulty="selectedQuestion.difficulty" />
-                  <span v-if="selectedQuestion.isOfficial" class="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded-full">
-                    公共试题
+                  <span v-if="selectedQuestion.isOfficial" class="text-xs px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-full font-semibold shadow-sm">
+                    ⭐ 公共试题
                   </span>
-                  <span v-else class="text-xs px-2 py-1 bg-purple-100 text-purple-600 rounded-full">
-                    我的试题
+                  <span v-else class="text-xs px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-full font-semibold shadow-sm">
+                    📝 我的试题
                   </span>
                 </div>
 
                 <div v-if="!selectedQuestion.isOfficial" class="flex space-x-2">
                   <button
                     @click="editQuestion(selectedQuestion)"
-                    class="text-sm text-blue-600 hover:text-blue-800"
+                    class="px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 hover:shadow-lg transition-all duration-200 shadow-sm"
                   >
-                    编辑
+                    ✏️ 编辑
                   </button>
                   <button
                     @click="deleteQuestion(selectedQuestion.id)"
-                    class="text-sm text-red-600 hover:text-red-800"
+                    class="px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 hover:shadow-lg transition-all duration-200 shadow-sm"
                   >
-                    删除
+                    🗑️ 删除
                   </button>
                 </div>
               </div>
@@ -222,10 +225,11 @@
                 </a>
               </div>
 
-              <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              <h2 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4 flex items-center">
+                <span class="mr-2">❓</span>
                 问题
               </h2>
-              <div class="prose prose-sm max-w-none mb-6" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+              <div class="prose prose-sm max-w-none mb-6 bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border-2 border-blue-200" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
 
               <div v-if="selectedQuestion.targetPosition || selectedQuestion.targetLevel" class="text-sm text-gray-600 mb-4">
                 <span v-if="selectedQuestion.targetPosition">针对职位: {{ selectedQuestion.targetPosition }}</span>
@@ -234,75 +238,78 @@
             </div>
 
             <!-- 答案要求 -->
-            <div v-if="selectedQuestion.answerRequirement" class="border-t border-gray-200 pt-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-3">答案要求</h3>
-              <div class="prose prose-sm max-w-none bg-blue-50 rounded-md p-4" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
+            <div v-if="selectedQuestion.answerRequirement" class="border-t-2 border-purple-200 pt-6">
+              <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-3 flex items-center">
+                <span class="mr-2">✅</span>
+                答案要求
+              </h3>
+              <div class="prose prose-sm max-w-none bg-gradient-to-br from-purple-50 to-white rounded-xl p-4 border-2 border-purple-200" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
             </div>
 
             <!-- Red Flags -->
-            <div v-if="selectedQuestion.redFlags && selectedQuestion.redFlags.length > 0" class="border-t border-gray-200 pt-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center">
-                <span class="text-red-500 mr-2">⚠️</span>
+            <div v-if="selectedQuestion.redFlags && selectedQuestion.redFlags.length > 0" class="border-t-2 border-red-200 pt-6">
+              <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600 mb-3 flex items-center">
+                <span class="mr-2">⚠️</span>
                 Red Flags
               </h3>
-              <ul class="space-y-2">
+              <ul class="space-y-2 bg-gradient-to-br from-red-50 to-white rounded-xl p-4 border-2 border-red-200">
                 <li
                   v-for="(flag, index) in selectedQuestion.redFlags"
                   :key="index"
                   class="flex items-start"
                 >
-                  <span class="text-red-500 mr-2">•</span>
-                  <span class="text-sm text-gray-700">{{ flag }}</span>
+                  <span class="text-red-500 mr-2 text-lg">🚫</span>
+                  <span class="text-sm text-gray-700 font-medium">{{ flag }}</span>
                 </li>
               </ul>
             </div>
 
             <!-- 我的笔记 -->
-            <div class="border-t border-gray-200 pt-6">
+            <div class="border-t-2 border-green-200 pt-6">
               <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600 flex items-center">
                   <span class="mr-2">📝</span>
                   我的笔记
                 </h3>
                 <button
                   @click="showNoteEditor"
-                  class="text-sm text-blue-600 hover:text-blue-800"
+                  class="px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 hover:shadow-lg transition-all duration-200 shadow-sm"
                 >
-                  {{ selectedQuestion.userNote ? '编辑笔记' : '添加笔记' }}
+                  {{ selectedQuestion.userNote ? '✏️ 编辑笔记' : '➕ 添加笔记' }}
                 </button>
               </div>
 
               <div v-if="selectedQuestion.userNote" class="space-y-4">
                 <!-- 核心思路（仅编程题） -->
-                <div v-if="selectedQuestion.questionType === 'programming' && selectedQuestion.userNote.coreStrategy" class="bg-green-50 rounded-md p-4 border border-green-200">
-                  <h4 class="text-sm font-semibold text-green-900 mb-2 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div v-if="selectedQuestion.questionType === 'programming' && selectedQuestion.userNote.coreStrategy" class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200 shadow-sm">
+                  <h4 class="text-sm font-bold text-green-800 mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    核心思路
+                    💡 核心思路
                   </h4>
                   <div class="prose prose-sm max-w-none" v-html="renderMarkdown(selectedQuestion.userNote.coreStrategy)"></div>
                 </div>
 
                 <!-- 笔记内容 -->
-                <div v-if="selectedQuestion.userNote.noteContent" class="prose prose-sm max-w-none bg-gray-50 rounded-md p-4">
+                <div v-if="selectedQuestion.userNote.noteContent" class="prose prose-sm max-w-none bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border-2 border-gray-200 shadow-sm">
                   <div v-html="renderMarkdown(selectedQuestion.userNote.noteContent)"></div>
                 </div>
 
                 <!-- 底部信息 -->
-                <div class="flex items-center justify-between text-xs text-gray-500">
-                  <span>最后编辑: {{ formatDate(selectedQuestion.userNote.updatedAt) }}</span>
+                <div class="flex items-center justify-between text-xs pt-3 border-t border-green-200">
+                  <span class="text-gray-500">⏰ 最后编辑: {{ formatDate(selectedQuestion.userNote.updatedAt) }}</span>
                   <button
                     @click="deleteNote"
-                    class="text-red-600 hover:text-red-800"
+                    class="px-2 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors font-medium"
                   >
-                    删除笔记
+                    🗑️ 删除笔记
                   </button>
                 </div>
               </div>
 
-              <div v-else class="text-sm text-gray-400 italic">
-                暂无笔记，点击"添加笔记"开始记录
+              <div v-else class="text-sm text-gray-400 italic bg-gray-50 rounded-lg p-4 text-center border-2 border-dashed border-gray-200">
+                📝 暂无笔记，点击"添加笔记"开始记录
               </div>
             </div>
           </div>

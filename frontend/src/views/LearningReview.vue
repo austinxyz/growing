@@ -1,18 +1,18 @@
 <template>
-  <div class="w-full px-6 py-4">
-    <!-- 标题和过滤器在同一行 -->
-    <div class="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4 no-print">
+  <div class="w-full px-6 py-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen">
+    <!-- 标题和过滤器在同一行 - 添加渐变背景 -->
+    <div class="flex items-center justify-between mb-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-4 no-print">
       <div>
-        <h1 class="text-xl font-bold text-gray-800">学习总结 - 算法与数据结构</h1>
-        <p class="text-xs text-gray-500 mt-1">共 {{ totalQuestions }} 题</p>
+        <h1 class="text-2xl font-bold text-white">学习总结 - 算法与数据结构</h1>
+        <p class="text-xs text-blue-100 mt-1">共 {{ totalQuestions }} 题</p>
       </div>
 
       <!-- 紧凑的过滤器 -->
       <div class="flex items-center gap-3">
-        <!-- 打印按钮 -->
+        <!-- 打印按钮 - 增强样式 -->
         <button
           @click="printSummary"
-          class="flex items-center gap-1 text-sm px-3 py-1.5 text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+          class="flex items-center gap-1 text-sm px-3 py-1.5 bg-white/90 text-indigo-700 rounded-lg hover:bg-white hover:shadow-md transition-all font-medium"
           title="打印学习总结"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,7 +22,7 @@
         </button>
         <select
           v-model="selectedCategoryName"
-          class="text-sm px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="text-sm px-3 py-1.5 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white bg-white/90 text-gray-900 shadow-sm"
         >
           <option value="">所有分类</option>
           <option v-for="categoryName in Object.keys(categories)" :key="categoryName" :value="categoryName">
@@ -33,7 +33,7 @@
         <select
           v-model="selectedFocusAreaId"
           :disabled="!selectedCategoryName"
-          class="text-sm px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+          class="text-sm px-3 py-1.5 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white bg-white/90 text-gray-900 shadow-sm disabled:opacity-50"
         >
           <option value="">所有Focus Area</option>
           <option
@@ -49,25 +49,25 @@
           v-model="leetcodeNumberFilter"
           type="number"
           placeholder="题号"
-          class="text-sm px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-20"
+          class="text-sm px-3 py-1.5 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white bg-white/90 text-gray-900 shadow-sm w-20"
         />
 
-        <!-- 重要题目筛选 -->
-        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <!-- 重要题目筛选 - 增强样式 -->
+        <label class="flex items-center gap-2 text-sm text-white cursor-pointer bg-white/20 px-3 py-1.5 rounded-lg hover:bg-white/30 transition-all">
           <input
             v-model="showImportantOnly"
             type="checkbox"
-            class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+            class="w-4 h-4 text-orange-500 border-white rounded focus:ring-white"
           />
-          <span class="flex items-center gap-1">
-            <span class="text-orange-500">⭐</span>
+          <span class="flex items-center gap-1 font-medium">
+            <span class="text-yellow-300">⭐</span>
             仅重要题
           </span>
         </label>
 
         <button
           @click="resetFilters"
-          class="text-sm px-3 py-1.5 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+          class="text-sm px-3 py-1.5 bg-white/90 text-gray-700 rounded-lg hover:bg-white hover:shadow-md transition-all font-medium"
         >
           重置
         </button>
@@ -86,67 +86,67 @@
       <p class="mt-2 text-sm text-gray-600">加载中...</p>
     </div>
 
-    <!-- 空状态 -->
-    <div v-else-if="filteredQuestions.length === 0" class="bg-white rounded-lg shadow-sm p-8 text-center no-print">
-      <div class="text-gray-400 text-4xl mb-2">📝</div>
-      <h3 class="text-base font-semibold text-gray-700 mb-1">暂无学习笔记</h3>
+    <!-- 空状态 - 增强样式 -->
+    <div v-else-if="filteredQuestions.length === 0" class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg p-8 text-center no-print border-2 border-blue-100">
+      <div class="text-blue-400 text-4xl mb-2">📝</div>
+      <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-1">暂无学习笔记</h3>
       <p class="text-sm text-gray-600">去「我的试题库」添加试题笔记吧！</p>
     </div>
 
-    <!-- 紧凑的试题列表 - 双列双行布局（屏幕显示） -->
-    <div v-else class="bg-white rounded-lg shadow-sm p-4 screen-only">
+    <!-- 紧凑的试题列表 - 双列布局(屏幕显示) - 紧凑样式 -->
+    <div v-else class="bg-white rounded-xl shadow-lg p-4 screen-only">
       <div class="grid grid-cols-2 gap-3">
         <div
           v-for="question in filteredQuestions"
           :key="question.questionId"
-          class="p-2 hover:bg-blue-50 rounded transition-colors text-xs"
-          :style="{ borderLeft: `3px solid ${getCategoryColor(question.categoryName)}` }"
+          @click="showQuestionDetail(question)"
+          class="p-2.5 bg-gradient-to-br from-white to-gray-50 rounded-lg hover:shadow-lg transition-all text-xs border-l-4 cursor-pointer group hover:border-blue-300"
+          :style="{ borderLeftColor: getCategoryColor(question.categoryName) }"
         >
-          <!-- 第一行：难度 + 重要标识 + 题目 + Focus Area + 分类 -->
-          <div class="flex items-center gap-2 mb-1">
-            <!-- 难度图标 -->
+          <!-- 第一行:难度 + 重要 + 题目 + Focus Area + 分类 -->
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <!-- 难度徽章 - 紧凑版 -->
             <span
-              class="flex-shrink-0 w-2 h-2 rounded-full"
-              :class="{
-                'bg-green-500': question.difficulty === 'EASY',
-                'bg-yellow-500': question.difficulty === 'MEDIUM',
-                'bg-red-500': question.difficulty === 'HARD'
-              }"
+              :class="[
+                'flex-shrink-0 px-1.5 py-0.5 rounded-full text-xs font-bold shadow-sm',
+                question.difficulty === 'EASY' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' :
+                question.difficulty === 'MEDIUM' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
+                'bg-gradient-to-r from-red-400 to-pink-500 text-white'
+              ]"
               :title="difficultyText(question.difficulty)"
-            ></span>
-
-            <!-- 重要标识 -->
-            <span v-if="question.isImportant" class="text-orange-500 text-sm flex-shrink-0" title="重要题目">
-              ⭐
+            >
+              {{ difficultyText(question.difficulty)[0] }}
             </span>
 
-            <!-- 题目 -->
-            <button
-              @click="showQuestionDetail(question)"
-              class="text-left text-gray-900 hover:text-blue-600 font-medium hover:underline truncate flex-1"
-            >
-              {{ question.title }}
-            </button>
+            <!-- 重要标识 -->
+            <span v-if="question.isImportant" class="text-orange-500 text-sm flex-shrink-0" title="重要题目">⭐</span>
 
-            <!-- Focus Area -->
-            <span class="text-gray-500 truncate flex-shrink-0 max-w-[100px]">
+            <!-- 题目 -->
+            <div class="text-left text-gray-900 group-hover:text-blue-700 font-semibold truncate flex-1 transition-colors text-xs">
+              {{ question.title }}
+            </div>
+
+            <!-- Focus Area标签 - 紧凑版 -->
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 text-xs font-medium flex-shrink-0 max-w-[100px] truncate">
               {{ question.focusAreaName }}
             </span>
 
-            <!-- 分类标签 -->
+            <!-- 分类标签 - 紧凑版 -->
             <div
-              class="inline-block px-1.5 py-0.5 rounded text-white text-xs font-medium flex-shrink-0"
-              :style="{ backgroundColor: getCategoryColor(question.categoryName) }"
+              class="inline-block px-1.5 py-0.5 rounded text-white text-xs font-bold flex-shrink-0 shadow-sm"
+              :style="{ background: `linear-gradient(135deg, ${getCategoryColor(question.categoryName)}, ${adjustColorBrightness(getCategoryColor(question.categoryName), -20)})` }"
             >
               {{ getCategoryShortName(question.categoryName) }}
             </div>
           </div>
 
-          <!-- 第二行：核心思路 -->
-          <div v-if="question.coreStrategy" class="text-gray-700 leading-relaxed pl-4">
-            {{ question.coreStrategy }}
+          <!-- 第二行:核心思路 - 紧凑版 -->
+          <div v-if="question.coreStrategy" class="bg-blue-50/50 rounded p-1.5 pl-2">
+            <p class="text-gray-700 leading-snug text-xs group-hover:text-gray-900">
+              {{ question.coreStrategy }}
+            </p>
           </div>
-          <div v-else class="text-gray-400 italic pl-4">
+          <div v-else class="text-gray-400 italic text-xs text-center py-1">
             暂无核心思路
           </div>
         </div>
@@ -354,6 +354,24 @@ function difficultyClass(difficulty) {
  */
 function printSummary() {
   window.print()
+}
+
+/**
+ * 调整颜色亮度（用于创建渐变）
+ */
+function adjustColorBrightness(color, percent) {
+  // 移除 # 号
+  const num = parseInt(color.replace('#', ''), 16)
+  const amt = Math.round(2.55 * percent)
+  const R = (num >> 16) + amt
+  const G = (num >> 8 & 0x00FF) + amt
+  const B = (num & 0x0000FF) + amt
+  return '#' + (
+    0x1000000 +
+    (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+    (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+    (B < 255 ? (B < 1 ? 0 : B) : 255)
+  ).toString(16).slice(1)
 }
 
 // 页面加载时获取数据

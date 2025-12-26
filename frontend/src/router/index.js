@@ -28,6 +28,12 @@ const routes = [
     name: 'MyCareerPaths',
     component: () => import('../views/careerPaths/MyCareerPaths.vue')
   },
+  // 用户端 - 技能详情
+  {
+    path: '/skills/:id',
+    name: 'SkillDetail',
+    component: () => import('../views/skills/SkillDetail.vue')
+  },
   // 管理员 - 技能管理
   {
     path: '/admin/skills',
