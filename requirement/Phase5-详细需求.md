@@ -4,8 +4,8 @@
 > **参考设计**: https://www.hellointerview.com/
 > **目标用户**: 准备系统设计面试的工程师
 > **核心价值**: 提供系统化的系统设计学习路径,包含基础知识和典型案例实战
-> **状态**: 🚧 Phase 5 待实施
-> **实施版本**: v1.0 - 基于Phase 5 prompt
+> **状态**: ✅ Phase 5 已完成 (2025-12-26)
+> **实施版本**: v1.0
 
 ---
 
@@ -26,6 +26,7 @@
 - 提供典型案例实战练习(设计Twitter、Instagram、Uber等)
 - 支持用户按标准化6步骤进行系统设计答题
 - 提供多个参考答案方案,支持左右对比学习
+- **新增**: 提供学习总结页面，横向对比所有案例的关键要点
 
 ### 1.2 成功标准
 
@@ -36,6 +37,8 @@
 - ✅ 用户可以查看多个参考答案(每个答案包含6个步骤)
 - ✅ 用户可以编辑自己的答案(6个步骤 + 架构图 + 要点总结)
 - ✅ 提供左右对比模式(参考答案 vs 我的答案)
+- ✅ 支持结构化关键点编辑（Requirement、NFR、Entity、Components、API、Object1、Object2）
+- ✅ 提供学习总结页面（横向对比所有案例的关键要点）
 
 **用户体验**:
 - ✅ 清晰的知识结构(大分类 → Focus Area → 学习资料)
@@ -43,6 +46,8 @@
 - ✅ 标准化的6步骤答题框架(需求、实体、API、数据流、架构、深入)
 - ✅ 左右对比编辑模式,方便参考学习
 - ✅ 支持Markdown格式的内容展示
+- ✅ 支持答案可见性控制（显示/隐藏参考答案）
+- ✅ 学习总结表格视图，快速横向对比所有案例
 
 ---
 
@@ -55,6 +60,7 @@
 2. **灵活性**: 典型案例支持多个参考答案,满足不同设计思路
 3. **标准化**: 统一的6步骤答题框架(需求、实体、API、数据流、架构、深入)
 4. **扩展性**: 通过JSON字段存储特定类型的扩展数据
+5. **双轨制**: 同时支持6步骤（step1-6）和结构化关键点（kp_*）两种答题方式
 
 ### 2.2 系统设计学习模块的层级关系
 
@@ -71,7 +77,7 @@ Skill: 系统设计
   ├─ 关键技术
   └─ 设计模式
       ↓
-Focus Area(如"分布式理论"、"API设计"、"缓存系统") - 待用户提供清单
+Focus Area(如"分布式理论"、"API设计"、"缓存系统")
       ↓
 学习内容(文章、视频)
 ```
@@ -87,41 +93,59 @@ System Design Case(如"设计Twitter")
   │   ├─ 6个步骤(需求、实体、API、数据流、架构、深入)
   │   └─ 配图
   └─ 用户答题记录
-      ├─ 6个步骤(用户自己的设计)
+      ├─ 6个步骤(用户自己的设计) - step1-6字段
+      ├─ 结构化关键点 - kp_*字段（Requirement、NFR、Entity、Components、API、Object1、Object2）
       ├─ 架构图
       └─ 要点总结
 ```
 
 ### 2.3 标准化的6步骤答题框架
 
-**参考HelloInterview的系统设计框架,合并为6个步骤**:
+**基于HelloInterview的系统设计框架**:
 
-1. **需求分析 + 非功能需求** (Requirements & NFRs)
+1. **需求澄清与功能列表** (Requirements)
    - 功能需求: 系统要实现哪些功能?
    - 非功能需求: QPS、用户量、可用性、延迟等
 
-2. **核心实体** (Core Entities)
+2. **核心实体定义** (Core Entities)
    - 定义系统的核心数据模型
 
 3. **API设计** (API Design)
    - 定义系统的关键接口
 
-4. **数据流** (Data Flow)
+4. **数据流设计** (Data Flow)
    - 描述关键功能的数据流转
 
-5. **高层设计** (High-Level Design)
+5. **高层架构设计** (High-Level Design/Architecture)
    - 系统架构图、组件交互
 
-6. **深入探讨 + 权衡考虑** (Deep Dive & Tradeoffs)
+6. **深入讨论** (Deep Dive)
    - 深入某个子系统设计
    - 各种设计方案的权衡(CAP、一致性、性能等)
 
-### 2.4 与现有结构的映射
+### 2.4 结构化关键点（新增）
+
+**为了更灵活的知识点管理，用户答题记录新增kp_*字段**:
+
+1. **kp_requirement** - 功能需求分析
+2. **kp_nfr** - 非功能性需求（如可扩展性、性能、可用性等）
+3. **kp_entity** - 核心实体定义（如User, Tweet, Feed等）
+4. **kp_components** - 关键组件（如LoadBalancer, Cache, MessageQueue等）
+5. **kp_api** - API接口设计
+6. **kp_object1** - 核心对象1的详细设计（如缓存策略、数据库schema等）
+7. **kp_object2** - 核心对象2的详细设计
+
+**双轨制设计**:
+- step1-6字段：用于完整的6步骤系统设计答案（Markdown长文本）
+- kp_*字段：用于快速记录关键要点（Markdown短文本）
+- 两者共存，用户可选择使用哪种方式或同时使用
+
+### 2.5 与现有结构的映射
 
 **复用现有概念(基础知识模块)**:
 - **Skill** = "系统设计"
 - **Major Category** = 3个大分类(核心概念、关键技术、设计模式)
-- **Focus Area** = 具体知识点(待用户提供清单)
+- **Focus Area** = 具体知识点
 - **Learning Content** = 学习资料(文章、视频)
 
 **新增概念(典型案例模块)**:
@@ -129,11 +153,11 @@ System Design Case(如"设计Twitter")
 - **Case Resource** - 案例学习资源(视频、文章)
 - **Case Solution** - 参考答案(支持多个方案,每个方案包含6个步骤)
 - **Solution Diagram** - 参考答案配图
-- **User Case Note** - 用户答题记录(6个步骤 + 架构图 + 要点总结)
+- **User Case Note** - 用户答题记录(6个步骤 + 7个结构化关键点 + 架构图 + 要点总结)
 
 ---
 
-## 3. 已规划功能清单
+## 3. 已实现功能清单
 
 ### 3.1 管理端功能
 
@@ -148,9 +172,9 @@ System Design Case(如"设计Twitter")
 **功能**:
 - ✅ 按大分类浏览Focus Area
 - ✅ 为每个Focus Area添加学习资料(文章、视频)
-  - 资源类型: article / video
-  - 必填字段: 标题、URL、作者
-  - 可选字段: 描述
+  - 资源类型: ARTICLE / VIDEO
+  - 必填字段: 标题、URL
+  - 可选字段: 作者、描述
 - ✅ 编辑/删除学习资料
 - ✅ 拖拽排序学习资料
 
@@ -159,7 +183,7 @@ System Design Case(如"设计Twitter")
 **页面**: `/admin/system-design-cases`
 
 **布局**: 两栏布局
-- 左侧: 案例列表(显示标题、难度)
+- 左侧: 案例列表(显示标题、难度、难度评分)
 - 右侧上部: 案例详情(标题、难度、公司、关联知识、描述、学习资源)
 - 右侧下部: 参考答案管理(6个Tab)
 
@@ -170,20 +194,19 @@ System Design Case(如"设计Twitter")
   - 添加/删除学习资源(视频、文章)
 - ✅ 参考答案管理:
   - 支持多个参考答案(方案A、方案B等)
-  - 标记主要参考答案(is_primary)
   - 为每个答案填写6个步骤内容(Markdown格式)
-  - 为每个步骤上传配图
+  - 为每个答案上传配图（架构图、数据流图、实体图等）
   - 编辑/删除参考答案
 - ✅ 6个Tab:
-  - Tab 1: 需求(需求分析 + 非功能需求)
-  - Tab 2: 实体(核心实体)
-  - Tab 3: API(API设计)
-  - Tab 4: 数据流(数据流)
-  - Tab 5: 架构(高层设计)
-  - Tab 6: 深入(深入探讨 + 权衡考虑)
+  - Tab 1: 需求澄清与功能列表
+  - Tab 2: 核心实体定义
+  - Tab 3: API设计
+  - Tab 4: 数据流设计
+  - Tab 5: 高层架构设计
+  - Tab 6: 深入讨论
 
 **参考答案的管理方式**:
-- 先选择一个答案(下拉列表或单选)
+- 先选择一个答案(下拉选择器)
 - 然后在6个Tab中查看/编辑每个步骤的内容
 - 可以新增答案、删除答案
 
@@ -215,8 +238,8 @@ System Design Case(如"设计Twitter")
 - 右侧下部: 参考答案(6个Tab,支持选择不同方案)
 
 **布局B - 编辑模式**: 左右两栏对比
-- 左侧: 参考答案(只读,6个Tab)
-- 右侧: 我的答案(可编辑,6个Tab + 架构图上传 + 要点总结)
+- 左侧: 参考答案(可切换显示/隐藏,6个Tab)
+- 右侧: 我的答案(可编辑,6个步骤Tab + 7个关键点Tab + 架构图上传 + 要点总结)
 
 **功能**:
 - ✅ **查看模式**:
@@ -227,12 +250,37 @@ System Design Case(如"设计Twitter")
   - 参考答案分6个Tab展示
   - 点击"编辑我的答案"进入编辑模式
 - ✅ **编辑模式**:
-  - 左侧: 参考答案(只读,6个Tab)
-  - 右侧: 我的答案(可编辑,6个Tab)
-  - 支持为每个步骤编辑Markdown内容
+  - 左侧: 参考答案(可切换显示/隐藏,6个Tab)
+  - 右侧: 我的答案(可编辑,14个Tab)
+    - 6个步骤Tab（step1-6）
+    - 7个关键点Tab（Requirement、NFR、Entity、Components、API、Object1、Object2）
+    - 架构图Tab（上传架构图）
+  - 支持为每个步骤/关键点编辑Markdown内容
   - 支持上传架构图
   - 支持填写要点总结
   - 保存/取消编辑
+  - **答案可见性控制**: 可切换显示/隐藏参考答案
+
+#### F5: 学习总结（新增）
+
+**页面**: `/system-design/summary`
+
+**布局**: 全屏表格视图
+
+**功能**:
+- ✅ 横向对比所有案例的关键要点
+- ✅ 表格列:
+  - 案例名（固定列，可点击跳转到案例详情）
+  - Requirement（功能需求）
+  - NFR（非功能性需求）
+  - Entity（核心实体）
+  - Components（关键组件）
+  - API（接口设计）
+  - Object1（核心对象1）
+  - Object2（核心对象2）
+- ✅ 支持Markdown渲染（表格内单元格）
+- ✅ 渐变背景和悬停效果
+- ✅ 点击案例名跳转到案例详情页（带caseId参数）
 
 ---
 
@@ -242,7 +290,7 @@ System Design Case(如"设计Twitter")
 
 #### 实体1: skills (技能表 - 复用)
 
-**说明**: 创建新的Skill "系统设计"
+**说明**: 创建新的Skill "系统设计" (id=2)
 
 #### 实体2: major_categories (大分类表 - 新增3个)
 
@@ -255,21 +303,21 @@ System Design Case(如"设计Twitter")
 
 #### 实体3: focus_areas (Focus Area表 - 新增)
 
-**数据**: 待用户提供清单(3个大分类下的Focus Area)
+**数据**: 系统设计相关的Focus Area（已由用户提供）
 
 #### 实体4: learning_contents (学习内容表 - 复用)
 
 **说明**:
 - 存储基础知识模块的学习资料
 - **不使用learning_stages** - Focus Area下直接关联学习资料
-- 资料类型: article / video
+- 资料类型: ARTICLE / VIDEO
 
 #### 实体5: system_design_cases (案例主表 - 新增)
 
 **用途**: 存储典型案例的基本信息
 
 **关键字段**:
-- skill_id - 关联到系统设计skill
+- skill_id - 关联到系统设计skill (固定为2)
 - title - 案例标题(如"设计Twitter")
 - case_description - 案例描述(Markdown)
 - difficulty - 难度(EASY/MEDIUM/HARD)
@@ -286,9 +334,10 @@ System Design Case(如"设计Twitter")
 
 **关键字段**:
 - case_id - 关联的案例ID
-- resource_type - 资源类型(video/article)
-- resource_url - 资源链接
-- resource_title - 资源标题
+- resource_type - 资源类型(VIDEO/ARTICLE)
+- title - 资源标题
+- url - 资源URL
+- description - 资源描述
 - display_order - 显示顺序
 
 #### 实体7: case_solutions (案例参考答案表 - 新增)
@@ -297,15 +346,14 @@ System Design Case(如"设计Twitter")
 
 **关键字段**:
 - case_id - 关联的案例ID
-- solution_title - 答案标题(如"方案A - 基于MySQL")
-- author_name - 作者名称
-- is_primary - 是否为主要参考答案
-- step1_requirements_and_nfr - 步骤1: 需求分析 + 非功能需求(Markdown)
-- step2_core_entities - 步骤2: 核心实体(Markdown)
-- step3_api_design - 步骤3: API设计(Markdown)
-- step4_data_flow - 步骤4: 数据流(Markdown)
-- step5_high_level_design - 步骤5: 高层设计(Markdown)
-- step6_deep_dive_and_tradeoffs - 步骤6: 深入探讨 + 权衡考虑(Markdown)
+- solution_name - 方案名称(如"方案A - 基础版本")
+- author - 作者名称
+- step1_requirements - 步骤1: 需求澄清与功能列表(Markdown)
+- step2_entities - 步骤2: 核心实体定义(Markdown)
+- step3_api - 步骤3: API设计(Markdown)
+- step4_data_flow - 步骤4: 数据流设计(Markdown)
+- step5_architecture - 步骤5: 高层架构设计(Markdown)
+- step6_deep_dive - 步骤6: 深入讨论(Markdown)
 - display_order - 显示顺序
 
 #### 实体8: solution_diagrams (参考答案图片表 - 新增)
@@ -314,27 +362,38 @@ System Design Case(如"设计Twitter")
 
 **关键字段**:
 - solution_id - 关联的答案ID
-- diagram_url - 图片URL
-- diagram_title - 图片标题
-- diagram_description - 图片说明
-- step_number - 关联的步骤(1-6)
+- diagram_type - 配图类型(ARCHITECTURE/DATA_FLOW/ENTITY/OTHER)
+- title - 图片标题
+- image_url - 图片URL
+- description - 图片说明
 - display_order - 显示顺序
 
 #### 实体9: user_case_notes (用户答题记录表 - 新增)
 
-**用途**: 存储用户的答题内容
+**用途**: 存储用户的答题内容（双轨制：6步骤 + 7个结构化关键点）
 
-**关键字段**:
+**关键字段（6步骤）**:
 - case_id - 关联的案例ID
 - user_id - 用户ID
-- user_step1_requirements_and_nfr - 用户步骤1(Markdown)
-- user_step2_core_entities - 用户步骤2(Markdown)
-- user_step3_api_design - 用户步骤3(Markdown)
-- user_step4_data_flow - 用户步骤4(Markdown)
-- user_step5_high_level_design - 用户步骤5(Markdown)
-- user_step6_deep_dive_and_tradeoffs - 用户步骤6(Markdown)
+- step1_requirements - 用户步骤1(Markdown)
+- step2_entities - 用户步骤2(Markdown)
+- step3_api - 用户步骤3(Markdown)
+- step4_data_flow - 用户步骤4(Markdown)
+- step5_architecture - 用户步骤5(Markdown)
+- step6_deep_dive - 用户步骤6(Markdown)
+
+**关键字段（结构化关键点）**:
+- kp_requirement - 功能需求分析(Markdown)
+- kp_nfr - 非功能性需求(Markdown)
+- kp_entity - 核心实体定义(Markdown)
+- kp_components - 关键组件(Markdown)
+- kp_api - API接口设计(Markdown)
+- kp_object1 - 核心对象1设计(Markdown)
+- kp_object2 - 核心对象2设计(Markdown)
+
+**其他字段**:
 - architecture_diagram_url - 架构图URL
-- key_takeaways - 要点总结(Markdown)
+- key_points - 要点总结(Markdown)
 - created_at - 创建时间
 - updated_at - 更新时间
 
@@ -349,7 +408,7 @@ Skill (系统设计)
   ↓ 1:N
 Major Categories (核心概念、关键技术、设计模式) - 3个
   ↓ 1:N
-Focus Areas (待用户提供) - 待定数量
+Focus Areas
   ↓ 1:N
 Learning Contents (学习资料)
 
@@ -373,6 +432,7 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 - 每个参考答案可以有多张配图(Solution Diagrams)
 - 每个用户对每个案例只能有一条答题记录(User Case Notes)
 - 用户答题记录不关联特定的参考答案(用户可以参考多个方案)
+- 用户答题记录支持双轨制：6步骤（step1-6）+ 7个结构化关键点（kp_*）
 
 **级联删除规则**:
 - 删除Skill → 级联删除所有Major Categories → 级联删除所有Focus Areas → 级联删除所有Learning Contents
@@ -389,11 +449,13 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 - 案例列表加载时间: <1秒
 - 参考答案切换响应时间: <200ms
 - Markdown渲染流畅
+- 学习总结页面加载时间: <2秒
 
 **性能优化措施**:
 - 案例列表分页加载
 - 参考答案按需加载(切换方案时才加载)
 - 图片懒加载
+- 学习总结页面一次性加载所有用户笔记
 
 ### 5.2 安全要求
 
@@ -412,6 +474,7 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 
 - ✅ 大分类固定为3个(核心概念、关键技术、设计模式)
 - ✅ 参考答案步骤固定为6个(需求、实体、API、数据流、架构、深入)
+- ✅ 用户答题支持双轨制（6步骤 + 7个结构化关键点）
 - ✅ 扩展信息采用JSON存储(company_tags、related_focus_areas)
 - ✅ 图片URL独立表存储,支持多张配图
 
@@ -478,20 +541,20 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 │                  │ │ Tab4: 数据流 | Tab5: 架构 | Tab6: 深入    │ │
 │                  │ ├──────────────────────────────────────────┤ │
 │                  │ │ 参考答案列表:                            │ │
-│                  │ │ ● 方案A - 基于MySQL (主要) [删除] [编辑]  │ │
-│                  │ │ ○ 方案B - 基于NoSQL     [删除] [编辑]     │ │
+│                  │ │ ● 方案A - 基础版本 [删除] [编辑]          │ │
+│                  │ │ ○ 方案B - 高级版本 [删除] [编辑]          │ │
 │                  │ │ [+ 添加参考答案]                          │ │
 │                  │ │                                          │ │
-│                  │ │ 当前答案: 方案A - 基于MySQL               │ │
+│                  │ │ 当前答案: 方案A - 基础版本                │ │
 │                  │ │ [Markdown编辑器 + 图片上传]               │ │
 │                  │ └──────────────────────────────────────────┘ │
 └──────────────────┴──────────────────────────────────────────────┘
 ```
 
 **参考答案管理方式**:
-- 参考答案列表中选择一个答案(下拉列表或单选)
+- 参考答案列表中选择一个答案(下拉选择器)
 - 在6个Tab中查看/编辑当前答案的每个步骤内容
-- 可以新增答案、删除答案、标记主要答案
+- 可以新增答案、删除答案
 
 ---
 
@@ -553,10 +616,10 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 │                  │ │ Tab4: 数据流 | Tab5: 架构 | Tab6: 深入    │ │
 │                  │ ├──────────────────────────────────────────┤ │
 │                  │ │ 参考答案:                                │ │
-│                  │ │ [选择] 方案A - 基于MySQL (主要)           │ │
-│                  │ │ [选择] 方案B - 基于NoSQL                  │ │
+│                  │ │ [选择] 方案A - 基础版本                   │ │
+│                  │ │ [选择] 方案B - 高级版本                   │ │
 │                  │ │                                          │ │
-│                  │ │ 当前显示: 方案A - 基于MySQL               │ │
+│                  │ │ 当前显示: 方案A - 基础版本                │ │
 │                  │ │ [Markdown显示 + 图片展示]                 │ │
 │                  │ └──────────────────────────────────────────┘ │
 └──────────────────┴──────────────────────────────────────────────┘
@@ -567,31 +630,62 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 **布局B - 编辑模式**: 左右两栏对比
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 典型案例实战 - 设计Twitter                    [保存] [取消编辑] [返回]  │
-├────────────────────────────────┬────────────────────────────────────────┤
-│ 参考答案                        │ 我的答案                                │
-│                                │                                        │
-│ Tab1: 需求 | Tab2: 实体 | ...  │ Tab1: 需求 | Tab2: 实体 | ...          │
-│                                │                                        │
-│ ┌────────────────────────────┐ │ ┌────────────────────────────────────┐ │
-│ │ 方案A - 基于MySQL          │ │ │ [Markdown编辑器]                    │ │
-│ │                            │ │ │                                    │ │
-│ │ 功能需求:                  │ │ │ 功能需求:                          │ │
-│ │ - 用户发推文               │ │ │ [用户填写...]                       │ │
-│ │ - 关注其他用户             │ │ │                                    │ │
-│ │ - 查看时间线               │ │ │ 非功能需求:                        │ │
-│ │                            │ │ │ [用户填写...]                       │ │
-│ │ 非功能需求:                │ │ │                                    │ │
-│ │ - 1亿DAU                   │ │ │ [+ 上传架构图]                      │ │
-│ │ - 99.9%可用性              │ │ │                                    │ │
-│ │ [图片展示]                  │ │ │                                    │ │
-│ └────────────────────────────┘ │ └────────────────────────────────────┘ │
-│                                │                                        │
-│                                │ 要点总结:                              │
-│                                │ [Markdown编辑器]                        │
-└────────────────────────────────┴────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ 典型案例实战 - 设计Twitter    [显示/隐藏答案] [保存] [取消编辑] [返回]        │
+├──────────────────────────────────┬────────────────────────────────────────────┤
+│ 参考答案（可切换显示/隐藏）       │ 我的答案                                    │
+│                                  │                                            │
+│ Tab1: 需求 | Tab2: 实体 | ...    │ 6步骤: Tab1-6 | 关键点: Req | NFR | ... │
+│                                  │                                            │
+│ ┌──────────────────────────────┐ │ ┌──────────────────────────────────────┐ │
+│ │ 方案A - 基础版本             │ │ │ [Markdown编辑器]                      │ │
+│ │                              │ │ │                                      │ │
+│ │ 功能需求:                    │ │ │ 功能需求:                            │ │
+│ │ - 用户发推文                 │ │ │ [用户填写...]                         │ │
+│ │ - 关注其他用户               │ │ │                                      │ │
+│ │ - 查看时间线                 │ │ │ 非功能需求:                          │ │
+│ │                              │ │ │ [用户填写...]                         │ │
+│ │ 非功能需求:                  │ │ │                                      │ │
+│ │ - 1亿DAU                     │ │ │ [+ 上传架构图]                        │ │
+│ │ - 99.9%可用性                │ │ │                                      │ │
+│ │ [图片展示]                    │ │ │                                      │ │
+│ └──────────────────────────────┘ │ └──────────────────────────────────────┘ │
+│                                  │                                            │
+│                                  │ 要点总结:                                  │
+│                                  │ [Markdown编辑器]                            │
+└──────────────────────────────────┴────────────────────────────────────────────┘
 ```
+
+**Tab说明**:
+- 右侧"我的答案"包含14个Tab:
+  - 6个步骤Tab（step1-6）
+  - 7个关键点Tab（Requirement、NFR、Entity、Components、API、Object1、Object2）
+  - 1个架构图Tab
+
+---
+
+#### 页面3: 学习总结 (`/system-design/summary`)
+
+**布局**: 全屏表格视图
+
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ 系统设计 - 学习总结                                                            │
+│ 系统设计案例关键点总结                                                          │
+├───────────────────────────────────────────────────────────────────────────────┤
+│ 案例名       │ 📋 Req  │ ⚡ NFR  │ 📦 Entity │ 🧩 Comp │ 🔌 API │ 🎯 Obj1 │ 🎯 Obj2 │
+├───────────────────────────────────────────────────────────────────────────────┤
+│ 设计Twitter  │ [Markdown] │ [Markdown] │ [Markdown] │ ... │
+│ 设计Instagram│ [Markdown] │ [Markdown] │ [Markdown] │ ... │
+│ 设计Uber     │ [Markdown] │ [Markdown] │ [Markdown] │ ... │
+└───────────────────────────────────────────────────────────────────────────────┘
+```
+
+**功能**:
+- ✅ 横向对比所有案例的关键要点
+- ✅ 案例名列固定，可点击跳转到案例详情
+- ✅ 表格内Markdown渲染
+- ✅ 渐变背景和悬停效果
 
 ---
 
@@ -601,13 +695,17 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 - 大分类Tab: 蓝色高亮(激活状态)
 - 答案步骤Tab: 蓝色高亮
 - 难度标签: EASY绿点 / MEDIUM黄点 / HARD红点
-- 主要参考答案: 金色星标 ⭐
+- 学习总结表格: 渐变背景（蓝色-紫色-粉色）
 
 **图标规范**:
 - 📄 文章
 - 🎥 视频
 - 🎯 案例
-- ⭐ 主要参考答案
+- 📋 Requirement
+- ⚡ NFR
+- 📦 Entity
+- 🧩 Components
+- 🔌 API
 
 ---
 
@@ -624,6 +722,10 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 **表单交互**:
 - Markdown编辑器提供实时预览
 - 图片上传支持拖拽
+
+**答案可见性控制**:
+- 编辑模式下可切换显示/隐藏参考答案
+- 便于用户先独立思考再查看参考答案
 
 ---
 
@@ -654,9 +756,11 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 - ✅ 用户可以浏览所有典型案例
 - ✅ 用户可以查看案例详情(描述、难度、公司、关联知识、学习资源)
 - ✅ 用户可以查看多个参考答案(选择不同方案)
-- ✅ 用户可以编辑自己的答案(6个步骤 + 架构图 + 要点总结)
+- ✅ 用户可以编辑自己的答案(6个步骤 + 7个关键点 + 架构图 + 要点总结)
 - ✅ 用户可以在编辑模式下左右对比(参考答案 vs 我的答案)
+- ✅ 用户可以切换显示/隐藏参考答案
 - ✅ 用户可以保存答案记录
+- ✅ 用户可以在学习总结页面横向对比所有案例的关键要点
 
 ### 7.3 性能验收
 
@@ -664,58 +768,80 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 - ✅ 参考答案切换响应时间 < 200ms
 - ✅ Markdown渲染流畅(无明显卡顿)
 - ✅ Tab切换响应时间 < 200ms
+- ✅ 学习总结页面加载时间 < 2秒
 
 ---
 
-## 8. 实现阶段
+## 8. 实现阶段（已完成）
 
-### Phase 5.1: 基础知识模块(高优先级)
+### Phase 5.1: 基础知识模块 ✅
 
-1. 创建系统设计Skill
-2. 创建3个Major Categories(核心概念、关键技术、设计模式)
-3. 等待用户提供Focus Area清单,创建Focus Areas
-4. 实现管理员页面(复用算法模块布局)
-5. 实现用户学习页面(复用算法模块布局)
+1. ✅ 创建系统设计Skill (id=2)
+2. ✅ 创建3个Major Categories(核心概念、关键技术、设计模式)
+3. ✅ 创建Focus Areas
+4. ✅ 实现管理员页面(复用算法模块布局)
+5. ✅ 实现用户学习页面(复用算法模块布局)
 
-### Phase 5.2: 典型案例基础功能(高优先级)
+### Phase 5.2: 典型案例基础功能 ✅
 
-1. 创建5个表(cases、resources、solutions、diagrams、user_notes)
-2. 实现后端Service层
-3. 实现管理员案例管理页面(两栏 + 6个Tab)
-4. 实现用户案例浏览页面(查看模式)
+1. ✅ 创建5个表(V15 migration)
+   - system_design_cases
+   - case_resources
+   - case_solutions
+   - solution_diagrams
+   - user_case_notes
+2. ✅ 实现后端Service层
+3. ✅ 实现管理员案例管理页面(两栏 + 6个Tab)
+4. ✅ 实现用户案例浏览页面(查看模式)
 
-### Phase 5.3: 用户答题功能(中优先级)
+### Phase 5.3: 用户答题功能 ✅
 
-1. 实现用户答题编辑模式(左右对比 + 6个Tab)
-2. 实现架构图上传功能
-3. 实现答案保存和更新
-4. 实现答题历史查看
-
-### Phase 5.4: 高级功能(低优先级)
-
-1. 关联知识点跳转
-2. 学习进度追踪
-3. 案例推荐
+1. ✅ 实现用户答题编辑模式(左右对比 + 14个Tab)
+2. ✅ 实现架构图上传功能
+3. ✅ 实现答案保存和更新
+4. ✅ 实现答案可见性控制（显示/隐藏参考答案）
+5. ✅ 添加结构化关键点字段（V16 migration）
+6. ✅ 实现学习总结页面（横向对比所有案例）
 
 ---
 
-## 9. 待提供信息
+## 9. 技术实现要点
 
-### 9.1 Focus Area清单(3个大分类)
+### 9.1 数据库迁移
 
-**核心概念 Category 下的 Focus Areas**:
-- 待用户提供
+**V15__create_system_design_tables.sql**:
+- 创建5张表：system_design_cases、case_resources、case_solutions、solution_diagrams、user_case_notes
 
-**关键技术 Category 下的 Focus Areas**:
-- 待用户提供
+**V16__add_structured_fields_to_user_case_notes.sql**:
+- 为user_case_notes表添加7个结构化关键点字段（kp_requirement、kp_nfr、kp_entity、kp_components、kp_api、kp_object1、kp_object2）
 
-**设计模式 Category 下的 Focus Areas**:
-- 待用户提供
+### 9.2 后端API
 
-### 9.2 其他决定
+**Controller**:
+- SystemDesignCaseController - 案例管理API
+- CaseResourceController - 学习资源API
+- CaseSolutionController - 参考答案API
+- UserSystemDesignController - 用户答题API
 
-- 架构图存储方案(本地 vs 云存储)
-- 6个步骤是否需要调整
+**Service**:
+- SystemDesignCaseService - 案例CRUD
+- CaseResourceService - 资源管理
+- CaseSolutionService - 答案管理（支持多方案）
+- UserCaseNoteService - 用户答题记录
+
+### 9.3 前端页面
+
+**管理端**:
+- `/admin/system-design-basics` - SystemDesignBasicsManagement.vue
+- `/admin/system-design-cases` - SystemDesignCaseManagement.vue
+
+**用户端**:
+- `/system-design/basics` - SystemDesignBasics.vue
+- `/system-design/cases` - SystemDesignCases.vue
+- `/system-design/summary` - SystemDesignSummary.vue（新增）
+
+**API**:
+- systemDesignCaseApi.js - 案例相关API封装
 
 ---
 
@@ -728,12 +854,14 @@ User Case Notes (用户答题记录,UNIQUE(case_id, user_id))
 
 ---
 
-**文档版本**: v1.0
+**文档版本**: v1.1
 **创建时间**: 2025-12-25
-**状态**: 🚧 Phase 5 待实施
+**更新时间**: 2025-12-26
+**状态**: ✅ Phase 5 已完成
 **重要更新**:
-- 基于Phase 5 prompt创建详细需求
-- 参考Phase 4详细需求的格式和结构
-- 明确6步骤答题框架
-- 支持多个参考答案方案
-- 左右对比编辑模式
+- 基于Phase 5实际实现更新需求文档
+- 新增结构化关键点字段（kp_*）
+- 新增学习总结页面（横向对比）
+- 新增答案可见性控制功能
+- 更新所有功能清单为已完成状态
+- 补充技术实现要点
