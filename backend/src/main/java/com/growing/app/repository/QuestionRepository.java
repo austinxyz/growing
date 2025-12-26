@@ -62,4 +62,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
            "AND q.isOfficial = true " +
            "AND EXISTS (SELECT 1 FROM ProgrammingQuestionDetails pqd WHERE pqd.question.id = q.id)")
     List<Question> findAllProgrammingQuestionsBySkillId(@Param("skillId") Long skillId);
+
+    /**
+     * 统计多个Focus Area的试题数量
+     */
+    long countByFocusAreaIdIn(List<Long> focusAreaIds);
 }

@@ -27,4 +27,14 @@ public interface MajorCategoryRepository extends JpaRepository<MajorCategory, Lo
      * 按名称查询
      */
     Optional<MajorCategory> findByName(String name);
+
+    /**
+     * 按skill_id查询大分类
+     */
+    List<MajorCategory> findBySkillId(Long skillId);
+
+    /**
+     * 统计某个技能下的大分类数量
+     */
+    long countBySkillId(Long skillId);
 }
