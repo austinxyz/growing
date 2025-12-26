@@ -155,10 +155,21 @@ public class AuthService {
     }
 
     /**
+     * 从 Authorization header 中提取纯 JWT token (去除 "Bearer " 前缀)
+     */
+    private String extractToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return authHeader;
+    }
+
+    /**
      * 从 token 中检查用户是否为管理员
      */
     public boolean isAdminByToken(String token) {
-        String username = jwtUtil.getUsernameFromToken(token);
+        String cleanToken = extractToken(token);
+        String username = jwtUtil.getUsernameFromToken(cleanToken);
         return isAdmin(username);
     }
 
@@ -166,7 +177,8 @@ public class AuthService {
      * 从 token 中获取用户ID
      */
     public Long getUserIdFromToken(String token) {
-        String username = jwtUtil.getUsernameFromToken(token);
+        String cleanToken = extractToken(token);
+        String username = jwtUtil.getUsernameFromToken(cleanToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         return user.getId();
@@ -176,8 +188,9 @@ public class AuthService {
      * 验证 token 并获取用户信息
      */
     public UserDTO validateToken(String token) {
-        String username = jwtUtil.getUsernameFromToken(token);
-        if (!jwtUtil.validateToken(token, username)) {
+        String cleanToken = extractToken(token);
+        String username = jwtUtil.getUsernameFromToken(cleanToken);
+        if (!jwtUtil.validateToken(cleanToken, username)) {
             throw new RuntimeException("无效的 token");
         }
 
@@ -191,7 +204,8 @@ public class AuthService {
      * 从 token 中获取用户名
      */
     public String getUsernameFromToken(String token) {
-        return jwtUtil.getUsernameFromToken(token);
+        String cleanToken = extractToken(token);
+        return jwtUtil.getUsernameFromToken(cleanToken);
     }
 
     /**

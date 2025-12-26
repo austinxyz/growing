@@ -114,12 +114,15 @@
           </div>
 
           <!-- 全屏卡片网格布局 -->
-          <div v-if="selectedContentItem" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div v-if="selectedContentItem" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max">
             <!-- 卡片1: 学习资料信息 -->
-                  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div :class="[
+                    'bg-white rounded-lg shadow-md flex flex-col',
+                    selectedContentItem.contentType === 'video' ? 'md:col-span-2 md:row-span-2' : ''
+                  ]">
                     <div
                       @click="cardStates.resourceInfo = !cardStates.resourceInfo"
-                      class="px-3 py-2 bg-blue-600 text-white flex items-center justify-between cursor-pointer hover:bg-blue-700 transition-colors"
+                      class="px-3 py-2 bg-blue-600 text-white flex items-center justify-between cursor-pointer hover:bg-blue-700 transition-colors flex-shrink-0"
                     >
                       <h3 class="font-medium text-xs">📚 学习资料</h3>
                       <svg
@@ -129,34 +132,31 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-                    <div v-show="cardStates.resourceInfo" class="p-3">
-                      <h4 class="font-bold text-gray-900 mb-3 text-base">{{ selectedContentItem.title }}</h4>
+                    <div v-show="cardStates.resourceInfo" class="p-3 flex flex-col flex-grow overflow-auto">
+                      <h4 class="font-bold text-gray-900 mb-3 text-base flex-shrink-0">{{ selectedContentItem.title }}</h4>
 
-                      <div class="space-y-2 mb-4">
-                        <p v-if="selectedContentItem.author" class="text-xs text-gray-600">
-                          <span class="font-medium">作者：</span>{{ selectedContentItem.author }}
-                        </p>
-                        <p v-if="selectedContentItem.description" class="text-xs text-gray-700">
-                          {{ selectedContentItem.description }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                          <span class="font-medium">类型：</span>
-                          <span v-if="selectedContentItem.contentType === 'video'" class="text-purple-600">视频教程</span>
-                          <span v-else class="text-green-600">文章资料</span>
-                        </p>
+                      <!-- 视频播放器（仅在视频类型时显示） -->
+                      <div v-if="selectedContentItem.contentType === 'video' && selectedContentItem.url" class="mb-4 flex-shrink-0">
+                        <VideoPlayer :url="selectedContentItem.url" />
                       </div>
 
+                      <!-- 描述（如果有） -->
+                      <div v-if="selectedContentItem.description" class="mb-4 flex-shrink-0">
+                        <p class="text-xs text-gray-700">{{ selectedContentItem.description }}</p>
+                      </div>
+
+                      <!-- 对于非视频类型或作为备选链接 -->
                       <a
                         v-if="selectedContentItem.url"
                         :href="selectedContentItem.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors w-full"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors w-full mt-auto flex-shrink-0"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        打开学习资料
+                        {{ selectedContentItem.contentType === 'video' ? '在新窗口打开视频' : '打开学习资料' }}
                       </a>
                     </div>
                   </div>
@@ -415,6 +415,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import api from '@/api'
 import majorCategoryApi from '@/api/majorCategoryApi'
 import { marked } from 'marked'
+import VideoPlayer from '@/components/VideoPlayer.vue'
 
 // State
 const loading = ref({
