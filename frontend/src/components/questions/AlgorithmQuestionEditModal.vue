@@ -23,56 +23,29 @@
 
         <!-- 表单 -->
         <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
-          <!-- 所属技能和专注领域（同一行） -->
-          <div class="grid grid-cols-2 gap-4">
-            <!-- 所属技能（级联选择第一步） -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                所属技能 <span class="text-red-500">*</span>
-              </label>
-              <select
-                v-model="selectedSkillId"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <!-- 所属专注领域（技能固定为"算法与数据结构"） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              所属专注领域 <span class="text-red-500">*</span>
+            </label>
+            <select
+              v-model="form.focusAreaId"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">请选择专注领域</option>
+              <option
+                v-for="fa in focusAreas"
+                :key="fa.id"
+                :value="fa.id"
               >
-                <option value="">请先选择技能</option>
-                <option
-                  v-for="skill in skills"
-                  :key="skill.id"
-                  :value="skill.id"
-                >
-                  {{ skill.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- 所属 Focus Area（级联选择第二步） -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                所属专注领域 <span class="text-red-500">*</span>
-              </label>
-              <select
-                v-model="form.focusAreaId"
-                required
-                :disabled="!selectedSkillId"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              >
-                <option value="">{{ selectedSkillId ? '请选择专注领域' : '请先选择技能' }}</option>
-                <option
-                  v-for="fa in filteredFocusAreas"
-                  :key="fa.id"
-                  :value="fa.id"
-                >
-                  {{ fa.name }}
-                </option>
-              </select>
-            </div>
+                {{ fa.name }}
+              </option>
+            </select>
+            <p v-if="isEdit && currentFocusAreaName" class="mt-1 text-xs text-gray-500">
+              当前: {{ currentFocusAreaName }}
+            </p>
           </div>
-
-          <!-- 当前提示信息（编辑时显示） -->
-          <p v-if="isEdit && currentFocusAreaName" class="text-xs text-gray-500 -mt-4">
-            当前: {{ currentSkillName }} / {{ currentFocusAreaName }}
-          </p>
 
           <!-- 题目标题 -->
           <div>
@@ -137,6 +110,110 @@
                 />
                 <span class="ml-2">Hard</span>
               </label>
+            </div>
+          </div>
+
+          <!-- 编程题详情 -->
+          <div class="border-t border-gray-200 pt-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">编程题详情</h3>
+
+            <div class="space-y-4">
+              <!-- LeetCode链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  LeetCode 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.leetcodeUrl"
+                  type="url"
+                  placeholder="https://leetcode.com/problems/xxx/"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">LeetCode 题目链接</p>
+              </div>
+
+              <!-- labuladong链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  labuladong 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.labuladongUrl"
+                  type="url"
+                  placeholder="https://labuladong.online/algo/xxx/"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">labuladong 算法教程链接</p>
+              </div>
+
+              <!-- 标签（Tags） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  标签（Tags）
+                </label>
+                <input
+                  v-model="form.programmingDetails.tags"
+                  type="text"
+                  placeholder="多个标签用逗号分隔，例如：数组,双指针,滑动窗口"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">用于分类和搜索，多个标签用逗号分隔</p>
+              </div>
+
+              <!-- HelloInterview链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  HelloInterview 链接
+                </label>
+                <input
+                  v-model="form.programmingDetails.hellointerviewUrl"
+                  type="url"
+                  placeholder="https://www.hellointerview.com/xxx"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">HelloInterview 面试题链接</p>
+              </div>
+
+              <!-- 相似题目 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  相似题目
+                </label>
+                <input
+                  v-model="form.programmingDetails.similarQuestions"
+                  type="text"
+                  placeholder="相似题目编号，用逗号分隔，例如：15,18,167"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">填写相似题目的ID，用逗号分隔</p>
+              </div>
+
+              <!-- 复杂度 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  复杂度
+                </label>
+                <input
+                  v-model="form.programmingDetails.complexity"
+                  type="text"
+                  placeholder="例如：时间O(n), 空间O(1)"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">同时填写时间和空间复杂度</p>
+              </div>
+
+              <!-- 重要标记 -->
+              <div>
+                <label class="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    v-model="form.programmingDetails.isImportant"
+                    class="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span class="ml-2 text-sm font-medium text-gray-700">标记为重要题目</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500">勾选表示这是一道重要的必做题</p>
+              </div>
             </div>
           </div>
 
@@ -217,10 +294,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import RedFlagList from './RedFlagList.vue'
 import { getAllCareerPaths } from '@/api/careerPaths'
-import { getAllSkills } from '@/api/skills'
 
 const props = defineProps({
   isOpen: {
@@ -249,8 +325,6 @@ const emit = defineEmits(['save', 'cancel'])
 
 const isEdit = ref(false)
 const careerPaths = ref([])
-const skills = ref([])
-const selectedSkillId = ref('')
 const form = ref({
   focusAreaId: '',
   title: '',
@@ -259,25 +333,18 @@ const form = ref({
   answerRequirement: '',
   targetPosition: '',
   targetLevel: '',
-  redFlags: []
-})
-
-// 根据选择的Skill过滤Focus Areas
-const filteredFocusAreas = computed(() => {
-  if (!selectedSkillId.value) return []
-  return props.focusAreas.filter(fa => fa.skillId === selectedSkillId.value)
-})
-
-// 当前技能名称
-const currentSkillName = computed(() => {
-  const currentFocusArea = props.focusAreas.find(fa => fa.id === props.currentFocusAreaId)
-  if (currentFocusArea && skills.value.length > 0) {
-    const skill = skills.value.find(s => s.id === currentFocusArea.skillId)
-    return skill ? skill.name : ''
+  redFlags: [],
+  // 编程题详情
+  programmingDetails: {
+    leetcodeUrl: '',
+    labuladongUrl: '',
+    hellointerviewUrl: '',
+    tags: '',
+    similarQuestions: '',
+    complexity: '',
+    isImportant: false
   }
-  return ''
 })
-
 
 // 初始化数据
 onMounted(async () => {
@@ -285,20 +352,8 @@ onMounted(async () => {
     // 加载职业路径
     const response = await getAllCareerPaths()
     careerPaths.value = response.data || response || []
-
-    // 加载所有技能
-    const skillsData = await getAllSkills()
-    skills.value = skillsData || []
   } catch (error) {
     console.error('Failed to load data:', error)
-  }
-})
-
-// 监听Skill选择变化，清空Focus Area选择
-watch(selectedSkillId, (newSkillId, oldSkillId) => {
-  if (oldSkillId && newSkillId !== oldSkillId) {
-    // 只在Skill改变时清空Focus Area，初始化时不清空
-    form.value.focusAreaId = ''
   }
 })
 
@@ -306,6 +361,7 @@ watch(selectedSkillId, (newSkillId, oldSkillId) => {
 watch(() => props.question, (newQuestion) => {
   if (newQuestion) {
     isEdit.value = true
+    const programmingDetails = newQuestion.programmingDetails || {}
     form.value = {
       focusAreaId: newQuestion.focusAreaId || '',
       title: newQuestion.title || '',
@@ -314,14 +370,15 @@ watch(() => props.question, (newQuestion) => {
       answerRequirement: newQuestion.answerRequirement || '',
       targetPosition: newQuestion.targetPosition || '',
       targetLevel: newQuestion.targetLevel || '',
-      redFlags: newQuestion.redFlags || []
-    }
-
-    // 设置选中的Skill（从focusAreaId反推）
-    if (newQuestion.focusAreaId && props.focusAreas.length > 0) {
-      const focusArea = props.focusAreas.find(fa => fa.id === newQuestion.focusAreaId)
-      if (focusArea) {
-        selectedSkillId.value = focusArea.skillId
+      redFlags: newQuestion.redFlags || [],
+      programmingDetails: {
+        leetcodeUrl: programmingDetails.leetcodeUrl || '',
+        labuladongUrl: programmingDetails.labuladongUrl || '',
+        hellointerviewUrl: programmingDetails.hellointerviewUrl || '',
+        tags: programmingDetails.tags || '',
+        similarQuestions: programmingDetails.similarQuestions || '',
+        complexity: programmingDetails.complexity || '',
+        isImportant: programmingDetails.isImportant || false
       }
     }
   } else {
@@ -334,14 +391,15 @@ watch(() => props.question, (newQuestion) => {
       answerRequirement: '',
       targetPosition: '',
       targetLevel: '',
-      redFlags: []
-    }
-
-    // 新建时，如果有currentFocusAreaId，也设置selectedSkillId
-    if (props.currentFocusAreaId && props.focusAreas.length > 0) {
-      const focusArea = props.focusAreas.find(fa => fa.id === props.currentFocusAreaId)
-      if (focusArea) {
-        selectedSkillId.value = focusArea.skillId
+      redFlags: [],
+      programmingDetails: {
+        leetcodeUrl: '',
+        labuladongUrl: '',
+        hellointerviewUrl: '',
+        tags: '',
+        similarQuestions: '',
+        complexity: '',
+        isImportant: false
       }
     }
   }
@@ -350,7 +408,16 @@ watch(() => props.question, (newQuestion) => {
 const handleSubmit = () => {
   const cleanedForm = {
     ...form.value,
-    redFlags: form.value.redFlags.filter(flag => flag.trim() !== '')
+    redFlags: form.value.redFlags.filter(flag => flag.trim() !== ''),
+    programmingDetails: {
+      ...form.value.programmingDetails,
+      // 将逗号分隔的字符串转换为数组，空字符串转为空数组
+      tags: form.value.programmingDetails.tags
+        ? form.value.programmingDetails.tags.split(',').map(t => t.trim()).filter(t => t !== '')
+        : [],
+      // similarQuestions暂时发送空数组（后续可扩展为对象数组）
+      similarQuestions: []
+    }
   }
 
   emit('save', cleanedForm)

@@ -18,6 +18,28 @@
 
       <!-- 表单 -->
       <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
+        <!-- 所属技能 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">所属技能 *</label>
+          <select
+            v-model="form.skillId"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">请选择技能</option>
+            <option
+              v-for="skill in skills"
+              :key="skill.id"
+              :value="skill.id"
+            >
+              {{ skill.name }}
+            </option>
+          </select>
+          <p v-if="focusArea && currentSkillName" class="mt-1 text-xs text-gray-500">
+            当前: {{ currentSkillName }}（可修改为其他技能）
+          </p>
+        </div>
+
         <!-- 名称 -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">名称 *</label>
@@ -64,8 +86,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { createFocusArea, updateFocusArea } from '@/api/skills'
+import { ref, watch, onMounted, computed } from 'vue'
+import { createFocusArea, updateFocusArea, getAllSkills } from '@/api/skills'
 
 const props = defineProps({
   skillId: {
@@ -81,20 +103,43 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success'])
 
 const form = ref({
+  skillId: '',
   name: '',
   description: ''
 })
 
+const skills = ref([])
 const submitting = ref(false)
+
+// 当前技能名称（用于编辑时显示）
+const currentSkillName = computed(() => {
+  if (props.focusArea && skills.value.length > 0) {
+    const skill = skills.value.find(s => s.id === props.focusArea.skillId)
+    return skill ? skill.name : ''
+  }
+  return ''
+})
+
+// 加载所有技能列表
+onMounted(async () => {
+  try {
+    const data = await getAllSkills()
+    skills.value = data || []
+  } catch (error) {
+    console.error('Failed to load skills:', error)
+  }
+})
 
 const initForm = () => {
   if (props.focusArea) {
     form.value = {
+      skillId: props.focusArea.skillId || props.skillId,
       name: props.focusArea.name || '',
       description: props.focusArea.description || ''
     }
   } else {
     form.value = {
+      skillId: props.skillId,
       name: '',
       description: ''
     }
@@ -107,7 +152,7 @@ const handleSubmit = async () => {
     if (props.focusArea) {
       await updateFocusArea(props.focusArea.id, form.value)
     } else {
-      await createFocusArea(props.skillId, form.value)
+      await createFocusArea(form.value.skillId, form.value)
     }
     emit('success')
   } catch (error) {

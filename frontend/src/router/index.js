@@ -97,6 +97,19 @@ const routes = [
     name: 'AlgorithmTemplateManagement',
     component: () => import('../views/admin/AlgorithmTemplateManagement.vue'),
     meta: { requiresAdmin: true }
+  },
+  // 管理员 - 系统设计基础知识管理（Phase 5）
+  {
+    path: '/admin/system-design-basics',
+    name: 'SystemDesignBasicsManagement',
+    component: () => import('../views/admin/SystemDesignBasicsManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  // 用户端 - 系统设计基础知识学习（Phase 5）
+  {
+    path: '/system-design/basics',
+    name: 'SystemDesignBasics',
+    component: () => import('../views/SystemDesignBasics.vue')
   }
 ]
 

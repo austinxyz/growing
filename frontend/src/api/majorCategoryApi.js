@@ -6,8 +6,14 @@ import apiClient from './index'
 export default {
   /**
    * 获取所有大分类
+   * @param {number|null} skillId - 可选的技能ID，用于过滤特定技能下的分类
    */
-  getAllMajorCategories() {
+  getAllMajorCategories(skillId = null) {
+    if (skillId) {
+      return apiClient.get('/major-categories', {
+        params: { skillId }
+      })
+    }
     return apiClient.get('/major-categories')
   },
 

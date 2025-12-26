@@ -126,6 +126,19 @@
             <span>学习总结</span>
           </router-link>
         </div>
+
+        <!-- 系统设计 -->
+        <div class="space-y-1">
+          <div class="nav-section-title">系统设计</div>
+          <router-link
+            to="/system-design/basics"
+            class="nav-item"
+            :class="isActive('/system-design/basics')"
+          >
+            <Network class="w-5 h-5" />
+            <span>基础知识</span>
+          </router-link>
+        </div>
       </template>
 
       <!-- 求职类菜单 -->
@@ -171,6 +184,14 @@
           >
             <FileCode class="w-5 h-5" />
             <span>算法模版库</span>
+          </router-link>
+          <router-link
+            to="/admin/system-design-basics"
+            class="nav-item"
+            :class="isActive('/admin/system-design-basics')"
+          >
+            <Network class="w-5 h-5" />
+            <span>系统设计基础</span>
           </router-link>
         </div>
 
@@ -257,7 +278,8 @@ watch(() => route.path, (newPath) => {
     activeTopTab.value = 'settings';
   } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard') ||
              newPath.startsWith('/my-questions') || newPath.startsWith('/algorithm-learning') ||
-             newPath.startsWith('/algorithm-templates')) {
+             newPath.startsWith('/algorithm-templates') || newPath.startsWith('/system-design') ||
+             newPath.startsWith('/learning-review')) {
     activeTopTab.value = 'learning';
   } else if (newPath.startsWith('/career') || newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
     activeTopTab.value = 'career';

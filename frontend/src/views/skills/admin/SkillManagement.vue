@@ -29,6 +29,23 @@
               </span>
             </div>
           </button>
+          <!-- 未关联技能Tab -->
+          <button
+            @click="activeCareerPathId = null"
+            :class="[
+              'px-6 py-3 text-left font-medium text-sm transition-colors border-l-4',
+              activeCareerPathId === null
+                ? 'border-primary text-primary bg-primary/5'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            ]"
+          >
+            <div class="flex items-center justify-between">
+              <span>🔗 未关联技能</span>
+              <span class="px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-600">
+                {{ getUnassociatedSkillCount() }}
+              </span>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -365,8 +382,23 @@ const getSkillCount = (careerPathId) => {
   ).length
 }
 
+// 获取未关联技能数量
+const getUnassociatedSkillCount = () => {
+  return allSkills.value.filter(skill =>
+    !skill.careerPaths || skill.careerPaths.length === 0
+  ).length
+}
+
 // 当前职业路径的技能列表
 const currentSkills = computed(() => {
+  // 如果activeCareerPathId为null，显示未关联的技能
+  if (activeCareerPathId.value === null) {
+    return allSkills.value.filter(skill =>
+      !skill.careerPaths || skill.careerPaths.length === 0
+    ).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+  }
+
+  // 否则显示该职业路径下的技能
   if (!activeCareerPathId.value) return []
   return allSkills.value.filter(skill =>
     skill.careerPaths?.some(cp => cp.id === activeCareerPathId.value)
@@ -377,7 +409,10 @@ const currentSkills = computed(() => {
 const loadCareerPaths = async () => {
   try {
     careerPaths.value = await getAllCareerPaths()
-    if (careerPaths.value.length > 0) {
+    // 初始化时，如果有未关联技能，默认显示未关联Tab；否则显示第一个职业路径
+    if (getUnassociatedSkillCount() > 0) {
+      activeCareerPathId.value = null
+    } else if (careerPaths.value.length > 0) {
       activeCareerPathId.value = careerPaths.value[0].id
     }
   } catch (error) {
@@ -475,7 +510,12 @@ const closeFocusAreaModal = () => {
 // 专注领域保存成功
 const handleFocusAreaSaved = async () => {
   closeFocusAreaModal()
-  await loadSkillDetail(selectedSkillId.value)
+  // 重新加载所有技能列表（因为Focus Area可能被移动到其他Skill）
+  await loadSkills()
+  // 如果当前还选中某个技能，刷新它的详情
+  if (selectedSkillId.value) {
+    await loadSkillDetail(selectedSkillId.value)
+  }
 }
 
 // 添加学习资源

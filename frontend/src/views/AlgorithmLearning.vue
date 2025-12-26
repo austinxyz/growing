@@ -272,6 +272,19 @@
                 <div v-else-if="selectedStageId === 'questions-detail'" class="flex h-[calc(100vh-240px)]">
                   <!-- 左侧：试题列表（紧凑模式） -->
                   <div class="w-80 border-r border-gray-200 overflow-y-auto">
+                    <!-- 添加算法题按钮 -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-2 z-10">
+                      <button
+                        @click="showAddQuestionModal"
+                        class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        添加算法题
+                      </button>
+                    </div>
+
                     <div v-if="questions.length === 0" class="text-center text-gray-400 py-12">
                       该Focus Area暂无试题
                     </div>
@@ -324,14 +337,31 @@
                     </div>
 
                     <!-- 试题详情（内联显示） -->
-                    <QuestionDetailPanel
-                      v-else
-                      :question="selectedQuestionForDetail"
-                      :focus-area-id="selectedFocusArea?.id"
-                      :focus-area-name="selectedFocusArea?.name"
-                      @note-saved="handleNoteSavedInline"
-                      @open-modal="openQuestionModalFromPanel"
-                    />
+                    <div v-else class="p-4">
+                      <!-- 操作按钮（仅针对用户自己创建的试题） -->
+                      <div v-if="selectedQuestionForDetail && !selectedQuestionForDetail.isOfficial" class="mb-4 flex justify-end gap-2">
+                        <button
+                          @click="editQuestion(selectedQuestionForDetail)"
+                          class="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          @click="deleteQuestion(selectedQuestionForDetail.id)"
+                          class="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+                        >
+                          删除
+                        </button>
+                      </div>
+
+                      <QuestionDetailPanel
+                        :question="selectedQuestionForDetail"
+                        :focus-area-id="selectedFocusArea?.id"
+                        :focus-area-name="selectedFocusArea?.name"
+                        @note-saved="handleNoteSavedInline"
+                        @open-modal="openQuestionModalFromPanel"
+                      />
+                    </div>
                   </div>
                 </div>
             </div>
@@ -349,6 +379,17 @@
       @close="closeQuestionModal"
       @note-saved="handleNoteSaved"
     />
+
+    <!-- 算法题编辑Modal -->
+    <AlgorithmQuestionEditModal
+      :is-open="showEditModal"
+      :question="editingQuestion"
+      :focus-areas="allFocusAreas"
+      :current-focus-area-id="selectedFocusArea?.id"
+      :current-focus-area-name="selectedFocusArea?.name"
+      @save="saveQuestion"
+      @cancel="closeEditModal"
+    />
   </div>
 </template>
 
@@ -356,9 +397,13 @@
 import { ref, computed, onMounted } from 'vue'
 import majorCategoryApi from '@/api/majorCategoryApi'
 import learningContentApi from '@/api/learningContentApi'
-import { questionApi } from '@/api/questionApi'
+import { questionApi, adminQuestionApi } from '@/api/questionApi'
 import QuestionDetailModal from '@/components/questions/QuestionDetailModal.vue'
 import QuestionDetailPanel from '@/components/questions/QuestionDetailPanel.vue'
+import AlgorithmQuestionEditModal from '@/components/questions/AlgorithmQuestionEditModal.vue'
+import { useAuth } from '@/composables/useAuth'
+
+const { isAdmin } = useAuth()
 
 // 算法与数据结构的skillId（根据实际数据调整）
 const ALGORITHM_SKILL_ID = 1
@@ -380,6 +425,8 @@ const showQuestionModal = ref(false)
 const selectedQuestion = ref(null)
 const selectedContentItem = ref(null)
 const selectedQuestionForDetail = ref(null)
+const showEditModal = ref(false)
+const editingQuestion = ref(null)
 
 // Computed
 const filteredFocusAreas = computed(() => {
@@ -408,7 +455,8 @@ const isQuestionTab = computed(() => {
 // Methods
 const loadMajorCategories = async () => {
   try {
-    const data = await majorCategoryApi.getAllMajorCategories()
+    // 只加载算法与数据结构skill的分类（skillId=1）
+    const data = await majorCategoryApi.getAllMajorCategories(ALGORITHM_SKILL_ID)
     majorCategories.value = data || []
 
     // 默认选中第一个分类
@@ -590,6 +638,84 @@ const openQuestionModalFromPanel = () => {
     selectedQuestion.value = selectedQuestionForDetail.value
     showQuestionModal.value = true
   }
+}
+
+// 算法题编辑相关方法
+const showAddQuestionModal = () => {
+  editingQuestion.value = null
+  showEditModal.value = true
+}
+
+const editQuestion = (question) => {
+  editingQuestion.value = question
+  showEditModal.value = true
+}
+
+const saveQuestion = async (formData) => {
+  try {
+    // 确定使用哪个API（管理员使用adminQuestionApi，用户使用questionApi）
+    const api = isAdmin.value ? adminQuestionApi : questionApi
+
+    if (editingQuestion.value) {
+      // 更新现有试题
+      if (isAdmin.value) {
+        // 管理员使用updateQuestionWithDetails（支持编程题详情）
+        await adminQuestionApi.updateQuestionWithDetails(editingQuestion.value.id, formData)
+      } else {
+        // 普通用户使用updateQuestion
+        await questionApi.updateQuestion(editingQuestion.value.id, formData)
+      }
+      alert('试题更新成功')
+    } else {
+      // 新建试题
+      const data = {
+        ...formData,
+        focusAreaId: formData.focusAreaId || selectedFocusArea.value?.id,
+        questionType: 'programming' // 算法题固定为programming类型
+      }
+
+      if (isAdmin.value) {
+        // 管理员使用createQuestionWithDetails（支持编程题详情）
+        await adminQuestionApi.createQuestionWithDetails(data)
+      } else {
+        // 普通用户使用createQuestion
+        await questionApi.createQuestion(data)
+      }
+      alert('试题创建成功')
+    }
+
+    closeEditModal()
+    await loadQuestions() // 重新加载试题列表
+  } catch (error) {
+    console.error('Failed to save question:', error)
+    alert(error.response?.data?.message || '保存失败')
+  }
+}
+
+const deleteQuestion = async (id) => {
+  if (!confirm('确定要删除这道试题吗？')) return
+
+  try {
+    // 确定使用哪个API
+    const api = isAdmin.value ? adminQuestionApi : questionApi
+    await api.deleteQuestion(id)
+    alert('删除成功')
+
+    // 如果删除的是当前选中的试题，清空选中状态
+    if (selectedQuestionForDetail.value?.id === id) {
+      selectedQuestionForDetail.value = null
+    }
+
+    await loadQuestions() // 重新加载试题列表
+  } catch (error) {
+    console.error('Failed to delete question:', error)
+    alert(error.response?.data?.message || '删除失败')
+  }
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingQuestion.value = null
 }
 
 // Initialize

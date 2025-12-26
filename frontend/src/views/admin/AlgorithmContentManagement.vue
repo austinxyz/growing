@@ -396,7 +396,7 @@
   />
 
   <!-- 试题编辑Modal -->
-  <QuestionEditModal
+  <AlgorithmQuestionEditModal
     :is-open="showQuestionModal"
     :question="editingQuestion"
     :focus-areas="allFocusAreas"
@@ -424,7 +424,7 @@ import learningContentApi from '@/api/learningContentApi'
 import { getStagesBySkill } from '@/api/learningStageApi'
 import { adminQuestionApi } from '@/api/questionApi'
 import QuestionViewModal from '@/components/questions/QuestionViewModal.vue'
-import QuestionEditModal from '@/components/questions/QuestionEditModal.vue'
+import AlgorithmQuestionEditModal from '@/components/questions/AlgorithmQuestionEditModal.vue'
 import LearningContentEditModal from '@/components/skills/admin/LearningContentEditModal.vue'
 
 // Skill ID（编程与数据结构）
@@ -481,8 +481,8 @@ const selectedFocusArea = computed(() => {
 const loadData = async () => {
   loading.value = true
   try {
-    // 1. 加载大分类
-    const categoriesData = await majorCategoryApi.getAllMajorCategories()
+    // 1. 加载大分类（只加载算法与数据结构的分类）
+    const categoriesData = await majorCategoryApi.getAllMajorCategories(PROGRAMMING_SKILL_ID)
     categories.value = categoriesData
 
     // 2. 加载Focus Areas（skill_id=1 为"编程与数据结构"）
