@@ -210,7 +210,12 @@
     </div>
 
     <!-- Modals -->
-    <!-- TODO: Create modals for case/resource/solution CRUD -->
+    <SystemDesignCaseEditModal
+      :is-open="showCaseModal"
+      :case-data="editingCase"
+      @close="closeCaseModal"
+      @save="handleSaveCase"
+    />
   </div>
 </template>
 
@@ -218,9 +223,12 @@
 import { ref, onMounted } from 'vue'
 import * as systemDesignCaseApi from '@/api/systemDesignCaseApi'
 import { marked } from 'marked'
+import SystemDesignCaseEditModal from '@/components/admin/SystemDesignCaseEditModal.vue'
 
 const cases = ref([])
 const selectedCase = ref(null)
+const showCaseModal = ref(false)
+const editingCase = ref(null)
 
 const difficultyText = (difficulty) => {
   const map = { EASY: '简单', MEDIUM: '中等', HARD: '困难' }
@@ -258,13 +266,38 @@ const selectCase = async (caseItem) => {
 }
 
 const openCreateModal = () => {
-  // TODO: Implement create modal
-  alert('创建案例功能开发中...')
+  editingCase.value = null
+  showCaseModal.value = true
 }
 
 const openEditModal = (caseItem) => {
-  // TODO: Implement edit modal
-  alert(`编辑案例: ${caseItem.title}`)
+  editingCase.value = caseItem
+  showCaseModal.value = true
+}
+
+const closeCaseModal = () => {
+  showCaseModal.value = false
+  editingCase.value = null
+}
+
+const handleSaveCase = async (formData) => {
+  try {
+    if (formData.id) {
+      // Update existing case
+      await systemDesignCaseApi.updateCase(formData.id, formData)
+      await loadCases()
+      if (selectedCase.value?.id === formData.id) {
+        await selectCase(selectedCase.value)
+      }
+    } else {
+      // Create new case
+      await systemDesignCaseApi.createCase(formData)
+      await loadCases()
+    }
+  } catch (error) {
+    console.error('保存案例失败:', error)
+    alert('保存失败，请重试')
+  }
 }
 
 const openResourceModal = () => {
