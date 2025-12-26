@@ -138,6 +138,14 @@
             <Network class="w-5 h-5" />
             <span>基础知识</span>
           </router-link>
+          <router-link
+            to="/system-design/cases"
+            class="nav-item"
+            :class="isActive('/system-design/cases')"
+          >
+            <Layers class="w-5 h-5" />
+            <span>典型案例</span>
+          </router-link>
         </div>
       </template>
 
@@ -192,6 +200,14 @@
           >
             <Network class="w-5 h-5" />
             <span>系统设计基础</span>
+          </router-link>
+          <router-link
+            to="/admin/system-design-cases"
+            class="nav-item"
+            :class="isActive('/admin/system-design-cases')"
+          >
+            <Layers class="w-5 h-5" />
+            <span>系统设计案例</span>
           </router-link>
         </div>
 
@@ -250,7 +266,8 @@ import {
   FileCode,
   Target,
   FileQuestion,
-  BookCheck
+  BookCheck,
+  Layers
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 

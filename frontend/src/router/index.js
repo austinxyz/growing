@@ -110,6 +110,19 @@ const routes = [
     path: '/system-design/basics',
     name: 'SystemDesignBasics',
     component: () => import('../views/SystemDesignBasics.vue')
+  },
+  // 管理员 - 系统设计案例管理（Phase 5.2）
+  {
+    path: '/admin/system-design-cases',
+    name: 'SystemDesignCaseManagement',
+    component: () => import('../views/admin/SystemDesignCaseManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  // 用户端 - 系统设计案例学习（Phase 5.2）
+  {
+    path: '/system-design/cases',
+    name: 'SystemDesignCases',
+    component: () => import('../views/SystemDesignCases.vue')
   }
 ]
 
