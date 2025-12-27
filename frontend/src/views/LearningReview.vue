@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-4 no-print">
       <div>
         <h1 class="text-2xl font-bold text-white">学习总结 - 算法与数据结构</h1>
-        <p class="text-xs text-blue-100 mt-1">共 {{ totalQuestions }} 题</p>
+        <p class="text-xs text-blue-100 mt-1">共 {{ filteredQuestions.length }} 题</p>
       </div>
 
       <!-- 紧凑的过滤器 -->
@@ -51,6 +51,17 @@
           placeholder="题号"
           class="text-sm px-3 py-1.5 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white bg-white/90 text-gray-900 shadow-sm w-20"
         />
+
+        <!-- 难度筛选 -->
+        <select
+          v-model="selectedDifficulty"
+          class="text-sm px-3 py-1.5 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-white bg-white/90 text-gray-900 shadow-sm"
+        >
+          <option value="">所有难度</option>
+          <option value="EASY">简单</option>
+          <option value="MEDIUM">中等</option>
+          <option value="HARD">困难</option>
+        </select>
 
         <!-- 重要题目筛选 - 增强样式 -->
         <label class="flex items-center gap-2 text-sm text-white cursor-pointer bg-white/20 px-3 py-1.5 rounded-lg hover:bg-white/30 transition-all">
@@ -197,6 +208,7 @@ const totalQuestions = ref(0)
 const selectedCategoryName = ref('')
 const selectedFocusAreaId = ref('')
 const leetcodeNumberFilter = ref('')
+const selectedDifficulty = ref('')
 const showImportantOnly = ref(false)
 
 // 弹窗状态
@@ -258,6 +270,11 @@ const filteredQuestions = computed(() => {
           }
         }
 
+        // 按难度过滤
+        if (selectedDifficulty.value && question.difficulty !== selectedDifficulty.value) {
+          return
+        }
+
         // 按重要性过滤
         if (showImportantOnly.value && !question.isImportant) {
           return
@@ -283,6 +300,7 @@ function resetFilters() {
   selectedCategoryName.value = ''
   selectedFocusAreaId.value = ''
   leetcodeNumberFilter.value = ''
+  selectedDifficulty.value = ''
   showImportantOnly.value = false
 }
 

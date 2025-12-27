@@ -1,7 +1,8 @@
 -- =====================================================
 -- Growing App - Initial Data
 -- 数据库初始数据（配合schema.sql使用）
--- Last Updated: 2025-12-24
+-- 不使用Flyway，通过mysql-exec执行SQL迁移
+-- Last Updated: 2025-12-26 (Phase 5 完成)
 -- =====================================================
 
 -- =====================================================
@@ -35,19 +36,20 @@ INSERT INTO skills (id, name, description, is_important, display_order) VALUES
 -- =====================================================
 
 -- 3. 大分类 (Major Categories)
-INSERT INTO major_categories (id, name, description, sort_order) VALUES
-(1, '数据结构', '数组、链表、树、图等数据结构', 1),
-(2, '搜索', '二分搜索、DFS、BFS等搜索算法', 2),
-(3, '动规', '动态规划相关算法', 3),
-(4, '其他', '其他算法和技巧', 4);
+-- 算法与数据结构的大分类 (skill_id = 1)
+INSERT INTO major_categories (id, name, description, sort_order, skill_id) VALUES
+(1, '数据结构', '数组、链表、树、图等数据结构', 1, 1),
+(2, '搜索', '二分搜索、DFS、BFS等搜索算法', 2, 1),
+(3, '动规', '动态规划相关算法', 3, 1),
+(4, '其他', '其他算法和技巧', 4, 1);
 
 -- =====================================================
 -- 注意事项
 -- =====================================================
 
 -- 1. 本文件包含数据库的初始数据，用于配合schema.sql初始化新数据库
--- 2. 包含3个职业路径、9个核心技能、4个大分类
+-- 2. 包含3个职业路径、9个核心技能、4个大分类（算法）
 -- 3. 如需完整的Focus Area、Learning Stages、Learning Contents等数据，
 --    需要额外导入或通过管理界面添加
--- 4. 生产环境使用Flyway自动管理schema版本，此文件仅用于开发和测试环境初始化
+-- 4. 不使用Flyway，数据库迁移通过mysql-exec skill执行SQL文件
 -- 5. ID值已固定，确保与应用代码中的硬编码ID保持一致（如：ALGORITHM_SKILL_ID = 1）

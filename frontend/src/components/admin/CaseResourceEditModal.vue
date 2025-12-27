@@ -38,14 +38,15 @@
             <!-- Title -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                资源标题 <span class="text-red-500">*</span>
+                资源标题
               </label>
               <input
                 v-model="form.title"
                 type="text"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="例如: 系统设计面试指南"
+                placeholder="留空则使用案例名"
               />
+              <p class="text-xs text-gray-500 mt-1">提示：如果不填写，将自动使用案例名作为标题</p>
             </div>
 
             <!-- URL -->
@@ -145,8 +146,8 @@ watch(() => props.resourceData, (newData) => {
 }, { immediate: true })
 
 const isFormValid = computed(() => {
-  return form.value.title && form.value.title.trim().length > 0 &&
-         form.value.url && form.value.url.trim().length > 0
+  // 只验证URL是否填写，标题可以为空（后端会自动使用案例名）
+  return form.value.url && form.value.url.trim().length > 0
 })
 
 const close = () => {

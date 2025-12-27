@@ -553,12 +553,18 @@ const closeResourceModal = () => {
 
 const handleSaveResource = async (formData) => {
   try {
-    if (formData.id) {
+    // 如果标题为空，使用案例名作为标题
+    const dataToSave = {
+      ...formData,
+      title: formData.title?.trim() || selectedCase.value.title
+    }
+
+    if (dataToSave.id) {
       // Update existing resource
-      await systemDesignCaseApi.updateResource(selectedCase.value.id, formData.id, formData)
+      await systemDesignCaseApi.updateResource(selectedCase.value.id, dataToSave.id, dataToSave)
     } else {
       // Create new resource
-      await systemDesignCaseApi.createResource(selectedCase.value.id, formData)
+      await systemDesignCaseApi.createResource(selectedCase.value.id, dataToSave)
     }
     // Reload case details to show updated resources
     await selectCase(selectedCase.value)

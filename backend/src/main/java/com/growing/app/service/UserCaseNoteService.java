@@ -88,9 +88,13 @@ public class UserCaseNoteService {
         // 转换为汇总数据
         return notes.stream()
                 .map(note -> {
+                    SystemDesignCase designCase = note.getSystemDesignCase();
                     Map<String, Object> row = new HashMap<>();
-                    row.put("caseId", note.getSystemDesignCase().getId());
-                    row.put("caseName", note.getSystemDesignCase().getTitle());
+                    row.put("caseId", designCase.getId());
+                    row.put("caseName", designCase.getTitle());
+                    // 将枚举转换为字符串
+                    row.put("difficulty", designCase.getDifficulty() != null ? designCase.getDifficulty().name() : null);
+                    row.put("relatedFocusAreas", designCase.getRelatedFocusAreas());
                     row.put("kpRequirement", note.getKpRequirement());
                     row.put("kpNfr", note.getKpNfr());
                     row.put("kpEntity", note.getKpEntity());

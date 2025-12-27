@@ -159,7 +159,7 @@
 - **🛡️ Lesson**: Checklists MUST be mandatory (block development until checked)
 
 **Success Factor #4: Accepting Design Evolution**
-- **What Happened**: V16 migration added kp_* fields mid-development
+- **What Happened**: V16 数据库更新添加了 kp_* 字段（开发中途）
 - **Why It Worked**: User said "add these fields" without asking "why didn't we plan this?"
 - **Result**: Quick iteration, no blame, feature improved
 - **🛡️ Lesson**: Some features emerge during development - this is OK, not a failure
@@ -250,8 +250,9 @@ Role: admin
 - `src/router/index.js` - Routes with `meta.requiresAdmin` guards
 
 **Database**:
-- `backend/src/main/resources/db/migration/` - Flyway migration files
-- Migrations run automatically on app startup
+- `database/schema.sql` - Complete database schema (不使用 Flyway)
+- `database/init_data.sql` - Initial data
+- **数据库迁移方式**: 使用 `mysql-exec` skill 执行 SQL 文件，不使用 Flyway
 
 ## When Things Break
 
@@ -297,7 +298,7 @@ Role: admin
 
 **Phase 3 完成** (2025-12-21):
 - ✅ 试题库基础功能
-  - questions表 + user_question_notes表 (V5 migration)
+  - questions表 + user_question_notes表
   - 基于Focus Area的试题管理（公共试题 + 用户私有试题）
   - 用户笔记功能（UPSERT逻辑 - 一个用户对一个试题只能有一条笔记）
   - 管理员页面：两栏布局 (QuestionManagement.vue)
@@ -309,7 +310,7 @@ Role: admin
 
 **Phase 4 完成** (2025-12-23 至 2025-12-24):
 - ✅ 算法与数据结构学习模块
-  - major_categories + focus_area_categories多对多关系 (V8-V12 migrations)
+  - major_categories + focus_area_categories多对多关系
   - learning_stages（基础、进阶、强化）三阶段学习体系
   - programming_question_details表（LeetCode链接、代码片段、复杂度）
   - user_template_notes表（算法模版笔记）
@@ -323,7 +324,7 @@ Role: admin
 **Phase 5 完成** (2025-12-25 至 2025-12-26):
 - ✅ 系统设计学习模块（参考HelloInterview）
   - **基础知识模块**：复用Skill + Focus Area + Learning Content架构（3大分类：核心概念、关键技术、设计模式）
-  - **典型案例模块**：5张独立表（V15 + V16 migrations）
+  - **典型案例模块**：5张独立表
     - system_design_cases（案例主表：标题、难度、公司标签、关联知识）
     - case_resources（学习资源：视频、文章）
     - case_solutions（参考答案：支持多方案，6步骤框架）

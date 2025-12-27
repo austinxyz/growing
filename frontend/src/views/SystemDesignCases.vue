@@ -12,25 +12,62 @@
       <div class="w-1/6 bg-white border-r border-gray-200 flex flex-col shadow-lg">
         <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-purple-500">
           <h2 class="text-lg font-semibold text-white">📋 案例列表</h2>
-          <p class="text-xs text-indigo-100 mt-1">共 {{ cases.length }} 个案例</p>
+          <p class="text-xs text-indigo-100 mt-1">共 {{ filteredCases.length }} 个案例</p>
         </div>
+
+        <!-- Filters -->
+        <div class="p-2 border-b border-gray-200 bg-gray-50">
+          <div class="flex gap-1 mb-1">
+            <!-- Difficulty Filter -->
+            <select
+              v-model="filterDifficulty"
+              class="flex-1 text-[10px] px-1.5 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="">难度</option>
+              <option value="EASY">简单</option>
+              <option value="MEDIUM">中等</option>
+              <option value="HARD">困难</option>
+            </select>
+
+            <!-- Focus Area Filter -->
+            <select
+              v-model="filterFocusAreaId"
+              class="flex-1 text-[10px] px-1.5 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="">领域</option>
+              <option v-for="fa in allFocusAreas" :key="fa.id" :value="fa.id">
+                {{ fa.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Reset Button -->
+          <button
+            v-if="filterDifficulty || filterFocusAreaId"
+            @click="resetFilters"
+            class="w-full text-[10px] px-2 py-0.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+          >
+            重置
+          </button>
+        </div>
+
         <div class="flex-1 overflow-y-auto">
           <div
-            v-for="caseItem in cases"
+            v-for="caseItem in filteredCases"
             :key="caseItem.id"
             @click="selectCase(caseItem)"
             :class="[
-              'p-4 border-b border-gray-100 cursor-pointer transition-all duration-200',
+              'p-2 border-b border-gray-100 cursor-pointer transition-all duration-200',
               selectedCase?.id === caseItem.id
                 ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-600 shadow-md'
                 : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-sm'
             ]"
           >
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="font-semibold text-gray-800 flex-1">{{ caseItem.title }}</h3>
+            <div class="flex justify-between items-start mb-1">
+              <h3 class="text-xs font-semibold text-gray-800 flex-1 leading-tight">{{ caseItem.title }}</h3>
               <span
                 :class="[
-                  'px-2 py-1 text-xs rounded-full font-semibold shadow-sm',
+                  'px-1.5 py-0.5 text-[9px] rounded-full font-semibold shadow-sm ml-1 flex-shrink-0',
                   caseItem.difficulty === 'EASY' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' :
                   caseItem.difficulty === 'MEDIUM' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
                   'bg-gradient-to-r from-red-400 to-pink-500 text-white'
@@ -39,7 +76,7 @@
                 {{ difficultyText(caseItem.difficulty) }}
               </span>
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-[10px] text-gray-500">
               <span v-if="caseItem.companyTags && caseItem.companyTags.length > 0">
                 🏢 {{ caseItem.companyTags.slice(0, 2).join(', ') }}
               </span>
@@ -202,7 +239,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-blue-700">📋 Requirement</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpRequirement }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpRequirement)"></div>
                     </div>
 
                     <!-- Components 卡片（跨两行，高度更大） -->
@@ -211,7 +248,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-purple-700">🧩 Components</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpComponents }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpComponents)"></div>
                     </div>
 
                     <!-- NFR 卡片 -->
@@ -220,7 +257,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-green-400 to-green-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-green-700">⚡ NFR</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpNfr }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpNfr)"></div>
                     </div>
 
                     <!-- Entity 卡片 -->
@@ -229,7 +266,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-yellow-700">🗂️ Entity</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpEntity }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpEntity)"></div>
                     </div>
 
                     <!-- API 卡片 -->
@@ -238,7 +275,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-red-400 to-red-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-red-700">🔌 API</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpApi }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpApi)"></div>
                     </div>
 
                     <!-- Object1 卡片 -->
@@ -247,7 +284,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-indigo-700">🎯 Object1</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpObject1 }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpObject1)"></div>
                     </div>
 
                     <!-- Object2 卡片 -->
@@ -256,7 +293,7 @@
                         <div class="w-2 h-6 bg-gradient-to-b from-pink-400 to-pink-600 rounded-full"></div>
                         <h4 class="text-sm font-bold text-pink-700">🎪 Object2</h4>
                       </div>
-                      <div class="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{{ myAnswer.kpObject2 }}</div>
+                      <div class="text-xs text-gray-700 leading-relaxed prose-compact" v-html="renderMarkdown(myAnswer.kpObject2)"></div>
                     </div>
 
                     <p v-if="!myAnswer.kpRequirement && !myAnswer.kpNfr && !myAnswer.kpEntity && !myAnswer.kpComponents && !myAnswer.kpApi && !myAnswer.kpObject1 && !myAnswer.kpObject2" class="col-span-2 text-gray-400">暂无要点内容</p>
@@ -541,6 +578,10 @@ const showAnswer = ref(false) // 答题模式：是否显示参考答案（默�
 
 // Focus Areas data for displaying names
 const allFocusAreas = ref([])
+
+// Filter states
+const filterDifficulty = ref('')
+const filterFocusAreaId = ref('')
 const myAnswer = ref({
   // 结构化答案字段（Key Points）
   kpRequirement: '',
@@ -614,6 +655,32 @@ watch(() => selectedCase.value?.solutions, (solutions) => {
   activeStepTab.value = 0
 }, { immediate: true })
 
+// Filtered cases based on difficulty and focus area
+const filteredCases = computed(() => {
+  let result = cases.value
+
+  // Filter by difficulty
+  if (filterDifficulty.value) {
+    result = result.filter(c => c.difficulty === filterDifficulty.value)
+  }
+
+  // Filter by focus area
+  if (filterFocusAreaId.value) {
+    result = result.filter(c => {
+      // c.relatedFocusAreas is an array of focus area IDs
+      return c.relatedFocusAreas && c.relatedFocusAreas.includes(parseInt(filterFocusAreaId.value))
+    })
+  }
+
+  return result
+})
+
+// Reset filters
+const resetFilters = () => {
+  filterDifficulty.value = ''
+  filterFocusAreaId.value = ''
+}
+
 const difficultyText = (difficulty) => {
   const map = { EASY: '简单', MEDIUM: '中等', HARD: '困难' }
   return map[difficulty] || difficulty
@@ -639,7 +706,10 @@ const truncate = (text, length) => {
 }
 
 const renderMarkdown = (markdown) => {
-  return marked(markdown || '')
+  if (!markdown) return ''
+  // Convert escaped newlines to actual newlines
+  const processedMarkdown = markdown.replace(/\\n/g, '\n')
+  return marked(processedMarkdown)
 }
 
 // Helper function to get focus area name by ID
