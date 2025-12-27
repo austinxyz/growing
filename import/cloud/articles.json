@@ -1,0 +1,3985 @@
+{
+    "error": [],
+    "extra": [],
+    "data": {
+        "list": [
+            {
+                "article_sharetitle": "打通修炼“容器技术”的任督二脉",
+                "audio_size": 4210412,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/01\/71\/01df65e1f4d3047fb6cc02cdf5db3a71.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/fd\/da\/fde5b177af8b243cbd34413535e72cda\/ld\/ld.m3u8",
+                "chapter_id": "478",
+                "column_had_sub": true,
+                "reading_time": 526,
+                "is_finished": true,
+                "audio_time": "00:08:46",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    },
+                    "1": {
+                        "cur_version": 1705267705,
+                        "max_rate": 29,
+                        "cur_rate": 29,
+                        "is_finished": true,
+                        "total_rate": 29,
+                        "learned_seconds": 481
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 11535360700,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/fd\/da\/fde5b177af8b243cbd34413535e72cda.mp3",
+                "id": 14252,
+                "had_viewed": true,
+                "article_title": "开篇词 | 打通“容器技术”的任督二脉",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我希望通过对容器与Kubernetes项目的逐层剖析，能够让你面对容器化浪潮时不再踌躇无措，有一种拨云见日的酣畅淋漓。",
+                "column_id": 116,
+                "audio_title": "张磊开篇词",
+                "audio_md5": "fde5b177af8b243cbd34413535e72cda",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "08",
+                    "s": "46",
+                    "h": "00"
+                },
+                "article_could_preview": true,
+                "article_ctime": 1535360700,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "初出茅庐：从PaaS项目中脱颖而出的Docker",
+                "audio_size": 5857980,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/e5\/da\/e5524089f48cb480fafc9998450ba9da.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/23\/13\/23ceb3cf09d7e6502c2cf6dd8bd3e113\/ld\/ld.m3u8",
+                "chapter_id": "478",
+                "column_had_sub": true,
+                "reading_time": 732,
+                "is_finished": true,
+                "audio_time": "00:12:12",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1614749752,
+                        "max_rate": 6,
+                        "cur_rate": 6,
+                        "is_finished": false,
+                        "total_rate": 731,
+                        "learned_seconds": 7
+                    },
+                    "1": {
+                        "cur_version": 1705258726,
+                        "max_rate": 54,
+                        "cur_rate": 54,
+                        "is_finished": true,
+                        "total_rate": 54,
+                        "learned_seconds": 946
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 11535385600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/23\/13\/23ceb3cf09d7e6502c2cf6dd8bd3e113.mp3",
+                "id": 14254,
+                "had_viewed": true,
+                "article_title": "01 | 预习篇 · 小鲸鱼大事记（一）：初出茅庐",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Docker项目，用近乎完美地解决了Pass项目的打包问题。于是，它开源不久便从脱颖而出，迅速占领了所有云计算领域头条。",
+                "column_id": 116,
+                "audio_title": "01-容器",
+                "audio_md5": "23ceb3cf09d7e6502c2cf6dd8bd3e113",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "12",
+                    "s": "12",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1535385600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "崭露头角：dotCloud公司改名为Docker，开启扩张之路",
+                "audio_size": 3287493,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/59\/88\/59879991129aef21bc8bfaf002fa1388.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d1\/e8\/d102980921aaf598e72438a74dadffe8\/ld\/ld.m3u8",
+                "chapter_id": "478",
+                "column_had_sub": true,
+                "reading_time": 411,
+                "is_finished": true,
+                "audio_time": "00:06:51",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    },
+                    "1": {
+                        "cur_version": 1705258847,
+                        "max_rate": 31,
+                        "cur_rate": 31,
+                        "is_finished": true,
+                        "total_rate": 31,
+                        "learned_seconds": 347
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 11535472000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d1\/e8\/d102980921aaf598e72438a74dadffe8.mp3",
+                "id": 14256,
+                "had_viewed": true,
+                "article_title": "02 | 预习篇 · 小鲸鱼大事记（二）：崭露头角",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "解决了应用打包的技术难题，同开发者与生俱来的的亲密关系，再加上PaaS概念已经深入人心的完美契机，是Docker项目一举走红的重要原因。",
+                "column_id": 116,
+                "audio_title": "02-容器",
+                "audio_md5": "d102980921aaf598e72438a74dadffe8",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "06",
+                    "s": "51",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1535472000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "群雄并起：容器生态的大爆发",
+                "audio_size": 5137448,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/11\/f5\/1173859b0544398e33cd96feefe7eaf5.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/7e\/b5\/7e53320dcff4ab363fb8da59964d3fb5\/ld\/ld.m3u8",
+                "chapter_id": "478",
+                "column_had_sub": true,
+                "reading_time": 642,
+                "is_finished": true,
+                "audio_time": "00:10:42",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    },
+                    "1": {
+                        "cur_version": 1705259197,
+                        "max_rate": 48,
+                        "cur_rate": 45,
+                        "is_finished": true,
+                        "total_rate": 48,
+                        "learned_seconds": 1438
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 11535558400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/7e\/b5\/7e53320dcff4ab363fb8da59964d3fb5.mp3",
+                "id": 14405,
+                "had_viewed": true,
+                "article_title": "03 | 预习篇 · 小鲸鱼大事记（三）：群雄并起",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在2014~2015年间的容器生态大爆发中，Docker公司和Mesosphere公司，依托自身优势率先占据了有利位置，但这却并不是结局。",
+                "column_id": 116,
+                "audio_title": "03-容器",
+                "audio_md5": "7e53320dcff4ab363fb8da59964d3fb5",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "42",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1535558400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "尘埃落定：Kubernetes社区承接了Docker项目的未尽事业",
+                "audio_size": 7228268,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/80\/a1\/807cb57555c5d6ecc7a92cac156376a1.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/b8\/27\/b8927beb8546622cc5caa14767de2a27\/ld\/ld.m3u8",
+                "chapter_id": "478",
+                "column_had_sub": true,
+                "reading_time": 903,
+                "is_finished": true,
+                "audio_time": "00:15:03",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    },
+                    "1": {
+                        "cur_version": 1705259501,
+                        "max_rate": 67,
+                        "cur_rate": 49,
+                        "is_finished": true,
+                        "total_rate": 67,
+                        "learned_seconds": 2330
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 11535644800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/b8\/27\/b8927beb8546622cc5caa14767de2a27.mp3",
+                "id": 14406,
+                "had_viewed": true,
+                "article_title": "04 | 预习篇 · 小鲸鱼大事记（四）：尘埃落定",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Kubernetes社区的成功归功于，它是以开发者为核心，构建一个相对民主和开放的容器生态。",
+                "column_id": 116,
+                "audio_title": "04-容器",
+                "audio_md5": "b8927beb8546622cc5caa14767de2a27",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "15",
+                    "s": "03",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1535644800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从进程说起：容器到底是怎么一回事儿？",
+                "audio_size": 5547058,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/e6\/32\/e61af57124bd1f5c3ab865552f5fa732.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d2\/6d\/d27445e4726f0346049e74c314140a6d\/ld\/ld.m3u8",
+                "chapter_id": "480",
+                "column_had_sub": true,
+                "reading_time": 693,
+                "is_finished": true,
+                "audio_time": "00:11:33",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1740959592,
+                        "max_rate": 692,
+                        "cur_rate": 69,
+                        "is_finished": true,
+                        "total_rate": 693,
+                        "learned_seconds": 1472
+                    },
+                    "1": {
+                        "cur_version": 1749756787,
+                        "max_rate": 61,
+                        "cur_rate": 61,
+                        "is_finished": true,
+                        "total_rate": 61,
+                        "learned_seconds": 1645
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 31535904000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d2\/6d\/d27445e4726f0346049e74c314140a6d.mp3",
+                "id": 14642,
+                "had_viewed": true,
+                "article_title": "05 | 白话容器基础（一）：从进程说开去",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "对于Docker等大多数Linux容器，Cgroups是制造约束的主要手段，Namespace是修改进程视图的主要方法。",
+                "column_id": 116,
+                "audio_title": "05-容器",
+                "audio_md5": "d27445e4726f0346049e74c314140a6d",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "33",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1535904000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "隔离与限制：Linux容器运行的基础",
+                "audio_size": 7977011,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/12\/70\/12a18c84cab19f79f981c2bf918d0270.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/6e\/67\/6e9fa7ea0cb73d690a7c2fb70c026167\/ld\/ld.m3u8",
+                "chapter_id": "480",
+                "column_had_sub": true,
+                "reading_time": 996,
+                "is_finished": true,
+                "audio_time": "00:16:36",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741055713,
+                        "max_rate": 996,
+                        "cur_rate": 996,
+                        "is_finished": true,
+                        "total_rate": 996,
+                        "learned_seconds": 4001
+                    },
+                    "1": {
+                        "cur_version": 1749757064,
+                        "max_rate": 80,
+                        "cur_rate": 79,
+                        "is_finished": true,
+                        "total_rate": 79,
+                        "learned_seconds": 2052
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 31536076800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/6e\/67\/6e9fa7ea0cb73d690a7c2fb70c026167.mp3",
+                "id": 14653,
+                "had_viewed": true,
+                "article_title": "06 | 白话容器基础（二）：隔离与限制",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "一个正在运行的Docker容器，是一个启用了多个Namespace的应用进程，它能够使用的资源量受Cgroups的限制。",
+                "column_id": 116,
+                "audio_title": "06-容器",
+                "audio_md5": "6e9fa7ea0cb73d690a7c2fb70c026167",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "16",
+                    "s": "36",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1536076800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "rootfs：Linux容器文件系统的实现方式",
+                "audio_size": 9406603,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/96\/52\/96200c2152bd03c406cf2f05e1227352.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/11\/20\/117b7b7fa2752c42a9d41096d9342720\/ld\/ld.m3u8",
+                "chapter_id": "480",
+                "column_had_sub": true,
+                "reading_time": 1175,
+                "is_finished": true,
+                "audio_time": "00:19:35",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741056828,
+                        "max_rate": 1174,
+                        "cur_rate": 1174,
+                        "is_finished": true,
+                        "total_rate": 1174,
+                        "learned_seconds": 3550
+                    },
+                    "1": {
+                        "cur_version": 1749785997,
+                        "max_rate": 144,
+                        "cur_rate": 144,
+                        "is_finished": true,
+                        "total_rate": 144,
+                        "learned_seconds": 4329
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 31536249600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/11\/20\/117b7b7fa2752c42a9d41096d9342720.mp3",
+                "id": 17921,
+                "had_viewed": true,
+                "article_title": "07 | 白话容器基础（三）：深入理解容器镜像",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "rootfs，是Linux容器文件系统实现的核心方式。它包含了一个操作系统的所有文件和目录，保证了Docker容器深入到操作系统级别的环境一致性。",
+                "column_id": 116,
+                "audio_title": "07-容器",
+                "audio_md5": "117b7b7fa2752c42a9d41096d9342720",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "19",
+                    "s": "35",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1536249600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "庖丁解牛：重新认识Docker容器",
+                "audio_size": 9675260,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/15\/67\/15019387582582520a24612fe7d5c767.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/79\/31\/79e8421b8d2f88dc0b4733aa635def31\/ld\/ld.m3u8",
+                "chapter_id": "480",
+                "column_had_sub": true,
+                "reading_time": 1381,
+                "is_finished": true,
+                "audio_time": "00:23:01",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741109429,
+                        "max_rate": 1381,
+                        "cur_rate": 1381,
+                        "is_finished": true,
+                        "total_rate": 1381,
+                        "learned_seconds": 4074
+                    },
+                    "1": {
+                        "cur_version": 1749786621,
+                        "max_rate": 145,
+                        "cur_rate": 145,
+                        "is_finished": true,
+                        "total_rate": 145,
+                        "learned_seconds": 4208
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 31536508800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/79\/31\/79e8421b8d2f88dc0b4733aa635def31.mp3",
+                "id": 18119,
+                "had_viewed": true,
+                "article_title": "08 | 白话容器基础（四）：重新认识Docker容器",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我会首先讲解Docke容器使用的主要场景，然后再次解读Linux容器的Namespace、Cgroups、rootfs。",
+                "column_id": 116,
+                "audio_title": "08-容器",
+                "audio_md5": "79e8421b8d2f88dc0b4733aa635def31",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "23",
+                    "s": "01",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1536508800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从容器到容器云：谈谈Kubernetes的本质",
+                "audio_size": 8949283,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/ba\/1a\/babc20175eeaa8e9d33624fadabd011a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/f3\/10\/f3aacd4be68691eb9b35a02d9adc3110\/ld\/ld.m3u8",
+                "chapter_id": "480",
+                "column_had_sub": true,
+                "reading_time": 1277,
+                "is_finished": true,
+                "audio_time": "00:21:17",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741134625,
+                        "max_rate": 1276,
+                        "cur_rate": 1276,
+                        "is_finished": true,
+                        "total_rate": 1276,
+                        "learned_seconds": 2571
+                    },
+                    "1": {
+                        "cur_version": 1749787215,
+                        "max_rate": 105,
+                        "cur_rate": 105,
+                        "is_finished": true,
+                        "total_rate": 105,
+                        "learned_seconds": 2246
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 31536681600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/f3\/10\/f3aacd4be68691eb9b35a02d9adc3110.mp3",
+                "id": 23132,
+                "had_viewed": true,
+                "article_title": "09 | 从容器到容器云：谈谈Kubernetes的本质",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Kubernetes为用户提供的不仅仅是一个工具，而是一套帮助使用容器构建分布式作业的依赖和框架。",
+                "column_id": 116,
+                "audio_title": "09-容器",
+                "audio_md5": "f3aacd4be68691eb9b35a02d9adc3110",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "21",
+                    "s": "17",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1536681600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes一键部署利器：kubeadm",
+                "audio_size": 8333420,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/d0\/1a\/d0ee4192eae07716a186281397b1cf1a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/53\/99\/53e5baf328edf104e60797b9f7d9bb99\/ld\/ld.m3u8",
+                "chapter_id": "481",
+                "column_had_sub": true,
+                "reading_time": 1041,
+                "is_finished": true,
+                "audio_time": "00:17:21",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741135668,
+                        "max_rate": 1040,
+                        "cur_rate": 1040,
+                        "is_finished": true,
+                        "total_rate": 1040,
+                        "learned_seconds": 2082
+                    },
+                    "1": {
+                        "cur_version": 1618086527,
+                        "max_rate": 104,
+                        "cur_rate": 87,
+                        "is_finished": true,
+                        "total_rate": 104,
+                        "learned_seconds": 3027
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 41536854400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/53\/99\/53e5baf328edf104e60797b9f7d9bb99.mp3",
+                "id": 39712,
+                "had_viewed": true,
+                "article_title": "10 | Kubernetes一键部署利器：kubeadm",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在今天的这次分享中，我重点介绍了kubeadm这个部署工具的工作原理和使用方法。",
+                "column_id": 116,
+                "audio_title": "10-容器定",
+                "audio_md5": "53e5baf328edf104e60797b9f7d9bb99",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "21",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1536854400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从0到1：搭建一个完整的Kubernetes集群",
+                "audio_size": 17169452,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/b2\/ad\/b21622d626d1d6401b1a6a3dae8c04ad.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/88\/5d\/88f0e653ae6279883eada707758f2a5d\/ld\/ld.m3u8",
+                "chapter_id": "481",
+                "column_had_sub": true,
+                "reading_time": 1073,
+                "is_finished": true,
+                "audio_time": "00:17:53",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741197881,
+                        "max_rate": 1072,
+                        "cur_rate": 1072,
+                        "is_finished": true,
+                        "total_rate": 1072,
+                        "learned_seconds": 2186
+                    },
+                    "1": {
+                        "cur_version": 1590436652,
+                        "max_rate": 119,
+                        "cur_rate": 119,
+                        "is_finished": true,
+                        "total_rate": 119,
+                        "learned_seconds": 1593
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 41537113600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/88\/5d\/88f0e653ae6279883eada707758f2a5d.mp3",
+                "id": 39724,
+                "had_viewed": true,
+                "article_title": "11 | 从0到1：搭建一个完整的Kubernetes集群",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我们从0开始，在Bare-metal环境下使用kubeadm工具部署了一个完整的Kubernetes集群。",
+                "column_id": 116,
+                "audio_title": "11-容器修改",
+                "audio_md5": "88f0e653ae6279883eada707758f2a5d",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "53",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1537113600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "牛刀小试：我的第一个容器化应用",
+                "audio_size": 6369068,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/fa\/f7\/fa20fdb6a1f27bb3c8c024c4387488f7.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/06\/5a\/068473ddafac8ef5798b843cddccf65a\/ld\/ld.m3u8",
+                "chapter_id": "481",
+                "column_had_sub": true,
+                "reading_time": 796,
+                "is_finished": true,
+                "audio_time": "00:13:16",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741198264,
+                        "max_rate": 795,
+                        "cur_rate": 795,
+                        "is_finished": true,
+                        "total_rate": 795,
+                        "learned_seconds": 804
+                    },
+                    "1": {
+                        "cur_version": 1590436681,
+                        "max_rate": 96,
+                        "cur_rate": 96,
+                        "is_finished": true,
+                        "total_rate": 96,
+                        "learned_seconds": 278
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 41537286400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/06\/5a\/068473ddafac8ef5798b843cddccf65a.mp3",
+                "id": 40008,
+                "had_viewed": true,
+                "article_title": "12 | 牛刀小试：我的第一个容器化应用",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在今天的分享中，我会通过一个小案例，和你近距离体验Kubernetes的使用方法。",
+                "column_id": 116,
+                "audio_title": "12-容器",
+                "audio_md5": "068473ddafac8ef5798b843cddccf65a",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "13",
+                    "s": "16",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1537286400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "我们为什么需要Pod？",
+                "audio_size": 17967120,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/66\/3b\/66ec3e14bc39554835c04fd8ffa54c3b.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/a6\/b6\/a6fbf30060d0a184da6ad973f24e88b6\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1125,
+                "is_finished": true,
+                "audio_time": "00:18:45",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741219830,
+                        "max_rate": 1122,
+                        "cur_rate": 1122,
+                        "is_finished": true,
+                        "total_rate": 1122,
+                        "learned_seconds": 2244
+                    },
+                    "1": {
+                        "cur_version": 1749787688,
+                        "max_rate": 110,
+                        "cur_rate": 110,
+                        "is_finished": true,
+                        "total_rate": 110,
+                        "learned_seconds": 1230
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51537459200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/a6\/b6\/a6fbf30060d0a184da6ad973f24e88b6.mp3",
+                "id": 40092,
+                "had_viewed": true,
+                "article_title": "13 | 为什么我们需要Pod？",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Pod，实际上是在扮演传统基础设施里“虚拟机”的角色；而容器，则是这个虚拟机里运行的用户程序。",
+                "column_id": 116,
+                "audio_title": "13-容器更新",
+                "audio_md5": "a6fbf30060d0a184da6ad973f24e88b6",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "18",
+                    "s": "45",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1537459200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "如何理解Pod和Container的关系？",
+                "audio_size": 5668652,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/a9\/22\/a979423fa965ac1514b60293c01d9322.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/40\/90\/40f7fcf5f97b1f59b70cfbe5ccde9190\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 708,
+                "is_finished": true,
+                "audio_time": "00:11:48",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741220539,
+                        "max_rate": 707,
+                        "cur_rate": 707,
+                        "is_finished": true,
+                        "total_rate": 707,
+                        "learned_seconds": 1423
+                    },
+                    "1": {
+                        "cur_version": 1749789017,
+                        "max_rate": 62,
+                        "cur_rate": 62,
+                        "is_finished": true,
+                        "total_rate": 62,
+                        "learned_seconds": 1204
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51537718400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/40\/90\/40f7fcf5f97b1f59b70cfbe5ccde9190.mp3",
+                "id": 40366,
+                "had_viewed": true,
+                "article_title": "14 | 深入解析Pod对象（一）：基本概念",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Pod（而不是容器）才是Kubernetes项目中的最小编排单位。将这个设计落实到API对象上，容器（Container）就成了Pod属性里的一个普通的字段。",
+                "column_id": 116,
+                "audio_title": "14-容器定",
+                "audio_md5": "40f7fcf5f97b1f59b70cfbe5ccde9190",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "48",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1537718400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "用实例带你了解Pod对象的高阶使用方法",
+                "audio_size": 9156812,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/d0\/8c\/d074e745760fe7c11655ffa39362e78c.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d2\/e1\/d2b23a32210eab0d30ed699428da80e1\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1308,
+                "is_finished": true,
+                "audio_time": "00:21:48",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741282654,
+                        "max_rate": 1307,
+                        "cur_rate": 1307,
+                        "is_finished": true,
+                        "total_rate": 1307,
+                        "learned_seconds": 2620
+                    },
+                    "1": {
+                        "cur_version": 1749789680,
+                        "max_rate": 138,
+                        "cur_rate": 138,
+                        "is_finished": true,
+                        "total_rate": 138,
+                        "learned_seconds": 3039
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51537891200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d2\/e1\/d2b23a32210eab0d30ed699428da80e1.mp3",
+                "id": 40466,
+                "had_viewed": true,
+                "article_title": "15 | 深入解析Pod对象（二）：使用进阶",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我会详细介绍Pod对象更高阶的使用方法，希望通过对这些实例的讲解，你可以更深入地理解Pod API对象的各个字段。",
+                "column_id": 116,
+                "audio_title": "15-容器",
+                "audio_md5": "d2b23a32210eab0d30ed699428da80e1",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "21",
+                    "s": "48",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1537891200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从“控制器”模型，谈容器编排",
+                "audio_size": 3772268,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/ad\/6c\/ada5c4501ab36fe9a4c18c451bfedd6c.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/fc\/da\/fcc2beccf61378c5096f14bb16f6a6da\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 471,
+                "is_finished": true,
+                "audio_time": "00:07:51",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741283126,
+                        "max_rate": 470,
+                        "cur_rate": 470,
+                        "is_finished": true,
+                        "total_rate": 470,
+                        "learned_seconds": 959
+                    },
+                    "1": {
+                        "cur_version": 1749790984,
+                        "max_rate": 51,
+                        "cur_rate": 51,
+                        "is_finished": true,
+                        "total_rate": 51,
+                        "learned_seconds": 1011
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51538064000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/fc\/da\/fcc2beccf61378c5096f14bb16f6a6da.mp3",
+                "id": 40583,
+                "had_viewed": true,
+                "article_title": "16 | 编排其实很简单：谈谈“控制器”模型",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我以Deployment为例，详细讲解了Kubernetes项目如何通过一个称作“控制器模式”的设计方法，实现了对各种不同的对象或者资源的编排。",
+                "column_id": 116,
+                "audio_title": "16-容器",
+                "audio_md5": "fcc2beccf61378c5096f14bb16f6a6da",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "07",
+                    "s": "51",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1538064000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "经典PaaS的记忆：作业副本与水平扩展",
+                "audio_size": 8597112,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/46\/84\/46701cb538181ce6abd41b4aadf44284.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/e4\/bd\/e443846dd934662f1084a0e8c4984abd\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1074,
+                "is_finished": true,
+                "audio_time": "00:17:54",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741709701,
+                        "max_rate": 1073,
+                        "cur_rate": 1073,
+                        "is_finished": true,
+                        "total_rate": 1073,
+                        "learned_seconds": 2152
+                    },
+                    "1": {
+                        "cur_version": 1749791444,
+                        "max_rate": 128,
+                        "cur_rate": 128,
+                        "is_finished": true,
+                        "total_rate": 128,
+                        "learned_seconds": 1047
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51538323200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/e4\/bd\/e443846dd934662f1084a0e8c4984abd.mp3",
+                "id": 40906,
+                "had_viewed": true,
+                "article_title": "17 | 经典PaaS的记忆：作业副本与水平扩展",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我为你详细讲解了Deployment这个Kubernetes项目中，最基本的编排控制器的实现原理和使用方法。",
+                "column_id": 116,
+                "audio_title": "17-容器",
+                "audio_md5": "e443846dd934662f1084a0e8c4984abd",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "54",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1538323200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "如何用StatefulSet保证应用实例之间“拓扑状态”的稳定性？",
+                "audio_size": 5717773,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/72\/1a\/7210b6688b19700d27b2dd33302cb11a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/89\/12\/896c974f179010713e58ada2f49d7c12\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 713,
+                "is_finished": true,
+                "audio_time": "00:11:53",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741711030,
+                        "max_rate": 712,
+                        "cur_rate": 712,
+                        "is_finished": true,
+                        "total_rate": 712,
+                        "learned_seconds": 2044
+                    },
+                    "1": {
+                        "cur_version": 1590436714,
+                        "max_rate": 81,
+                        "cur_rate": 81,
+                        "is_finished": true,
+                        "total_rate": 81,
+                        "learned_seconds": 423
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51538496000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/89\/12\/896c974f179010713e58ada2f49d7c12.mp3",
+                "id": 41017,
+                "had_viewed": true,
+                "article_title": "18 | 深入理解StatefulSet（一）：拓扑状态",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "StatefulSet的作用之一，就在是使用Pod模板创建Pod时，对它们进行编号，并且按照编号顺序逐一完成创建工作。",
+                "column_id": 116,
+                "audio_title": "18-容器",
+                "audio_md5": "896c974f179010713e58ada2f49d7c12",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "53",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1538496000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "如何用StatefulSet处理应用实例之间的“存储状态”？",
+                "audio_size": 6176360,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/f5\/1b\/f54816ba674d3aaa38aa4e752058641b.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/bf\/55\/bfcecfb762d864ae92406cc8dd988355\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 771,
+                "is_finished": true,
+                "audio_time": "00:12:51",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741740145,
+                        "max_rate": 771,
+                        "cur_rate": 771,
+                        "is_finished": true,
+                        "total_rate": 771,
+                        "learned_seconds": 1568
+                    },
+                    "1": {
+                        "cur_version": 1590436730,
+                        "max_rate": 71,
+                        "cur_rate": 71,
+                        "is_finished": true,
+                        "total_rate": 71,
+                        "learned_seconds": 346
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51538668800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/bf\/55\/bfcecfb762d864ae92406cc8dd988355.mp3",
+                "id": 41154,
+                "had_viewed": true,
+                "article_title": "19 | 深入理解StatefulSet（二）：存储状态",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我详细介绍了StatefulSet处理存储状态的方法，并以此为基础总结了StatefulSet控制器的工作原理。",
+                "column_id": 116,
+                "audio_title": "19-容器",
+                "audio_md5": "bfcecfb762d864ae92406cc8dd988355",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "12",
+                    "s": "51",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1538668800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "“有状态应用”实践：如何使用StatefulSet将MySQL集群的搭建“容器化”？",
+                "audio_size": 9188856,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/8a\/3d\/8abf27ed561ae241adb7b718d756423d.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/2e\/dd\/2e127711ab3309ee42f1c47254612add\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1311,
+                "is_finished": true,
+                "audio_time": "00:21:51",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1741741109,
+                        "max_rate": 1310,
+                        "cur_rate": 1310,
+                        "is_finished": true,
+                        "total_rate": 1310,
+                        "learned_seconds": 1330
+                    },
+                    "1": {
+                        "cur_version": 1590436736,
+                        "max_rate": 136,
+                        "cur_rate": 136,
+                        "is_finished": true,
+                        "total_rate": 136,
+                        "learned_seconds": 940
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51538928000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/2e\/dd\/2e127711ab3309ee42f1c47254612add.mp3",
+                "id": 41217,
+                "had_viewed": true,
+                "article_title": "20 | 深入理解StatefulSet（三）：有状态应用实践",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我以MySQL集群为例，和你分享了一个实际的StatefulSet的编写过程。",
+                "column_id": 116,
+                "audio_title": "20-容器xin",
+                "audio_md5": "2e127711ab3309ee42f1c47254612add",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "21",
+                    "s": "51",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1538928000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes项目中第三个重要的编排对象：DaemonSet",
+                "audio_size": 8386705,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/28\/61\/289a8aac3c5076fe5b2a129cc8c21c61.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/59\/18\/593cf97eb297671d472238e41d05f218\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1048,
+                "is_finished": true,
+                "audio_time": "00:17:28",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742052522,
+                        "max_rate": 1047,
+                        "cur_rate": 1047,
+                        "is_finished": true,
+                        "total_rate": 1047,
+                        "learned_seconds": 1056
+                    },
+                    "1": {
+                        "cur_version": 1749829969,
+                        "max_rate": 108,
+                        "cur_rate": 108,
+                        "is_finished": true,
+                        "total_rate": 108,
+                        "learned_seconds": 1820
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51539100800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/59\/18\/593cf97eb297671d472238e41d05f218.mp3",
+                "id": 41366,
+                "had_viewed": true,
+                "article_title": "21 | 容器化守护进程的意义：DaemonSet",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我首先简单介绍了StatefulSet的滚动更新能力，然后重点讲解了本专栏的第三个重要编排对象：DaemonSet。",
+                "column_id": 116,
+                "audio_title": "21-更新",
+                "audio_md5": "593cf97eb297671d472238e41d05f218",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "28",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1539100800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "撬动离线业务：Job与CronJob",
+                "audio_size": 9380838,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/b0\/d1\/b0d4e4a553fa8e859768079712efded1.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/4c\/b0\/4c14724d4047a3094b87fcec1f8239b0\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1172,
+                "is_finished": true,
+                "audio_time": "00:19:32",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742053695,
+                        "max_rate": 1171,
+                        "cur_rate": 1171,
+                        "is_finished": true,
+                        "total_rate": 1171,
+                        "learned_seconds": 1172
+                    },
+                    "1": {
+                        "cur_version": 1590436758,
+                        "max_rate": 136,
+                        "cur_rate": 136,
+                        "is_finished": true,
+                        "total_rate": 136,
+                        "learned_seconds": 554
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51539273600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/4c\/b0\/4c14724d4047a3094b87fcec1f8239b0.mp3",
+                "id": 41607,
+                "had_viewed": true,
+                "article_title": "22 | 撬动离线业务：Job与CronJob",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我会分享Job的编排方法、completions和parallelism字段、Job Controller的执行原理。",
+                "column_id": 116,
+                "audio_title": "22-容器定",
+                "audio_md5": "4c14724d4047a3094b87fcec1f8239b0",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "19",
+                    "s": "32",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1539273600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "用YAML文件代替命令行操作，就是声明式API了？",
+                "audio_size": 8033612,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/7c\/3a\/7c965f253dc6bbc87d34526eff8fae3a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/0b\/d9\/0b697c5bde2f28826ddfc0ebf386b2d9\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1003,
+                "is_finished": true,
+                "audio_time": "00:16:43",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742064187,
+                        "max_rate": 1003,
+                        "cur_rate": 1003,
+                        "is_finished": true,
+                        "total_rate": 1003,
+                        "learned_seconds": 2010
+                    },
+                    "1": {
+                        "cur_version": 1749967417,
+                        "max_rate": 122,
+                        "cur_rate": 122,
+                        "is_finished": true,
+                        "total_rate": 122,
+                        "learned_seconds": 1842
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51539532800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/0b\/d9\/0b697c5bde2f28826ddfc0ebf386b2d9.mp3",
+                "id": 41769,
+                "had_viewed": true,
+                "article_title": "23 | 声明式API与Kubernetes编程范式",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "从“使用Kubernetes部署应用”到“使用Kubernetes编写应用”的蜕变，是从你从一个用户到玩家的晋级之路。",
+                "column_id": 116,
+                "audio_title": "23-容器定",
+                "audio_md5": "0b697c5bde2f28826ddfc0ebf386b2d9",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "16",
+                    "s": "43",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1539532800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "深入解析声明式API：API对象的奥秘",
+                "audio_size": 8997301,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/0d\/91\/0dcd83d1eb93ed2cd4fa659ad73fe491.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/ab\/70\/ab2cf4d567d3ced9caa349bd0b9dbe70\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1124,
+                "is_finished": true,
+                "audio_time": "00:18:44",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742067561,
+                        "max_rate": 1123,
+                        "cur_rate": 1123,
+                        "is_finished": true,
+                        "total_rate": 1123,
+                        "learned_seconds": 1128
+                    },
+                    "1": {
+                        "cur_version": 1750052273,
+                        "max_rate": 117,
+                        "cur_rate": 117,
+                        "is_finished": true,
+                        "total_rate": 117,
+                        "learned_seconds": 3243
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51539705600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/ab\/70\/ab2cf4d567d3ced9caa349bd0b9dbe70.mp3",
+                "id": 41876,
+                "had_viewed": true,
+                "article_title": "24 | 深入解析声明式API（一）：API对象的奥秘",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我们要达到的目的是，通过标准的kubectl create和get操作，来管理自定义API对象。",
+                "column_id": 116,
+                "audio_title": "24-容器定",
+                "audio_md5": "ab2cf4d567d3ced9caa349bd0b9dbe70",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "18",
+                    "s": "44",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1539705600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "深入解析声明式API：编写自定义控制器",
+                "audio_size": 8568331,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/6b\/95\/6be17312cec5dea9ee7d495440833895.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d6\/17\/d67edba5c9541e954c18dfbaadbbfc17\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1070,
+                "is_finished": true,
+                "audio_time": "00:17:50",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742076795,
+                        "max_rate": 1069,
+                        "cur_rate": 218,
+                        "is_finished": true,
+                        "total_rate": 1070,
+                        "learned_seconds": 2362
+                    },
+                    "1": {
+                        "cur_version": 1750052657,
+                        "max_rate": 129,
+                        "cur_rate": 129,
+                        "is_finished": true,
+                        "total_rate": 129,
+                        "learned_seconds": 2030
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51539878400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d6\/17\/d67edba5c9541e954c18dfbaadbbfc17.mp3",
+                "id": 42076,
+                "had_viewed": true,
+                "article_title": "25 | 深入解析声明式API（二）：编写自定义控制器",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我将为你剖析Kubernetes API编程范式的具体原理，并带你一起编写了一个自定义控制器。",
+                "column_id": 116,
+                "audio_title": "25-容器",
+                "audio_md5": "d67edba5c9541e954c18dfbaadbbfc17",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "50",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1539878400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "基于角色的权限控制：RBAC",
+                "audio_size": 6751400,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/86\/dc\/8660568dbcf0819be0c1e35aa9f025dc.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d8\/db\/d88c2fed2e06621a4af161aa391a54db\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 843,
+                "is_finished": true,
+                "audio_time": "00:14:03",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742086915,
+                        "max_rate": 841,
+                        "cur_rate": 29,
+                        "is_finished": true,
+                        "total_rate": 843,
+                        "learned_seconds": 875
+                    },
+                    "1": {
+                        "cur_version": 1750053074,
+                        "max_rate": 102,
+                        "cur_rate": 102,
+                        "is_finished": true,
+                        "total_rate": 102,
+                        "learned_seconds": 1215
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51540137600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d8\/db\/d88c2fed2e06621a4af161aa391a54db.mp3",
+                "id": 42154,
+                "had_viewed": true,
+                "article_title": "26 | 基于角色的权限控制：RBAC",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Role + RoleBinding + ServiceAccount的权限分配方式，是你要重点掌握的内容。",
+                "column_id": 116,
+                "audio_title": "26-容器",
+                "audio_md5": "d88c2fed2e06621a4af161aa391a54db",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "14",
+                    "s": "03",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1540137600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "聪明的微创新：你所不知道的Operator工作原理",
+                "audio_size": 9513812,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/24\/e6\/248b7bc84e4444464f10f3c733009ce6.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/4d\/a1\/4d5b3efdb7687190bd4fefad136eb2a1\/ld\/ld.m3u8",
+                "chapter_id": "482",
+                "column_had_sub": true,
+                "reading_time": 1358,
+                "is_finished": true,
+                "audio_time": "00:22:38",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742088275,
+                        "max_rate": 1358,
+                        "cur_rate": 1358,
+                        "is_finished": true,
+                        "total_rate": 1358,
+                        "learned_seconds": 1359
+                    },
+                    "1": {
+                        "cur_version": 1750105508,
+                        "max_rate": 153,
+                        "cur_rate": 153,
+                        "is_finished": true,
+                        "total_rate": 153,
+                        "learned_seconds": 1736
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 51540310400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/4d\/a1\/4d5b3efdb7687190bd4fefad136eb2a1.mp3",
+                "id": 42493,
+                "had_viewed": true,
+                "article_title": "27 | 聪明的微创新：Operator工作原理解读",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "Operator的工作原理，是利用自定义API资源，描述你要部署的“有状态应用”；然后在自定义控制器里，根据自定义API对象的变化，完成具体的部署和运维工作。",
+                "column_id": 116,
+                "audio_title": "27-容器",
+                "audio_md5": "4d5b3efdb7687190bd4fefad136eb2a1",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "22",
+                    "s": "38",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1540310400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "PV、PVC、StorageClass，这些到底在说啥？",
+                "audio_size": 9075825,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/f1\/05\/f1f707ea5c04d6d09be3017b86722e05.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/32\/5c\/327d67f77f2389f233559ebcf54a715c\/ld\/ld.m3u8",
+                "chapter_id": "483",
+                "column_had_sub": true,
+                "reading_time": 1134,
+                "is_finished": true,
+                "audio_time": "00:18:54",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742145239,
+                        "max_rate": 1133,
+                        "cur_rate": 1133,
+                        "is_finished": true,
+                        "total_rate": 1133,
+                        "learned_seconds": 1141
+                    },
+                    "1": {
+                        "cur_version": 1750915347,
+                        "max_rate": 117,
+                        "cur_rate": 117,
+                        "is_finished": true,
+                        "total_rate": 117,
+                        "learned_seconds": 2486
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 61540483200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/32\/5c\/327d67f77f2389f233559ebcf54a715c.mp3",
+                "id": 42698,
+                "had_viewed": true,
+                "article_title": "28 | PV、PVC、StorageClass，这些到底在说啥？",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "PVC描述的，是Pod想要使用的持久化存储的属性；PV描述的，则是一个具体的Volume的属性；而StorageClass描述的，则是PV和PVC的绑定关系。",
+                "column_id": 116,
+                "audio_title": "28-容器",
+                "audio_md5": "327d67f77f2389f233559ebcf54a715c",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "18",
+                    "s": "54",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1540483200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "PV、PVC体系是不是多此一举？从本地持久化卷谈起",
+                "audio_size": 7561964,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/b9\/72\/b90d3c8242ac30841c30be3779b0b872.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/b2\/02\/b2ecc008949240aaeffe3bafe427d102\/ld\/ld.m3u8",
+                "chapter_id": "483",
+                "column_had_sub": true,
+                "reading_time": 945,
+                "is_finished": true,
+                "audio_time": "00:15:45",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742147682,
+                        "max_rate": 944,
+                        "cur_rate": 944,
+                        "is_finished": true,
+                        "total_rate": 944,
+                        "learned_seconds": 949
+                    },
+                    "1": {
+                        "cur_version": 1594598220,
+                        "max_rate": 100,
+                        "cur_rate": 76,
+                        "is_finished": true,
+                        "total_rate": 100,
+                        "learned_seconds": 1860
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 61540742400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/b2\/02\/b2ecc008949240aaeffe3bafe427d102.mp3",
+                "id": 42819,
+                "had_viewed": true,
+                "article_title": "29 | PV、PVC体系是不是多此一举？从本地持久化卷谈起",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "正是通过PV和PVC，以及StorageClass这套存储体系，这个后来新添加的持久化存储方案，对Kubernetes已有用户的“破坏”，几乎可以忽略不计。",
+                "column_id": 116,
+                "audio_title": "29-容器",
+                "audio_md5": "b2ecc008949240aaeffe3bafe427d102",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "15",
+                    "s": "45",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1540742400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "编写自己的存储插件：FlexVolume与CSI",
+                "audio_size": 7258220,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/af\/09\/af20acef28af0ad8412115967e968f09.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/bc\/77\/bc308ea748a442563757ca59218d3777\/ld\/ld.m3u8",
+                "chapter_id": "483",
+                "column_had_sub": true,
+                "reading_time": 907,
+                "is_finished": true,
+                "audio_time": "00:15:07",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742152027,
+                        "max_rate": 906,
+                        "cur_rate": 906,
+                        "is_finished": true,
+                        "total_rate": 906,
+                        "learned_seconds": 919
+                    },
+                    "1": {
+                        "cur_version": 1590448996,
+                        "max_rate": 88,
+                        "cur_rate": 88,
+                        "is_finished": true,
+                        "total_rate": 88,
+                        "learned_seconds": 2469
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 61540915200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/bc\/77\/bc308ea748a442563757ca59218d3777.mp3",
+                "id": 44245,
+                "had_viewed": true,
+                "article_title": "30 | 编写自己的存储插件：FlexVolume与CSI",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "与FlexVolume相比，CSI把插件职责从“两阶段处理”扩展成了Provision、Attach和Mount三阶段。",
+                "column_id": 116,
+                "audio_title": "30_01_01_01",
+                "audio_md5": "bc308ea748a442563757ca59218d3777",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "15",
+                    "s": "07",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1540915200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "容器存储实践：CSI插件编写指南",
+                "audio_size": 6848971,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/40\/a5\/40a4e558700eb508a7cb1dd1b5c962a5.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/41\/ab\/4139f282750e199c1ade2843b7bbc0ab\/ld\/ld.m3u8",
+                "chapter_id": "483",
+                "column_had_sub": true,
+                "reading_time": 855,
+                "is_finished": true,
+                "audio_time": "00:14:15",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742152885,
+                        "max_rate": 855,
+                        "cur_rate": 855,
+                        "is_finished": true,
+                        "total_rate": 855,
+                        "learned_seconds": 856
+                    },
+                    "1": {
+                        "cur_version": 1590450364,
+                        "max_rate": 93,
+                        "cur_rate": 93,
+                        "is_finished": true,
+                        "total_rate": 93,
+                        "learned_seconds": 3145
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 61541088000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/41\/ab\/4139f282750e199c1ade2843b7bbc0ab.mp3",
+                "id": 64392,
+                "had_viewed": true,
+                "article_title": "31 | 容器存储实践：CSI插件编写指南",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在今天这篇文章中，我以一个DigitalOcean的CSI插件为例，和你分享了编写CSI插件的具体流程。",
+                "column_id": 116,
+                "audio_title": "31-容器",
+                "audio_md5": "4139f282750e199c1ade2843b7bbc0ab",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "14",
+                    "s": "15",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1541088000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Veth Pair设备+宿主机网桥：单机环境下，Linux容器的网络实现原理",
+                "audio_size": 5529336,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/83\/52\/837e99b702567e48a3a5697b74537c52.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/5b\/01\/5b32d0260bdddec861973990dd60ce01\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 691,
+                "is_finished": true,
+                "audio_time": "00:11:31",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743610499,
+                        "max_rate": 690,
+                        "cur_rate": 690,
+                        "is_finished": true,
+                        "total_rate": 691,
+                        "learned_seconds": 1382
+                    },
+                    "1": {
+                        "cur_version": 1743694140,
+                        "max_rate": 74,
+                        "cur_rate": 20,
+                        "is_finished": true,
+                        "total_rate": 74,
+                        "learned_seconds": 4260
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71541347200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/5b\/01\/5b32d0260bdddec861973990dd60ce01.mp3",
+                "id": 64948,
+                "had_viewed": true,
+                "article_title": "32 | 浅谈容器网络",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "容器要想跟外界通信，它发出的IP包就必须从Network Namespace里出来，来到宿主机上。而解决方法就是：为容器创建一个Veth Pair设备。",
+                "column_id": 116,
+                "audio_title": "32-容器更新",
+                "audio_md5": "5b32d0260bdddec861973990dd60ce01",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "31",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1541347200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从Flannel项目谈容器跨主机网络",
+                "audio_size": 9120917,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/5d\/f5\/5db2af2f4ac9d102d1c3a131044ec0f5.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/b2\/ee\/b29f9c8c2ea603185d861d12d7412bee\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 1139,
+                "is_finished": true,
+                "audio_time": "00:18:59",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743613047,
+                        "max_rate": 1138,
+                        "cur_rate": 1138,
+                        "is_finished": true,
+                        "total_rate": 1139,
+                        "learned_seconds": 2290
+                    },
+                    "1": {
+                        "cur_version": 1743542886,
+                        "max_rate": 112,
+                        "cur_rate": 112,
+                        "is_finished": true,
+                        "total_rate": 112,
+                        "learned_seconds": 2624
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71541520000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/b2\/ee\/b29f9c8c2ea603185d861d12d7412bee.mp3",
+                "id": 65287,
+                "had_viewed": true,
+                "article_title": "33 | 深入解析容器跨主机网络",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我为你详细讲解了Flannel UDP和VXLAN模式的工作原理。这两种模式其实都可以称作“隧道”机制。",
+                "column_id": 116,
+                "audio_title": "33-容器",
+                "audio_md5": "b29f9c8c2ea603185d861d12d7412bee",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "18",
+                    "s": "59",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1541520000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes网络模型与CNI网络插件",
+                "audio_size": 8354924,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/5f\/d2\/5f5301eda95c491dc0565088a8a3f7d2.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d3\/33\/d38ef6da2fbe39a55edc25ca41814233\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 1044,
+                "is_finished": true,
+                "audio_time": "00:17:24",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743694789,
+                        "max_rate": 1043,
+                        "cur_rate": 1043,
+                        "is_finished": true,
+                        "total_rate": 1044,
+                        "learned_seconds": 2087
+                    },
+                    "1": {
+                        "cur_version": 1749756333,
+                        "max_rate": 106,
+                        "cur_rate": 1,
+                        "is_finished": true,
+                        "total_rate": 106,
+                        "learned_seconds": 1636
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71541692800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d3\/33\/d38ef6da2fbe39a55edc25ca41814233.mp3",
+                "id": 67351,
+                "had_viewed": true,
+                "article_title": "34 | Kubernetes网络模型与CNI网络插件",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "用一个字概括Kubernetes网络模型就是“通”。容器间、容器与宿主机间都要通，且是直接基于容器和宿主机的IP地址。",
+                "column_id": 116,
+                "audio_title": "34-容器",
+                "audio_md5": "d38ef6da2fbe39a55edc25ca41814233",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "17",
+                    "s": "24",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1541692800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "解读Kubernetes三层网络方案",
+                "audio_size": 9362924,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/7c\/46\/7cf98f49427bd5656a38f62aa55a5b46.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/9c\/4e\/9c2355af02dec4fdf8b506b527783f4e\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 1170,
+                "is_finished": true,
+                "audio_time": "00:19:30",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743695961,
+                        "max_rate": 1169,
+                        "cur_rate": 1169,
+                        "is_finished": true,
+                        "total_rate": 1170,
+                        "learned_seconds": 2345
+                    },
+                    "1": {
+                        "cur_version": 1743620235,
+                        "max_rate": 121,
+                        "cur_rate": 121,
+                        "is_finished": true,
+                        "total_rate": 121,
+                        "learned_seconds": 1862
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71541952000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/9c\/4e\/9c2355af02dec4fdf8b506b527783f4e.mp3",
+                "id": 67775,
+                "had_viewed": true,
+                "article_title": "35 | 解读Kubernetes三层网络方案",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我为你详细讲述了Fannel host-gw模式和Calico这两种纯三层网络方案的工作原理。",
+                "column_id": 116,
+                "audio_title": "35-容器",
+                "audio_md5": "9c2355af02dec4fdf8b506b527783f4e",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "19",
+                    "s": "30",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1541952000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "为什么说Kubernetes只有soft multi-tenancy？",
+                "audio_size": 7115777,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3a\/55\/3adbd2d3250970fec77af6f0c7d83155.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/46\/58\/46705030342c8f1e84f2ae5ac84f7858\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 889,
+                "is_finished": true,
+                "audio_time": "00:14:49",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743721900,
+                        "max_rate": 888,
+                        "cur_rate": 888,
+                        "is_finished": true,
+                        "total_rate": 889,
+                        "learned_seconds": 2576
+                    },
+                    "1": {
+                        "cur_version": 1743622041,
+                        "max_rate": 99,
+                        "cur_rate": 99,
+                        "is_finished": true,
+                        "total_rate": 99,
+                        "learned_seconds": 1560
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71542124800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/46\/58\/46705030342c8f1e84f2ae5ac84f7858.mp3",
+                "id": 68316,
+                "had_viewed": true,
+                "article_title": "36 | 为什么说Kubernetes只有soft multi-tenancy？",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "NetworkPolicy只是宿主机上的一系列iptables规则。这跟传统IaaS里面的安全组，其实是类似的原理。",
+                "column_id": 116,
+                "audio_title": "36-容器x",
+                "audio_md5": "46705030342c8f1e84f2ae5ac84f7858",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "14",
+                    "s": "49",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1542124800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "找到容器不容易：Service、DNS与服务发现",
+                "audio_size": 5257656,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/5d\/e2\/5d4491c5bcfdb38d87124ffd82ef7be2.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/d4\/45\/d4b42d64264d45ef71b9559d2d0fa145\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 657,
+                "is_finished": true,
+                "audio_time": "00:10:57",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743722558,
+                        "max_rate": 656,
+                        "cur_rate": 656,
+                        "is_finished": true,
+                        "total_rate": 657,
+                        "learned_seconds": 1314
+                    },
+                    "1": {
+                        "cur_version": 1590761311,
+                        "max_rate": 69,
+                        "cur_rate": 69,
+                        "is_finished": true,
+                        "total_rate": 69,
+                        "learned_seconds": 677
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71542297600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/d4\/45\/d4b42d64264d45ef71b9559d2d0fa145.mp3",
+                "id": 68636,
+                "had_viewed": true,
+                "article_title": "37 | 找到容器不容易：Service、DNS与服务发现",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "实际上，Service机制以及Kubernetes的DNS插件，都是在帮助你解决同样一个问题，即如何找到我的某一个容器？",
+                "column_id": 116,
+                "audio_title": "37-容器",
+                "audio_md5": "d4b42d64264d45ef71b9559d2d0fa145",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "57",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1542297600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从外界连通Service与Service调试“三板斧”",
+                "audio_size": 5315578,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/4b\/9a\/4b14443b3291b2afa40124ae0b8ed29a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/df\/5d\/dfb5d3a01e072a3d77db8dbf23faad5d\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 664,
+                "is_finished": true,
+                "audio_time": "00:11:04",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743735363,
+                        "max_rate": 663,
+                        "cur_rate": 663,
+                        "is_finished": true,
+                        "total_rate": 663,
+                        "learned_seconds": 1336
+                    },
+                    "1": {
+                        "cur_version": 1752012344,
+                        "max_rate": 67,
+                        "cur_rate": 14,
+                        "is_finished": true,
+                        "total_rate": 67,
+                        "learned_seconds": 554
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71542556800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/df\/5d\/dfb5d3a01e072a3d77db8dbf23faad5d.mp3",
+                "id": 68964,
+                "had_viewed": true,
+                "article_title": "38 | 从外界连通Service与Service调试“三板斧”",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我分享了从外部访问Service的几种方式和具体的工作原理，以及当Service出现故障时，如何根据它的工作原理，按照一定的思路去定位问题的可行之道。",
+                "column_id": 116,
+                "audio_title": "38-容器v2",
+                "audio_md5": "dfb5d3a01e072a3d77db8dbf23faad5d",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "04",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1542556800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Ingress实际上就是Kubernetes对“反向代理”的抽象",
+                "audio_size": 4877242,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/12\/85\/12f9e789f7862dd83a4135f7ac694e85.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/7b\/97\/7b6585028a2841253d4a7dab2ce1ee97\/ld\/ld.m3u8",
+                "chapter_id": "484",
+                "column_had_sub": true,
+                "reading_time": 609,
+                "is_finished": true,
+                "audio_time": "00:10:09",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743802383,
+                        "max_rate": 608,
+                        "cur_rate": 608,
+                        "is_finished": true,
+                        "total_rate": 608,
+                        "learned_seconds": 1226
+                    },
+                    "1": {
+                        "cur_version": 1590761913,
+                        "max_rate": 75,
+                        "cur_rate": 75,
+                        "is_finished": true,
+                        "total_rate": 75,
+                        "learned_seconds": 445
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 71542729600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/7b\/97\/7b6585028a2841253d4a7dab2ce1ee97.mp3",
+                "id": 69214,
+                "had_viewed": true,
+                "article_title": "39 | 谈谈Service与Ingress",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在实际的生产环境中，Ingress带来的灵活度和自由度，对于使用容器的用户来说，其实是非常有意义的。",
+                "column_id": 116,
+                "audio_title": "39-容器x",
+                "audio_md5": "7b6585028a2841253d4a7dab2ce1ee97",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "09",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1542729600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes的资源模型与资源管理",
+                "audio_size": 5007418,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/44\/e5\/44875670a53267ced30209b5b62678e5.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/14\/b4\/14e542e8b91de60f2e4a7e9b3572eeb4\/ld\/ld.m3u8",
+                "chapter_id": "485",
+                "column_had_sub": true,
+                "reading_time": 626,
+                "is_finished": true,
+                "audio_time": "00:10:26",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1743802839,
+                        "max_rate": 625,
+                        "cur_rate": 454,
+                        "is_finished": true,
+                        "total_rate": 625,
+                        "learned_seconds": 1080
+                    },
+                    "1": {
+                        "cur_version": 1590807004,
+                        "max_rate": 63,
+                        "cur_rate": 63,
+                        "is_finished": true,
+                        "total_rate": 63,
+                        "learned_seconds": 498
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 81542902400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/14\/b4\/14e542e8b91de60f2e4a7e9b3572eeb4.mp3",
+                "id": 69678,
+                "had_viewed": true,
+                "article_title": "40 | Kubernetes的资源模型与资源管理",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我先为你讲解了Kubernetes对资源的定义方式和资源模型的设计，然后讲述了Kubernetes对Pod进行Eviction的具体策略和实践方式。",
+                "column_id": 116,
+                "audio_title": "40-容器更新",
+                "audio_md5": "14e542e8b91de60f2e4a7e9b3572eeb4",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "26",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1542902400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "十字路口上的Kubernetes默认调度器",
+                "audio_size": 4739770,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/57\/b2\/57ab8cb1e62baf83cfdbffb8427c4db2.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/48\/f5\/481afebfbbe867534f6b7d1726fcf6f5\/ld\/ld.m3u8",
+                "chapter_id": "485",
+                "column_had_sub": true,
+                "reading_time": 592,
+                "is_finished": true,
+                "audio_time": "00:09:52",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742251469,
+                        "max_rate": 591,
+                        "cur_rate": 591,
+                        "is_finished": true,
+                        "total_rate": 591,
+                        "learned_seconds": 592
+                    },
+                    "1": {
+                        "cur_version": 1590815725,
+                        "max_rate": 45,
+                        "cur_rate": 45,
+                        "is_finished": true,
+                        "total_rate": 45,
+                        "learned_seconds": 568
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 81543161600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/48\/f5\/481afebfbbe867534f6b7d1726fcf6f5.mp3",
+                "id": 69890,
+                "had_viewed": true,
+                "article_title": "41 | 十字路口上的Kubernetes默认调度器",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我和你详细分享了K8s默认调度器的设计与实现，并分析了默认调度器现在正在经历的重构、发展路线，以及未来的走向。",
+                "column_id": 116,
+                "audio_title": "41-容器",
+                "audio_md5": "481afebfbbe867534f6b7d1726fcf6f5",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "09",
+                    "s": "52",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1543161600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Predicates和Priorities：Kubernetes默认调度器调度策略解析",
+                "audio_size": 5315770,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/c3\/eb\/c3d4bc9d06ef0cc335e135de52df5feb.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/86\/yy\/8602030a4f575058b4a38fcc13cc8byy\/ld\/ld.m3u8",
+                "chapter_id": "485",
+                "column_had_sub": true,
+                "reading_time": 664,
+                "is_finished": true,
+                "audio_time": "00:11:04",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742318251,
+                        "max_rate": 663,
+                        "cur_rate": 663,
+                        "is_finished": true,
+                        "total_rate": 664,
+                        "learned_seconds": 668
+                    },
+                    "1": {
+                        "cur_version": 1590848612,
+                        "max_rate": 64,
+                        "cur_rate": 64,
+                        "is_finished": true,
+                        "total_rate": 64,
+                        "learned_seconds": 426
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 81543334400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/86\/yy\/8602030a4f575058b4a38fcc13cc8byy.mp3",
+                "id": 70211,
+                "had_viewed": true,
+                "article_title": "42 | Kubernetes默认调度器调度策略解析",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我为你讲述了 Kubernetes 默认调度器里的主要调度算法。",
+                "column_id": 116,
+                "audio_title": "42-容器.mp3",
+                "audio_md5": "8602030a4f575058b4a38fcc13cc8byy",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "04",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1543334400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes默认调度器的优先级与抢占机制",
+                "audio_size": 10826902,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/7f\/c0\/7f8695cf6b4430bf70a8a15265f864c0.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/dc\/1a\/dc0441b3e25bbee1e3c9a56cdbaf161a\/hd\/hd.m3u8",
+                "chapter_id": "485",
+                "column_had_sub": true,
+                "reading_time": 678,
+                "is_finished": true,
+                "audio_time": "00:11:18",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742340475,
+                        "max_rate": 676,
+                        "cur_rate": 676,
+                        "is_finished": true,
+                        "total_rate": 676,
+                        "learned_seconds": 682
+                    },
+                    "1": {
+                        "cur_version": 1590848988,
+                        "max_rate": 58,
+                        "cur_rate": 58,
+                        "is_finished": true,
+                        "total_rate": 58,
+                        "learned_seconds": 743
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 81543507200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/dc\/1a\/dc0441b3e25bbee1e3c9a56cdbaf161a.mp3",
+                "id": 70519,
+                "had_viewed": true,
+                "article_title": "43 | Kubernetes默认调度器的优先级与抢占机制",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我为你详细讲述了 Kubernetes 里关于 Pod 的优先级和抢占机制的设计与实现。",
+                "column_id": 116,
+                "audio_title": "43-容器",
+                "audio_md5": "dc0441b3e25bbee1e3c9a56cdbaf161a",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "11",
+                    "s": "18",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1543507200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes GPU管理与Device Plugin机制",
+                "audio_size": 10425748,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/a5\/d8\/a5741e569d6d9e9a27b1b38f967a22d8.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/a8\/d6\/a8db9e648b0fe173c7e5e6f8a05dc3d6\/hd\/hd.m3u8",
+                "chapter_id": "485",
+                "column_had_sub": true,
+                "reading_time": 653,
+                "is_finished": true,
+                "audio_time": "00:10:53",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742483523,
+                        "max_rate": 651,
+                        "cur_rate": 651,
+                        "is_finished": true,
+                        "total_rate": 651,
+                        "learned_seconds": 653
+                    },
+                    "1": {
+                        "cur_version": 1590849637,
+                        "max_rate": 49,
+                        "cur_rate": 49,
+                        "is_finished": true,
+                        "total_rate": 49,
+                        "learned_seconds": 922
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 81543766400,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/a8\/d6\/a8db9e648b0fe173c7e5e6f8a05dc3d6.mp3",
+                "id": 70876,
+                "had_viewed": true,
+                "article_title": "44 | Kubernetes GPU管理与Device Plugin机制",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我为你详细讲述了 Kubernetes 对 GPU 的管理方式，以及它所需要使用的 Device Plugin 机制。",
+                "column_id": 116,
+                "audio_title": "44-容器",
+                "audio_md5": "a8db9e648b0fe173c7e5e6f8a05dc3d6",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "53",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1543766400,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "幕后英雄：SIG-Node与CRI",
+                "audio_size": 9016705,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/82\/a6\/82b26f668014b56a5d23f27348bae8a6.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/dd\/3a\/dd28bbef572731c1cc9edaaae166d13a\/hd\/hd.m3u8",
+                "chapter_id": "486",
+                "column_had_sub": true,
+                "reading_time": 565,
+                "is_finished": true,
+                "audio_time": "00:09:25",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742484256,
+                        "max_rate": 563,
+                        "cur_rate": 13,
+                        "is_finished": true,
+                        "total_rate": 563,
+                        "learned_seconds": 579
+                    },
+                    "1": {
+                        "cur_version": 1590947783,
+                        "max_rate": 45,
+                        "cur_rate": 45,
+                        "is_finished": true,
+                        "total_rate": 45,
+                        "learned_seconds": 518
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 91543939200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/dd\/3a\/dd28bbef572731c1cc9edaaae166d13a.mp3",
+                "id": 71056,
+                "had_viewed": true,
+                "article_title": "45 | 幕后英雄：SIG-Node与CRI",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我首先为你介绍了 SIG-Node 的职责，以及 kubelet 这个组件的工作原理。",
+                "column_id": 116,
+                "audio_title": "45-容器更新",
+                "audio_md5": "dd28bbef572731c1cc9edaaae166d13a",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "09",
+                    "s": "25",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1543939200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "解读 CRI 与 容器运行时",
+                "audio_size": 8228575,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/f6\/37\/f6a74697f168eb914e680fcc1a1d9237.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/61\/6b\/6151026f3abcb3afbb766c2b38ca086b\/hd\/hd.m3u8",
+                "chapter_id": "486",
+                "column_had_sub": true,
+                "reading_time": 516,
+                "is_finished": true,
+                "audio_time": "00:08:36",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742484836,
+                        "max_rate": 515,
+                        "cur_rate": 515,
+                        "is_finished": true,
+                        "total_rate": 516,
+                        "learned_seconds": 516
+                    },
+                    "1": {
+                        "cur_version": 1742512169,
+                        "max_rate": 46,
+                        "cur_rate": 2,
+                        "is_finished": true,
+                        "total_rate": 46,
+                        "learned_seconds": 718
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 91544112000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/61\/6b\/6151026f3abcb3afbb766c2b38ca086b.mp3",
+                "id": 71499,
+                "had_viewed": true,
+                "article_title": "46 | 解读 CRI 与 容器运行时",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "在本篇文章中，我为你详细解读了 CRI 的设计和具体工作原理，并为你梳理了实现CRI 接口的核心流程。",
+                "column_id": 116,
+                "audio_title": "46-容器",
+                "audio_md5": "6151026f3abcb3afbb766c2b38ca086b",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "08",
+                    "s": "36",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1544112000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "绝不仅仅是安全：Kata Containers 与 gVisor",
+                "audio_size": 10246021,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/04\/4a\/040436ac0b347399bf66824487c9784a.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/82\/24\/82703193a84be5389db43f9867223d24\/hd\/hd.m3u8",
+                "chapter_id": "486",
+                "column_had_sub": true,
+                "reading_time": 639,
+                "is_finished": true,
+                "audio_time": "00:10:39",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742485479,
+                        "max_rate": 639,
+                        "cur_rate": 639,
+                        "is_finished": true,
+                        "total_rate": 639,
+                        "learned_seconds": 642
+                    },
+                    "1": {
+                        "cur_version": 1742512184,
+                        "max_rate": 48,
+                        "cur_rate": 36,
+                        "is_finished": true,
+                        "total_rate": 48,
+                        "learned_seconds": 1160
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 91544371200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/82\/24\/82703193a84be5389db43f9867223d24.mp3",
+                "id": 71606,
+                "had_viewed": true,
+                "article_title": "47 | 绝不仅仅是安全：Kata Containers 与 gVisor",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我为你介绍了拥有独立内核的安全容器项目，对比了 KataContainers 和 gVisor 的设计与实现细节。",
+                "column_id": 116,
+                "audio_title": "47-容器更新",
+                "audio_md5": "82703193a84be5389db43f9867223d24",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "39",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1544371200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Prometheus、Metrics Server与Kubernetes监控体系",
+                "audio_size": 9023377,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/7b\/6f\/7baea62f4f82f58ee132146a4231656f.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/75\/79\/75a1f40a2a9f78e948c578d1d954a879\/hd\/hd.m3u8",
+                "chapter_id": "487",
+                "column_had_sub": true,
+                "reading_time": 565,
+                "is_finished": true,
+                "audio_time": "00:09:25",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742486006,
+                        "max_rate": 510,
+                        "cur_rate": 510,
+                        "is_finished": false,
+                        "total_rate": 565,
+                        "learned_seconds": 515
+                    },
+                    "1": {
+                        "cur_version": 1590957592,
+                        "max_rate": 50,
+                        "cur_rate": 50,
+                        "is_finished": true,
+                        "total_rate": 50,
+                        "learned_seconds": 1090
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 101544544000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/75\/79\/75a1f40a2a9f78e948c578d1d954a879.mp3",
+                "id": 72281,
+                "had_viewed": true,
+                "article_title": "48 | Prometheus、Metrics Server与Kubernetes监控体系",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我介绍了Kubernetes当前监控体系的设计、Prometheus 在其中的地位，以及以它为核心的监控系统的架构设计。",
+                "column_id": 116,
+                "audio_title": "48-容器",
+                "audio_md5": "75a1f40a2a9f78e948c578d1d954a879",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "09",
+                    "s": "25",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1544544000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Custom Metrics: 让Auto Scaling不再“食之无味”",
+                "audio_size": 7554286,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/fe\/1d\/fe922d3c955f164c7a37cdfc91eaa01d.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/a0\/2c\/a072e72c01298538ce8b7e0d74b0382c\/hd\/hd.m3u8",
+                "chapter_id": "487",
+                "column_had_sub": true,
+                "reading_time": 471,
+                "is_finished": true,
+                "audio_time": "00:07:51",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742512656,
+                        "max_rate": 471,
+                        "cur_rate": 471,
+                        "is_finished": true,
+                        "total_rate": 471,
+                        "learned_seconds": 473
+                    },
+                    "1": {
+                        "cur_version": 1742684234,
+                        "max_rate": 54,
+                        "cur_rate": 3,
+                        "is_finished": true,
+                        "total_rate": 54,
+                        "learned_seconds": 431
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 101544716800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/a0\/2c\/a072e72c01298538ce8b7e0d74b0382c.mp3",
+                "id": 72693,
+                "had_viewed": true,
+                "article_title": "49 | Custom Metrics: 让Auto Scaling不再“食之无味”",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我为你详细讲解了 Kubernetes 里对自定义监控指标，即 Custom Metrics 的设计与实现机制。",
+                "column_id": 116,
+                "audio_title": "49-容器",
+                "audio_md5": "a072e72c01298538ce8b7e0d74b0382c",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "07",
+                    "s": "51",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1544716800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "让日志无处可逃：容器日志收集与管理",
+                "audio_size": 6941310,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/7c\/da\/7c310cb8de0523d553cc2196e91f56da.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/f0\/c0\/f0c936846d55e32127539d90523342c0\/ld\/ld.m3u8",
+                "chapter_id": "487",
+                "column_had_sub": true,
+                "reading_time": 435,
+                "is_finished": true,
+                "audio_time": "00:07:15",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742513092,
+                        "max_rate": 434,
+                        "cur_rate": 434,
+                        "is_finished": true,
+                        "total_rate": 435,
+                        "learned_seconds": 435
+                    },
+                    "1": {
+                        "cur_version": 1590958428,
+                        "max_rate": 44,
+                        "cur_rate": 44,
+                        "is_finished": true,
+                        "total_rate": 44,
+                        "learned_seconds": 485
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 101544976000,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/f0\/c0\/f0c936846d55e32127539d90523342c0.mp3",
+                "id": 73156,
+                "had_viewed": true,
+                "article_title": "50 | 让日志无处可逃：容器日志收集与管理",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我建议你将应用日志输出到stdout和stderr，然后通过在宿主机上部署 logging-agent 来集中处理日志。",
+                "column_id": 116,
+                "audio_title": "50-容器更新",
+                "audio_md5": "f0c936846d55e32127539d90523342c0",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "07",
+                    "s": "15",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1544976000,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "谈谈Kubernetes开源社区和未来走向",
+                "audio_size": 9099285,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/5a\/a4\/5a5fc3be5289c7613fe4fe737f8408a4.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/67\/19\/679a76276faae0c00e479787d23db319\/ld\/ld.m3u8",
+                "chapter_id": "488",
+                "column_had_sub": true,
+                "reading_time": 570,
+                "is_finished": true,
+                "audio_time": "00:09:30",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742513666,
+                        "max_rate": 569,
+                        "cur_rate": 569,
+                        "is_finished": true,
+                        "total_rate": 570,
+                        "learned_seconds": 574
+                    },
+                    "1": {
+                        "cur_version": 1590958786,
+                        "max_rate": 34,
+                        "cur_rate": 34,
+                        "is_finished": true,
+                        "total_rate": 34,
+                        "learned_seconds": 705
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 111545148800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/67\/19\/679a76276faae0c00e479787d23db319.mp3",
+                "id": 73477,
+                "had_viewed": true,
+                "article_title": "51 | 谈谈Kubernetes开源社区和未来走向",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "我为你详细讲述了 CNCF 和 Kubernetes 社区的关系，以及 Kubernetes 社区的运作方式。",
+                "column_id": 116,
+                "audio_title": "51-容器更新",
+                "audio_md5": "679a76276faae0c00e479787d23db319",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "09",
+                    "s": "30",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1545148800,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "答疑：在问题中解决问题，在思考中产生思考",
+                "audio_size": 12667123,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/1e\/7b\/1ed13430bf5bb67e4f8c492d32482e7b.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/b4\/6b\/b4eed5ae1970e1f4291770444af5386b\/hd\/hd.m3u8",
+                "chapter_id": "489",
+                "column_had_sub": true,
+                "reading_time": 794,
+                "is_finished": true,
+                "audio_time": "00:13:14",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742514462,
+                        "max_rate": 793,
+                        "cur_rate": 793,
+                        "is_finished": true,
+                        "total_rate": 794,
+                        "learned_seconds": 794
+                    },
+                    "1": {
+                        "cur_version": 1590959650,
+                        "max_rate": 74,
+                        "cur_rate": 74,
+                        "is_finished": true,
+                        "total_rate": 74,
+                        "learned_seconds": 1610
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 121545321600,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/b4\/6b\/b4eed5ae1970e1f4291770444af5386b.mp3",
+                "id": 73790,
+                "had_viewed": true,
+                "article_title": "52 | 答疑：在问题中解决问题，在思考中产生思考",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天，我会对本专栏部分文章的思考题，进行一次集中地汇总和答疑，希望帮你更好地理解和掌握 Kubernetes 项目。",
+                "column_id": 116,
+                "audio_title": "52-容器",
+                "audio_md5": "b4eed5ae1970e1f4291770444af5386b",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "13",
+                    "s": "14",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1545321600,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "特别放送 | 2019 年，容器技术生态会发生些什么？",
+                "audio_size": 7567652,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/dd\/42\/dd92ad9f6cc65eb8b27d3923131ef642.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/60\/01\/60599d21a5cad232cd2e40fbaa6f3001\/ld\/ld.m3u8",
+                "chapter_id": "490",
+                "column_had_sub": true,
+                "reading_time": 474,
+                "is_finished": true,
+                "audio_time": "00:07:54",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": false,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742524349,
+                        "max_rate": 473,
+                        "cur_rate": 473,
+                        "is_finished": true,
+                        "total_rate": 474,
+                        "learned_seconds": 478
+                    },
+                    "1": {
+                        "cur_version": 1590959780,
+                        "max_rate": 29,
+                        "cur_rate": 29,
+                        "is_finished": true,
+                        "total_rate": 29,
+                        "learned_seconds": 1585
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 131551269700,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/60\/01\/60599d21a5cad232cd2e40fbaa6f3001.mp3",
+                "id": 83596,
+                "had_viewed": true,
+                "article_title": "特别放送 | 2019 年，容器技术生态会发生些什么？",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "今天我想再和你做一次分享，一起聊聊在2019年，容器技术生态会发生些什么。",
+                "column_id": 116,
+                "audio_title": "2019容器趋势",
+                "audio_md5": "60599d21a5cad232cd2e40fbaa6f3001",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "07",
+                    "s": "54",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1551269700,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "从 “Tomcat 与 WAR 包解耦”说起",
+                "audio_size": 10052588,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/72\/90\/72d2c871e761a0801d2cce4c8ca17e90.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/\/media\/audio\/fa\/13\/fa1d1648d2fe20ee31382103e9e8e513\/ld\/ld.m3u8",
+                "chapter_id": "490",
+                "column_had_sub": true,
+                "reading_time": 628,
+                "is_finished": true,
+                "audio_time": "00:10:28",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": false,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742524979,
+                        "max_rate": 627,
+                        "cur_rate": 627,
+                        "is_finished": true,
+                        "total_rate": 628,
+                        "learned_seconds": 628
+                    },
+                    "1": {
+                        "cur_version": 1590959860,
+                        "max_rate": 52,
+                        "cur_rate": 52,
+                        "is_finished": true,
+                        "total_rate": 52,
+                        "learned_seconds": 5049
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 131565179200,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/fa\/13\/fa1d1648d2fe20ee31382103e9e8e513.mp3",
+                "id": 114197,
+                "had_viewed": true,
+                "article_title": "特别放送 | 基于 Kubernetes 的云原生应用管理，到底应该怎么做？",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "接下来我会再通过几篇文章，与你分享“云原生应用管理”，让你更加深刻地理解Kubernetes本质。",
+                "column_id": 116,
+                "audio_title": "k8s特别放送1-修改",
+                "audio_md5": "fa1d1648d2fe20ee31382103e9e8e513",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "10",
+                    "s": "28",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1565179200,
+                "include_audio": true
+            },
+            {
+                "article_sharetitle": "Kubernetes：赢开发者赢天下",
+                "audio_size": 4933441,
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/9a\/e8\/9a7c6adbdbf92d4ce3f68ad108bb7be8.jpg",
+                "subtitles": [],
+                "audio_url": "https:\/\/res001.geekbang.org\/media\/audio\/33\/ef\/335c67ede29d9d7306e581cfff81e2ef\/hd\/hd.m3u8",
+                "chapter_id": "491",
+                "column_had_sub": true,
+                "reading_time": 309,
+                "is_finished": true,
+                "audio_time": "00:05:09",
+                "rate_percent": 100,
+                "column_sku": 100015201,
+                "is_required": true,
+                "rate": {
+                    "2": {
+                        "cur_version": 1742526634,
+                        "max_rate": 308,
+                        "cur_rate": 21,
+                        "is_finished": true,
+                        "total_rate": 309,
+                        "learned_seconds": 335
+                    },
+                    "1": {
+                        "cur_version": 1590959891,
+                        "max_rate": 13,
+                        "cur_rate": 13,
+                        "is_finished": true,
+                        "total_rate": 13,
+                        "learned_seconds": 170
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 141545580800,
+                "article_subtitle": "无",
+                "audio_download_url": "https:\/\/static001.geekbang.org\/resource\/audio\/33\/ef\/335c67ede29d9d7306e581cfff81e2ef.mp3",
+                "id": 74278,
+                "had_viewed": true,
+                "article_title": "结束语 | Kubernetes：赢开发者赢天下",
+                "column_bgcolor": "#8899a2",
+                "is_video_preview": false,
+                "article_summary": "“深入剖析Kubernetes专栏”的结束，其实是你技术生涯全新的开始。我相信你接下来一定能够乘风破浪，一往无前！",
+                "column_id": 116,
+                "audio_title": "结束语",
+                "audio_md5": "335c67ede29d9d7306e581cfff81e2ef",
+                "ip_address": "北京",
+                "author_name": "张磊",
+                "author_intro": "Kubernetes社区资深成员与项目维护者",
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "column_cover": "https:\/\/static001.geekbang.org\/resource\/image\/3d\/a3\/3d7751a2844e063b00125c017bf360a3.jpg",
+                "audio_dubber": "张磊",
+                "audio_time_arr": {
+                    "m": "05",
+                    "s": "09",
+                    "h": "00"
+                },
+                "article_could_preview": false,
+                "article_ctime": 1545580800,
+                "include_audio": true
+            },
+            {
+                "article_subtitle": "",
+                "id": 224358,
+                "had_viewed": true,
+                "article_title": "结课测试｜这些Kubernetes的相关知识，你都掌握了吗？",
+                "include_audio": false,
+                "subtitles": [],
+                "article_could_preview": false,
+                "chapter_id": "1343",
+                "column_had_sub": true,
+                "reading_time": 29,
+                "is_finished": true,
+                "rate_percent": 100,
+                "ip_address": "北京",
+                "article_summary": "学习的知识和技能有多少转化成自己的了？一起来测一测。",
+                "article_cover": "https:\/\/static001.geekbang.org\/resource\/image\/16\/31\/1615f2c15ebab23cf4015ae0db3fa031.jpg",
+                "column_sku": 100015201,
+                "offline": {
+                    "file_name": "",
+                    "download_url": ""
+                },
+                "is_video_preview": false,
+                "is_required": false,
+                "rate": {
+                    "2": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    },
+                    "1": {
+                        "cur_version": 1594597326,
+                        "max_rate": 6,
+                        "cur_rate": 6,
+                        "is_finished": true,
+                        "total_rate": 6,
+                        "learned_seconds": 231
+                    },
+                    "3": {
+                        "cur_version": 0,
+                        "max_rate": 0,
+                        "cur_rate": 0,
+                        "is_finished": false,
+                        "total_rate": 0,
+                        "learned_seconds": 0
+                    }
+                },
+                "score": 151586844360,
+                "article_ctime": 1586844360
+            }
+        ],
+        "page": {
+            "count": 57,
+            "more": false
+        }
+    },
+    "code": 0
+}

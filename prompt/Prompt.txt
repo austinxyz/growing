@@ -680,4 +680,15 @@ Phase 4 实施计划
   6. 文档更新 - 0.5小时
   完成Phase5的交付总结
 
-  
+  好，现在继续需求实现，Phase 6
+  剩下的Skill可以分成目两类
+  第一类，云计算，eBay Knowledge，DevOps，Software Development
+  1. 这一类，可能会有很多Focus Area，还是需要有大分类，比如云计算可以分为， Kubernetes，Network，Security，Kernel
+  2. 这样Skill - 大分类 - Focus Area
+  3. 还是围绕学习技能，Focus Area 可以添加学习资料，可以添加试题。对于学习资料，用户可以有笔记，包括整体笔记和知识点笔记。对于试题，有答题重点，用户有答题笔记，可以关联知识点。
+
+  第二类， Behaviroal，People Management，Project Management
+  1. 这些可能只要Focus Area就可以了， Focus Area不多
+  2. Focus Area下可以有学习资料，但是更重要的是试题，试题也相对比较固定，但是每个试题的解答最好是用STAR方法，结合个人实例。答题笔记关联STAR模版
+
+  但是总的来说还是两部分，一部分是学习，另一部分是笔记也答题，答题对于不同的skill可以有模版。我再考虑是不是改造现有的职业技能页面（侧重学习），和我的试题库（侧重答题），还是将学习和答题融合在一起。请给一些建议，作为新的Phase 6的需求概要，保存在requirement目录
