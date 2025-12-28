@@ -81,9 +81,9 @@
         <div class="space-y-1">
           <div class="nav-section-title">职业路径</div>
           <router-link
-            to="/skills/career-paths"
+            to="/general-skills/learning"
             class="nav-item"
-            :class="isActive('/skills/career-paths')"
+            :class="isActive('/general-skills/learning')"
           >
             <Briefcase class="w-5 h-5" />
             <span>职业技能</span>

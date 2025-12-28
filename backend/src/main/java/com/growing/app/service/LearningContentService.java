@@ -78,29 +78,57 @@ public class LearningContentService {
         // 获取所有学习内容
         List<LearningContent> allContents = learningContentRepository.findByFocusAreaIdOrderByStageIdAscSortOrderAsc(focusAreaId);
 
-        // 按阶段分组
-        Map<Long, List<LearningContent>> contentsByStage = allContents.stream()
+        // 分离有stage和无stage的内容
+        List<LearningContent> contentsWithStage = new ArrayList<>();
+        List<LearningContent> contentsWithoutStage = new ArrayList<>();
+        for (LearningContent content : allContents) {
+            if (content.getStage() != null) {
+                contentsWithStage.add(content);
+            } else {
+                contentsWithoutStage.add(content);
+            }
+        }
+
+        // 按阶段分组（只处理有stage的内容）
+        Map<Long, List<LearningContent>> contentsByStage = contentsWithStage.stream()
                 .collect(Collectors.groupingBy(c -> c.getStage().getId(), LinkedHashMap::new, Collectors.toList()));
 
         // 构建StageContentDTO列表
-        List<StageContentDTO> stageContents = stages.stream()
-                .map(stage -> {
-                    StageContentDTO dto = new StageContentDTO();
-                    dto.setId(stage.getId());
-                    dto.setStageName(stage.getStageName());
-                    dto.setStageType(stage.getStageType());
-                    dto.setDescription(stage.getDescription());
-                    dto.setSortOrder(stage.getSortOrder());
+        List<StageContentDTO> stageContents = new ArrayList<>();
 
-                    // 填充该阶段的学习内容
-                    List<LearningContent> stageContentList = contentsByStage.getOrDefault(stage.getId(), new ArrayList<>());
-                    dto.setContents(stageContentList.stream()
-                            .map(this::convertToDTO)
-                            .collect(Collectors.toList()));
+        // 添加有阶段的内容
+        for (LearningStage stage : stages) {
+            StageContentDTO dto = new StageContentDTO();
+            dto.setId(stage.getId());
+            dto.setStageName(stage.getStageName());
+            dto.setStageType(stage.getStageType());
+            dto.setDescription(stage.getDescription());
+            dto.setSortOrder(stage.getSortOrder());
 
-                    return dto;
-                })
-                .collect(Collectors.toList());
+            // 填充该阶段的学习内容
+            List<LearningContent> stageContentList = contentsByStage.getOrDefault(stage.getId(), new ArrayList<>());
+            dto.setContents(stageContentList.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+
+            stageContents.add(dto);
+        }
+
+        // 如果有没有stage的内容，创建一个默认分组
+        if (!contentsWithoutStage.isEmpty()) {
+            StageContentDTO defaultStage = new StageContentDTO();
+            defaultStage.setId(0L); // 使用0表示默认分组
+            defaultStage.setStageName("学习资料"); // 默认分组名称
+            defaultStage.setStageType("default");
+            defaultStage.setDescription("通用学习资料");
+            defaultStage.setSortOrder(999); // 放在最后
+
+            defaultStage.setContents(contentsWithoutStage.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList()));
+
+            stageContents.add(defaultStage);
+        }
 
         result.setStages(stageContents);
         return result;

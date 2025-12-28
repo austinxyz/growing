@@ -22,13 +22,25 @@ const routes = [
     name: 'Dashboard',
     component: () => import('../views/Dashboard.vue')
   },
-  // 职业技能
+  // 职业技能 - 旧版本（保留兼容性）
   {
     path: '/skills/career-paths',
     name: 'MyCareerPaths',
     component: () => import('../views/careerPaths/MyCareerPaths.vue')
   },
-  // 用户端 - 技能详情
+  // 通用技能学习 - 新版（Phase 6 v2 - 复用管理页面布局）
+  {
+    path: '/general-skills/learning',
+    name: 'GeneralSkillLearning',
+    component: () => import('../views/GeneralSkillLearning.vue')
+  },
+  // 通用技能学习 - 带skillId参数
+  {
+    path: '/general-skills/learning/:skillId',
+    name: 'GeneralSkillLearningWithId',
+    component: () => import('../views/GeneralSkillLearning.vue')
+  },
+  // 用户端 - 技能详情（旧版，保留兼容性）⚠️ 动态路由必须放在最后
   {
     path: '/skills/:id',
     name: 'SkillDetail',
@@ -142,7 +154,7 @@ const routes = [
     name: 'AnswerTemplateManagement',
     component: () => import('../views/admin/AnswerTemplateManagement.vue'),
     meta: { requiresAdmin: true }
-  }
+  },
 ]
 
 const router = createRouter({

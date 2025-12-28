@@ -157,22 +157,70 @@ export const importAIKnowledgePoints = (contentId, knowledgePoints) => {
 
 /**
  * 获取笔记（AI笔记 + 用户笔记）
- * GET /learning-contents/{contentId}/notes
+ * GET /learning-contents/{contentId}/notes-with-ai
  * @param {Number} contentId - 学习内容ID
  * @returns {Promise} { aiNote: UserLearningContentNoteDTO, userNote: UserLearningContentNoteDTO }
  */
 export const getNotes = (contentId) => {
-  return api.get(`/learning-contents/${contentId}/notes`)
+  return api.get(`/learning-contents/${contentId}/notes-with-ai`)
 }
 
 /**
  * 获取知识点（AI知识点 + 用户知识点）
- * GET /learning-contents/{contentId}/knowledge-points
+ * GET /learning-contents/{contentId}/knowledge-points-with-ai
  * @param {Number} contentId - 学习内容ID
  * @returns {Promise} { aiKnowledgePoints: [], userKnowledgePoints: [] }
  */
 export const getKnowledgePoints = (contentId) => {
-  return api.get(`/learning-contents/${contentId}/knowledge-points`)
+  return api.get(`/learning-contents/${contentId}/knowledge-points-with-ai`)
+}
+
+/**
+ * 保存或更新用户学习笔记
+ * POST /learning-contents/{contentId}/note
+ * @param {Number} contentId - 学习内容ID
+ * @param {String} noteContent - 笔记内容(Markdown)
+ * @returns {Promise} UserLearningContentNoteDTO
+ */
+export const saveOrUpdateNote = (contentId, noteContent) => {
+  return api.post(`/learning-contents/${contentId}/note`, { noteContent })
+}
+
+/**
+ * 删除用户学习笔记
+ * DELETE /learning-contents/{contentId}/note
+ * @param {Number} contentId - 学习内容ID
+ * @returns {Promise} void
+ */
+export const deleteNote = (contentId) => {
+  return api.delete(`/learning-contents/${contentId}/note`)
+}
+
+/**
+ * 创建或更新用户知识点
+ * POST/PUT /learning-contents/knowledge-points (新建) 或 PUT /learning-contents/knowledge-points/{pointId} (更新)
+ * @param {Number} contentId - 学习内容ID
+ * @param {Object} knowledgePoint - { id?, title, content }
+ * @returns {Promise} UserLearningContentKnowledgePointDTO
+ */
+export const saveOrUpdateKnowledgePoint = (contentId, knowledgePoint) => {
+  if (knowledgePoint.id) {
+    // 更新现有知识点
+    return api.put(`/learning-contents/knowledge-points/${knowledgePoint.id}`, knowledgePoint)
+  } else {
+    // 创建新知识点
+    return api.post(`/learning-contents/${contentId}/knowledge-points`, knowledgePoint)
+  }
+}
+
+/**
+ * 删除用户知识点
+ * DELETE /learning-contents/knowledge-points/{pointId}
+ * @param {Number} pointId - 知识点ID
+ * @returns {Promise} void
+ */
+export const deleteKnowledgePoint = (pointId) => {
+  return api.delete(`/learning-contents/knowledge-points/${pointId}`)
 }
 
 export default {
@@ -190,5 +238,9 @@ export default {
   importAINote,
   importAIKnowledgePoints,
   getNotes,
-  getKnowledgePoints
+  getKnowledgePoints,
+  saveOrUpdateNote,
+  deleteNote,
+  saveOrUpdateKnowledgePoint,
+  deleteKnowledgePoint
 }

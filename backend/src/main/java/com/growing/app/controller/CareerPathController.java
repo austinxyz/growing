@@ -33,11 +33,9 @@ public class CareerPathController {
 
     @GetMapping
     @Operation(summary = "获取所有职业路径(包含技能)", description = "获取系统中所有可用的职业路径及其关联的技能")
-    public ResponseEntity<Map<String, Object>> getAllCareerPaths() {
+    public ResponseEntity<List<CareerPathWithSkillsDTO>> getAllCareerPaths() {
         List<CareerPathWithSkillsDTO> careerPaths = careerPathService.getActiveCareerPathsWithSkills();
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", careerPaths);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(careerPaths);
     }
 
     @GetMapping("/{id}")
@@ -49,16 +47,14 @@ public class CareerPathController {
 
     @GetMapping("/my")
     @Operation(summary = "获取当前用户的职业路径", description = "获取当前登录用户关联的所有职业路径")
-    public ResponseEntity<Map<String, Object>> getMyCareerPaths(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<CareerPath>> getMyCareerPaths(@RequestHeader("Authorization") String authHeader) {
         String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
         List<CareerPath> myCareerPaths = user.getCareerPaths().stream()
                 .collect(Collectors.toList());
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", myCareerPaths);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(myCareerPaths);
     }
 
     @PostMapping
