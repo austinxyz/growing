@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Table(name = "career_path_skills",
        uniqueConstraints = @UniqueConstraint(columnNames = {"career_path_id", "skill_id"}))
 @Data
+@lombok.EqualsAndHashCode(exclude = {"careerPath", "skill"})
 public class CareerPathSkill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -418,5 +419,88 @@ public class LearningContentController {
                 learningContentService.reorderKnowledgePoints(contentId, user.getId(), pointIds);
 
         return ResponseEntity.ok(reorderedPoints);
+    }
+
+    // ==================== Phase 6: AI笔记支持 ====================
+
+    /**
+     * 导入AI整体笔记（管理员）
+     * POST /api/admin/learning-contents/{contentId}/ai-note
+     * ⚠️ Guardrail #4: 管理员权限检查
+     */
+    @PostMapping("/admin/{contentId}/ai-note")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserLearningContentNoteDTO> importAINote(
+            @PathVariable Long contentId,
+            @RequestBody Map<String, String> request) {
+
+        String noteContent = request.get("noteContent");
+        if (noteContent == null || noteContent.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "AI笔记内容不能为空");
+        }
+
+        UserLearningContentNoteDTO aiNote = learningContentService.importAINote(contentId, noteContent);
+        return ResponseEntity.ok(aiNote);
+    }
+
+    /**
+     * 批量导入AI知识点（管理员）
+     * POST /api/admin/learning-contents/{contentId}/ai-knowledge-points
+     * ⚠️ Guardrail #4: 管理员权限检查
+     */
+    @PostMapping("/admin/{contentId}/ai-knowledge-points")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserLearningContentKnowledgePointDTO>> importAIKnowledgePoints(
+            @PathVariable Long contentId,
+            @RequestBody List<UserLearningContentKnowledgePointDTO> knowledgePoints) {
+
+        if (knowledgePoints == null || knowledgePoints.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "AI知识点列表不能为空");
+        }
+
+        List<UserLearningContentKnowledgePointDTO> imported =
+                learningContentService.importAIKnowledgePoints(contentId, knowledgePoints);
+
+        return ResponseEntity.ok(imported);
+    }
+
+    /**
+     * 获取AI笔记和用户笔记（用户端）
+     * GET /api/learning-contents/{contentId}/notes-with-ai
+     */
+    @GetMapping("/{contentId}/notes-with-ai")
+    public ResponseEntity<Map<String, UserLearningContentNoteDTO>> getNotesWithAI(
+            @PathVariable Long contentId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        Map<String, UserLearningContentNoteDTO> notes =
+                learningContentService.getNotesWithAI(contentId, user.getId());
+
+        return ResponseEntity.ok(notes);
+    }
+
+    /**
+     * 获取AI知识点和用户知识点（用户端）
+     * GET /api/learning-contents/{contentId}/knowledge-points-with-ai
+     */
+    @GetMapping("/{contentId}/knowledge-points-with-ai")
+    public ResponseEntity<Map<String, List<UserLearningContentKnowledgePointDTO>>> getKnowledgePointsWithAI(
+            @PathVariable Long contentId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 获取当前用户
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        Map<String, List<UserLearningContentKnowledgePointDTO>> knowledgePoints =
+                learningContentService.getKnowledgePointsWithAI(contentId, user.getId());
+
+        return ResponseEntity.ok(knowledgePoints);
     }
 }

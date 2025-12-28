@@ -564,4 +564,111 @@ public class LearningContentService {
         dto.setUpdatedAt(point.getUpdatedAt());
         return dto;
     }
+
+    // ==================== Phase 6: AI笔记支持 ====================
+
+    /**
+     * 导入AI整体笔记 (user_id=-1)
+     * API: POST /api/admin/learning-contents/{contentId}/ai-note
+     */
+    @Transactional
+    public UserLearningContentNoteDTO importAINote(Long contentId, String noteContent) {
+        LearningContent learningContent = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在"));
+
+        // AI用户ID固定为-1
+        User aiUser = userRepository.findById(-1L)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AI用户未初始化"));
+
+        // 查找或创建AI笔记（UPSERT逻辑）
+        UserLearningContentNote aiNote = userLearningContentNoteRepository
+                .findByLearningContentIdAndUserId(contentId, -1L)
+                .orElse(new UserLearningContentNote());
+
+        aiNote.setLearningContent(learningContent);
+        aiNote.setUser(aiUser);
+        aiNote.setNoteContent(noteContent);
+
+        UserLearningContentNote saved = userLearningContentNoteRepository.save(aiNote);
+        return convertToNoteDTO(saved);
+    }
+
+    /**
+     * 批量导入AI知识点 (user_id=-1)
+     * API: POST /api/admin/learning-contents/{contentId}/ai-knowledge-points
+     */
+    @Transactional
+    public List<UserLearningContentKnowledgePointDTO> importAIKnowledgePoints(
+            Long contentId, List<UserLearningContentKnowledgePointDTO> knowledgePoints) {
+
+        LearningContent learningContent = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学习内容不存在"));
+
+        // AI用户ID固定为-1
+        User aiUser = userRepository.findById(-1L)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AI用户未初始化"));
+
+        // 删除该学习内容的所有AI知识点（重新导入）
+        knowledgePointRepository.deleteByLearningContentIdAndUserId(contentId, -1L);
+
+        // 批量创建AI知识点
+        List<UserLearningContentKnowledgePoint> aiKnowledgePoints = knowledgePoints.stream()
+                .map(dto -> {
+                    UserLearningContentKnowledgePoint kp = new UserLearningContentKnowledgePoint();
+                    kp.setLearningContent(learningContent);
+                    kp.setUser(aiUser);
+                    kp.setTitle(dto.getTitle());
+                    kp.setSummary(dto.getSummary());
+                    kp.setDisplayOrder(dto.getDisplayOrder());
+                    return kp;
+                })
+                .collect(Collectors.toList());
+
+        List<UserLearningContentKnowledgePoint> saved = knowledgePointRepository.saveAll(aiKnowledgePoints);
+        return saved.stream()
+                .map(this::convertToKnowledgePointDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取AI笔记和用户笔记（同时返回）
+     * API: GET /api/learning-contents/{contentId}/notes-with-ai?userId=X
+     */
+    public Map<String, UserLearningContentNoteDTO> getNotesWithAI(Long contentId, Long userId) {
+        Map<String, UserLearningContentNoteDTO> result = new LinkedHashMap<>();
+
+        // 获取AI笔记 (user_id=-1)
+        userLearningContentNoteRepository.findByLearningContentIdAndUserId(contentId, -1L)
+                .ifPresent(aiNote -> result.put("aiNote", convertToNoteDTO(aiNote)));
+
+        // 获取用户笔记
+        userLearningContentNoteRepository.findByLearningContentIdAndUserId(contentId, userId)
+                .ifPresent(userNote -> result.put("userNote", convertToNoteDTO(userNote)));
+
+        return result;
+    }
+
+    /**
+     * 获取AI知识点和用户知识点（同时返回）
+     * API: GET /api/learning-contents/{contentId}/knowledge-points-with-ai?userId=X
+     */
+    public Map<String, List<UserLearningContentKnowledgePointDTO>> getKnowledgePointsWithAI(Long contentId, Long userId) {
+        Map<String, List<UserLearningContentKnowledgePointDTO>> result = new LinkedHashMap<>();
+
+        // 获取AI知识点 (user_id=-1)
+        List<UserLearningContentKnowledgePoint> aiKps = knowledgePointRepository
+                .findByLearningContentIdAndUserIdOrderByDisplayOrderAsc(contentId, -1L);
+        result.put("aiKnowledgePoints", aiKps.stream()
+                .map(this::convertToKnowledgePointDTO)
+                .collect(Collectors.toList()));
+
+        // 获取用户知识点
+        List<UserLearningContentKnowledgePoint> userKps = knowledgePointRepository
+                .findByLearningContentIdAndUserIdOrderByDisplayOrderAsc(contentId, userId);
+        result.put("userKnowledgePoints", userKps.stream()
+                .map(this::convertToKnowledgePointDTO)
+                .collect(Collectors.toList()));
+
+        return result;
+    }
 }

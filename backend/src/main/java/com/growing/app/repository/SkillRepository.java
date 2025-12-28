@@ -16,4 +16,10 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
     List<Skill> findByCareerPathId(Long careerPathId);
 
     List<Skill> findByIsImportantTrueOrderByDisplayOrderAsc();
+
+    /**
+     * 获取未关联到任何职业路径的技能
+     */
+    @Query("SELECT s FROM Skill s WHERE s.id NOT IN (SELECT DISTINCT cps.skill.id FROM CareerPathSkill cps) ORDER BY s.displayOrder ASC")
+    List<Skill> findUnassociatedSkills();
 }

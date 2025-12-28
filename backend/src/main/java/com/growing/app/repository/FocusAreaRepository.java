@@ -21,4 +21,11 @@ public interface FocusAreaRepository extends JpaRepository<FocusArea, Long> {
                    "JOIN focus_area_categories fac ON fa.id = fac.focus_area_id " +
                    "WHERE fac.category_id = :categoryId", nativeQuery = true)
     List<FocusArea> findByCategoryId(@Param("categoryId") Long categoryId);
+
+    // 查询未分类的 Focus Area（没有关联到任何大分类）
+    @Query(value = "SELECT fa.* FROM focus_areas fa " +
+                   "WHERE fa.skill_id = :skillId " +
+                   "AND NOT EXISTS (SELECT 1 FROM focus_area_categories fac WHERE fac.focus_area_id = fa.id) " +
+                   "ORDER BY fa.display_order ASC", nativeQuery = true)
+    List<FocusArea> findUncategorizedBySkillId(@Param("skillId") Long skillId);
 }

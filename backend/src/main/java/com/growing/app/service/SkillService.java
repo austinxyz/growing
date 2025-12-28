@@ -5,6 +5,7 @@ import com.growing.app.dto.LearningResourceDTO;
 import com.growing.app.dto.SkillDTO;
 import com.growing.app.model.*;
 import com.growing.app.repository.*;
+import com.growing.app.repository.MajorCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,9 @@ public class SkillService {
     @Autowired
     private FocusAreaCategoryRepository focusAreaCategoryRepository;
 
+    @Autowired
+    private MajorCategoryRepository majorCategoryRepository;
+
     // 获取所有技能（按显示顺序）
     public List<SkillDTO> getAllSkills() {
         return skillRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -55,6 +59,19 @@ public class SkillService {
                                 return new SkillDTO.CareerPathInfo(cp.getId(), cp.getName());
                             })
                             .collect(Collectors.toList()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 获取未关联到任何职业路径的技能
+    public List<SkillDTO> getUnassociatedSkills() {
+        return skillRepository.findUnassociatedSkills().stream()
+                .map(skill -> {
+                    SkillDTO dto = convertToDTO(skill);
+                    // 添加统计信息
+                    dto.setFocusAreaCount(focusAreaRepository.countBySkillId(skill.getId()));
+                    dto.setResourceCount(learningResourceRepository.countBySkillId(skill.getId()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -145,8 +162,14 @@ public class SkillService {
         skill.setIsImportant(skillDTO.getIsImportant() != null ? skillDTO.getIsImportant() : false);
         skill.setIcon(skillDTO.getIcon());
         skill.setDisplayOrder(skillDTO.getDisplayOrder() != null ? skillDTO.getDisplayOrder() : 0);
+        skill.setIsGeneralOnly(skillDTO.getIsGeneralOnly() != null ? skillDTO.getIsGeneralOnly() : false);
 
         skill = skillRepository.save(skill);
+
+        // 如果是通用分类模式，自动创建 General 大分类
+        if (skill.getIsGeneralOnly()) {
+            ensureGeneralCategory(skill);
+        }
 
         // 处理职业路径关联
         if (skillDTO.getCareerPathIds() != null && !skillDTO.getCareerPathIds().isEmpty()) {
@@ -171,6 +194,30 @@ public class SkillService {
         Skill skill = skillRepository.findById(skillId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "技能不存在"));
 
+        // 检查 isGeneralOnly 的修改是否合法
+        boolean oldIsGeneralOnly = skill.getIsGeneralOnly() != null ? skill.getIsGeneralOnly() : false;
+        boolean newIsGeneralOnly = skillDTO.getIsGeneralOnly() != null ? skillDTO.getIsGeneralOnly() : false;
+
+        // 如果要从 false 改为 true，检查是否有非 General 的大分类
+        if (!oldIsGeneralOnly && newIsGeneralOnly) {
+            if (hasNonGeneralCategories(skillId)) {
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "该技能下存在非 General 的大分类，请先删除这些大分类后再启用通用分类模式"
+                );
+            }
+            // 没有非 General 大分类，可以切换，确保创建 General 大分类
+            skill.setIsGeneralOnly(true);
+            skill = skillRepository.save(skill);
+            ensureGeneralCategory(skill);
+        } else if (oldIsGeneralOnly && !newIsGeneralOnly) {
+            // 从 true 改为 false，允许（用户可以手动添加其他大分类）
+            skill.setIsGeneralOnly(false);
+        } else {
+            // 没有改变或保持原值
+            skill.setIsGeneralOnly(newIsGeneralOnly);
+        }
+
         skill.setName(skillDTO.getName());
         skill.setDescription(skillDTO.getDescription());
         skill.setIsImportant(skillDTO.getIsImportant());
@@ -178,6 +225,11 @@ public class SkillService {
         skill.setDisplayOrder(skillDTO.getDisplayOrder());
 
         skill = skillRepository.save(skill);
+
+        // 如果是 isGeneralOnly 模式且没有其他大分类，将所有 Focus Areas 关联到 General 大分类
+        if (newIsGeneralOnly) {
+            reassignOrphanedFocusAreasToGeneral(skillId);
+        }
 
         // 更新职业路径关联
         if (skillDTO.getCareerPathIds() != null) {
@@ -220,6 +272,16 @@ public class SkillService {
         if (!skillRepository.existsById(skillId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "技能不存在");
         }
+
+        // 检查是否有关联的 Focus Area
+        long focusAreaCount = focusAreaRepository.countBySkillId(skillId);
+        if (focusAreaCount > 0) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "该技能下还有 " + focusAreaCount + " 个 Focus Area，请先删除所有 Focus Area 后再删除技能"
+            );
+        }
+
         skillRepository.deleteById(skillId);
     }
 
@@ -257,6 +319,7 @@ public class SkillService {
         dto.setIsImportant(skill.getIsImportant());
         dto.setIcon(skill.getIcon());
         dto.setDisplayOrder(skill.getDisplayOrder());
+        dto.setIsGeneralOnly(skill.getIsGeneralOnly());
         dto.setCreatedAt(skill.getCreatedAt());
         dto.setUpdatedAt(skill.getUpdatedAt());
         return dto;
@@ -272,9 +335,9 @@ public class SkillService {
         dto.setCreatedAt(focusArea.getCreatedAt());
         dto.setUpdatedAt(focusArea.getUpdatedAt());
 
-        // 只为算法与数据结构(skillId=1)和系统设计(skillId=2)添加categoryIds
+        // 为有大分类的skill添加categoryIds (算法与数据结构、系统设计、Behavioral、云计算)
         Long skillId = focusArea.getSkill().getId();
-        if (skillId == 1L || skillId == 2L) {
+        if (skillId == 1L || skillId == 2L || skillId == 3L || skillId == 4L) {
             List<Long> categoryIds = focusAreaCategoryRepository.findByFocusAreaId(focusArea.getId())
                     .stream()
                     .map(fac -> fac.getCategoryId())
@@ -305,5 +368,99 @@ public class SkillService {
         }
 
         return dto;
+    }
+
+    /**
+     * 确保 General 大分类存在（用于 isGeneralOnly=true 的技能）
+     */
+    private void ensureGeneralCategory(Skill skill) {
+        // 查找是否已有 General 大分类
+        List<MajorCategory> categories = majorCategoryRepository.findBySkillIdOrderBySortOrderAsc(skill.getId());
+        boolean hasGeneral = categories.stream().anyMatch(c -> "General".equals(c.getName()));
+
+        if (!hasGeneral) {
+            MajorCategory general = new MajorCategory();
+            general.setSkillId(skill.getId());
+            general.setName("General");
+            general.setDescription("通用分类");
+            general.setSortOrder(0);
+            majorCategoryRepository.save(general);
+        }
+    }
+
+    /**
+     * 获取 Skill 的 General 大分类（如果存在）
+     */
+    private MajorCategory getGeneralCategory(Long skillId) {
+        List<MajorCategory> categories = majorCategoryRepository.findBySkillIdOrderBySortOrderAsc(skillId);
+        return categories.stream()
+                .filter(c -> "General".equals(c.getName()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 检查技能是否有非 General 的大分类
+     */
+    private boolean hasNonGeneralCategories(Long skillId) {
+        List<MajorCategory> categories = majorCategoryRepository.findBySkillIdOrderBySortOrderAsc(skillId);
+        return categories.stream().anyMatch(c -> !"General".equals(c.getName()));
+    }
+
+    /**
+     * 将孤立的 Focus Areas 重新关联到 General 大分类
+     * 当 isGeneralOnly=true 且没有其他大分类时使用
+     */
+    private void reassignOrphanedFocusAreasToGeneral(Long skillId) {
+        // 确保 General 大分类存在
+        MajorCategory generalCategory = getGeneralCategory(skillId);
+        if (generalCategory == null) {
+            // 如果不存在，创建它
+            generalCategory = new MajorCategory();
+            generalCategory.setSkillId(skillId);
+            generalCategory.setName("General");
+            generalCategory.setDescription("通用分类");
+            generalCategory.setSortOrder(0);
+            generalCategory = majorCategoryRepository.save(generalCategory);
+        }
+
+        // 获取所有的大分类
+        List<MajorCategory> categories = majorCategoryRepository.findBySkillIdOrderBySortOrderAsc(skillId);
+        boolean hasOnlyGeneral = categories.size() == 1 && "General".equals(categories.get(0).getName());
+
+        // 只有当仅有 General 大分类时，才重新关联 Focus Areas
+        if (hasOnlyGeneral) {
+            // 获取该 Skill 下的所有 Focus Areas
+            List<FocusArea> focusAreas = focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skillId);
+
+            Long generalCategoryId = generalCategory.getId();
+
+            for (FocusArea focusArea : focusAreas) {
+                // 检查该 Focus Area 是否已关联到 General 大分类
+                List<FocusAreaCategory> existingCategories = focusAreaCategoryRepository.findByFocusAreaId(focusArea.getId());
+                boolean alreadyLinkedToGeneral = existingCategories.stream()
+                        .anyMatch(fac -> fac.getCategoryId().equals(generalCategoryId));
+
+                if (!alreadyLinkedToGeneral) {
+                    // 如果没有关联，则创建关联
+                    FocusAreaCategory fac = new FocusAreaCategory();
+                    fac.setFocusAreaId(focusArea.getId());
+                    fac.setCategoryId(generalCategoryId);
+                    focusAreaCategoryRepository.save(fac);
+                }
+
+                // 清理关联到已删除大分类的记录（保留 General 大分类的关联）
+                for (FocusAreaCategory fac : existingCategories) {
+                    if (!fac.getCategoryId().equals(generalCategoryId)) {
+                        // 检查该分类是否还存在
+                        boolean categoryExists = majorCategoryRepository.existsById(fac.getCategoryId());
+                        if (!categoryExists) {
+                            // 如果分类已被删除，移除关联
+                            focusAreaCategoryRepository.delete(fac);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

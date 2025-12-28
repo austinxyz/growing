@@ -1,5 +1,8 @@
 package com.growing.app.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.UserQuestionNoteDTO;
 import com.growing.app.model.Question;
 import com.growing.app.model.User;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,6 +30,9 @@ public class UserQuestionNoteService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     /**
      * 获取用户对某试题的笔记
@@ -49,7 +56,8 @@ public class UserQuestionNoteService {
     }
 
     /**
-     * 创建或更新笔记（UPSERT逻辑，支持noteContent和coreStrategy）
+     * 创建或更新笔记（UPSERT逻辑，支持noteContent、coreStrategy和relatedKnowledgePointIds）
+     * Phase 6: 支持知识点关联
      */
     @Transactional
     public UserQuestionNoteDTO saveOrUpdateNote(Long questionId, UserQuestionNoteDTO dto, Long userId) {
@@ -78,6 +86,18 @@ public class UserQuestionNoteService {
             note.setCoreStrategy(dto.getCoreStrategy());
         }
 
+        // Phase 6: 序列化relatedKnowledgePointIds为JSON
+        if (dto.getRelatedKnowledgePointIds() != null) {
+            try {
+                String json = objectMapper.writeValueAsString(dto.getRelatedKnowledgePointIds());
+                note.setRelatedKnowledgePointIds(json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize relatedKnowledgePointIds", e);
+            }
+        } else {
+            note.setRelatedKnowledgePointIds(null);
+        }
+
         return convertToDTO(noteRepository.save(note));
     }
 
@@ -99,6 +119,7 @@ public class UserQuestionNoteService {
 
     /**
      * 转换为DTO
+     * ⚠️ Guardrail #10: DTO完整性检查 - 确保所有字段都被填充
      */
     private UserQuestionNoteDTO convertToDTO(UserQuestionNote note) {
         UserQuestionNoteDTO dto = new UserQuestionNoteDTO();
@@ -107,6 +128,21 @@ public class UserQuestionNoteService {
         dto.setUserId(note.getUser().getId());
         dto.setNoteContent(note.getNoteContent());
         dto.setCoreStrategy(note.getCoreStrategy());
+
+        // Phase 6: 反序列化relatedKnowledgePointIds为List
+        if (note.getRelatedKnowledgePointIds() != null && !note.getRelatedKnowledgePointIds().isEmpty()) {
+            try {
+                List<Long> ids = objectMapper.readValue(
+                        note.getRelatedKnowledgePointIds(),
+                        new TypeReference<List<Long>>() {}
+                );
+                dto.setRelatedKnowledgePointIds(ids);
+            } catch (JsonProcessingException e) {
+                // 如果解析失败，设置为null（兼容旧数据）
+                dto.setRelatedKnowledgePointIds(null);
+            }
+        }
+
         dto.setCreatedAt(note.getCreatedAt());
         dto.setUpdatedAt(note.getUpdatedAt());
         return dto;

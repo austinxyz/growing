@@ -18,7 +18,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "users")
+@EqualsAndHashCode(exclude = {"users", "careerPathSkills"})
 public class CareerPath {
 
     @Id
@@ -51,4 +51,8 @@ public class CareerPath {
     @ManyToMany(mappedBy = "careerPaths")
     @JsonIgnore  // 避免循环引用
     private Set<User> users = new HashSet<>();
+
+    @OneToMany(mappedBy = "careerPath", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore  // 避免直接序列化,通过DTO控制
+    private Set<CareerPathSkill> careerPathSkills = new HashSet<>();
 }

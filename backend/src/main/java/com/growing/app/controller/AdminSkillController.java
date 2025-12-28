@@ -1,6 +1,7 @@
 package com.growing.app.controller;
 
 import com.growing.app.dto.FocusAreaDTO;
+import com.growing.app.dto.FocusAreaWithCategoryDTO;
 import com.growing.app.dto.LearningResourceDTO;
 import com.growing.app.dto.SkillDTO;
 import com.growing.app.service.AuthService;
@@ -152,6 +153,16 @@ public class AdminSkillController {
         requireAdmin(authHeader);
         focusAreaService.deleteFocusArea(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 获取技能下未分类的Focus Areas
+    @GetMapping("/{skillId}/focus-areas/uncategorized")
+    public ResponseEntity<List<FocusAreaWithCategoryDTO>> getUncategorizedFocusAreas(
+            @PathVariable Long skillId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+        return ResponseEntity.ok(focusAreaService.getUncategorizedFocusAreasBySkillId(skillId));
     }
 
     // ============ 学习资源管理 ============

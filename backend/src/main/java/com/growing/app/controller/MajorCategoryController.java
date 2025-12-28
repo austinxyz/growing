@@ -47,4 +47,64 @@ public class MajorCategoryController {
             @RequestParam Long skillId) {
         return ResponseEntity.ok(focusAreaService.getFocusAreasWithCategoriesBySkillId(skillId));
     }
+
+    /**
+     * 创建大分类
+     * POST /api/major-categories
+     */
+    @PostMapping("/major-categories")
+    public ResponseEntity<MajorCategoryDTO> createMajorCategory(@RequestBody MajorCategoryDTO dto) {
+        return ResponseEntity.ok(majorCategoryService.createMajorCategory(dto));
+    }
+
+    /**
+     * 更新大分类
+     * PUT /api/major-categories/{id}
+     */
+    @PutMapping("/major-categories/{id}")
+    public ResponseEntity<MajorCategoryDTO> updateMajorCategory(
+            @PathVariable Long id,
+            @RequestBody MajorCategoryDTO dto) {
+        return ResponseEntity.ok(majorCategoryService.updateMajorCategory(id, dto));
+    }
+
+    /**
+     * 删除大分类
+     * DELETE /api/major-categories/{id}
+     */
+    @DeleteMapping("/major-categories/{id}")
+    public ResponseEntity<Void> deleteMajorCategory(@PathVariable Long id) {
+        majorCategoryService.deleteMajorCategory(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 创建Focus Area
+     * POST /api/focus-areas
+     */
+    @PostMapping("/focus-areas")
+    public ResponseEntity<FocusAreaWithCategoryDTO> createFocusArea(@RequestBody FocusAreaWithCategoryDTO dto) {
+        return ResponseEntity.ok(focusAreaService.createFocusArea(dto));
+    }
+
+    /**
+     * 更新Focus Area
+     * PUT /api/focus-areas/{id}
+     */
+    @PutMapping("/focus-areas/{id}")
+    public ResponseEntity<FocusAreaWithCategoryDTO> updateFocusArea(
+            @PathVariable Long id,
+            @RequestBody FocusAreaWithCategoryDTO dto) {
+        return ResponseEntity.ok(focusAreaService.updateFocusArea(id, dto));
+    }
+
+    /**
+     * 删除Focus Area
+     * DELETE /api/focus-areas/{id}
+     */
+    @DeleteMapping("/focus-areas/{id}")
+    public ResponseEntity<Void> deleteFocusArea(@PathVariable Long id) {
+        focusAreaService.deleteFocusArea(id);
+        return ResponseEntity.ok().build();
+    }
 }

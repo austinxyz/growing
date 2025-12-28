@@ -118,4 +118,13 @@ public class SkillController {
 
         return ResponseEntity.ok(learningResourceService.getUserCreatedResources(userId));
     }
+
+    // 获取未关联到任何职业路径的技能（管理员）
+    @GetMapping("/unassociated")
+    public ResponseEntity<List<SkillDTO>> getUnassociatedSkills(@RequestHeader("Authorization") String authHeader) {
+        if (!authService.isAdminByToken(authHeader.replace("Bearer ", ""))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "需要管理员权限");
+        }
+        return ResponseEntity.ok(skillService.getUnassociatedSkills());
+    }
 }

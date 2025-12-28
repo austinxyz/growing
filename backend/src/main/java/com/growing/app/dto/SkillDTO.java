@@ -13,6 +13,7 @@ public class SkillDTO {
     private Boolean isImportant;
     private String icon;
     private Integer displayOrder;
+    private Boolean isGeneralOnly;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<FocusAreaDTO> focusAreas;

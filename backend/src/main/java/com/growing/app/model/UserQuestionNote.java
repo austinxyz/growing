@@ -31,6 +31,13 @@ public class UserQuestionNote {
     @Column(name = "note_content", nullable = false, columnDefinition = "TEXT")
     private String noteContent;
 
+    /**
+     * 关联的知识点ID列表
+     * JSON格式: [1, 2, 3]
+     */
+    @Column(name = "related_knowledge_point_ids", columnDefinition = "JSON")
+    private String relatedKnowledgePointIds;
+
     @Column(name = "core_strategy", columnDefinition = "TEXT")
     private String coreStrategy;
 
