@@ -9,8 +9,8 @@ Phase 2-5已完成核心模块：
 - **Phase 5**: System Design（基础知识+典型案例，查看/编辑双模式）
 
 Phase 6需要支持剩余技能类型，分为两大类：
-1. **第一类**（云计算、eBay Knowledge、DevOps、Software Development）：需要三层结构
-2. **第二类**（Behavioral、People Management、Project Management）：两层结构，强调STAR答题法
+1. **第一类**（云计算、eBay Knowledge、DevOps、Software Development、AI/机器学习）：需要三层结构
+2. **第二类**（Behavioral、人员管理、项目管理）：两层结构，强调STAR答题法
 
 ---
 
@@ -23,19 +23,19 @@ Phase 6需要支持剩余技能类型，分为两大类：
 
 Phase 4/5采用融合模式（学习资料+练习题在同一页面），用户体验更好。
 
-### 设计决策：**双轨制架构**
+### 设计决策：**双轨制架构** ✅
 
 #### 决策1: 保留两个入口，优化各自定位
 
 **学习模式**（用户学习页面）：
 - **定位**：系统化学习新知识（第一次学习某个技能）
 - **特点**：完整性、连续性、理论与实践结合
-- **交互**：单页连续阅读（学习资料 → 示例代码 → 相关试题）
+- **交互**：双Tab模式（学习资料 + 试题库）
 - **适用场景**：学习云计算新概念、理解STAR方法框架
 
 **答题模式**（我的试题库）：
 - **定位**：专项训练和面试准备（已学过，现在要强化）
-- **特点**：题目聚焦、模版支持、进度跟踪
+- **特点**：题目聚焦、模版支持、进度跟踪、搜索模式
 - **交互**：题目列表 + 详情 + 答题笔记（支持模版）
 - **适用场景**：刷Behavioral题库、练习云计算高频问题
 
@@ -51,7 +51,7 @@ Skill → Major Category（大分类）→ Focus Area
 **第二类技能**（Behavioral等）：
 ```
 Skill → [隐式大分类：General] → Focus Area
-  └─ Learning Content（STAR方法论文档）
+  └─ Learning Content（STAR方法论 + 其他学习资料）
   └─ Questions（Behavioral题目）
 ```
 
@@ -67,13 +67,13 @@ Skill → [隐式大分类：General] → Focus Area
 - **Behavioral类**：STAR框架（Situation, Task, Action, Result）
 - **算法类**（已实现）：算法模版（Phase 4已有）
 
-新增`answer_templates`表管理答题框架。
+新增`answer_templates`表管理答题框架，并通过新表或在`skills`表中加入`template_id`字段建立Skill与模版的关联关系。
 
 ---
 
 ## 功能需求
 
-### 1. 第一类技能：云计算、eBay Knowledge、DevOps、Software Development
+### 1. 第一类技能：云计算、eBay Knowledge、DevOps、Software Development、AI/机器学习
 
 #### 1.1 三层结构管理（管理员）
 
@@ -94,11 +94,18 @@ Skill: 云计算
       └─ Focus Area: 数据加密
 ```
 
-**管理界面**：
-- 三栏布局（复用Phase 4模式）
-- 左侧Tab：Skill列表（云计算、DevOps等）
-- 中间栏：Major Category列表 + Focus Area树
-- 右侧栏：Learning Content管理（CRUD）
+**管理界面**：复用"设置-内容-职业技能库"页面
+
+**布局**：两栏
+
+**左侧**（上下两栏树形结构）：
+- **上栏树**：职业路径 → 技能（可展开/折叠）
+- **下栏树**：大分类 → Focus Area（根据上栏选中的技能动态显示）
+
+**右侧**：
+- Learning Content管理（理论、代码、命令、架构图）
+- Questions管理（CRUD）
+- AI学习笔记导入功能（管理员导入AI生成的学习笔记）
 
 #### 1.2 学习资料管理
 
@@ -108,91 +115,63 @@ Skill: 云计算
 - 命令示例（Shell、kubectl等）
 - 架构图（图片URL）
 
-**字段设计**：
+<Austin> 需要是文档和录像，代码命令架构图可能不重要，会在文档中出现
+
+**扩展learning_contents表**：
 ```sql
-learning_content:
-  - content_type: 'theory' | 'code' | 'command' | 'diagram'
-  - code_language: 'bash' | 'yaml' | 'python' | ...（仅code类型）
-  - diagram_url: 图片链接（仅diagram类型）
+ALTER TABLE learning_contents
+  ADD COLUMN content_type ENUM('theory', 'code', 'command', 'diagram', 'article', 'video', 'code_example', 'template', 'case_study') COMMENT '内容类型',
+  ADD COLUMN code_language VARCHAR(50) COMMENT '代码语言（仅code/code_example类型）',
+  ADD COLUMN diagram_url VARCHAR(500) COMMENT '图片链接（仅diagram类型）';
 ```
+
+**AI学习笔记**（所有人可见）：
+- 新增字段：`is_ai_generated BOOLEAN DEFAULT FALSE` - 标记是否为AI生成
+- AI笔记用于整理学习内容和总结知识点
+- 管理员可以导入或编辑AI笔记
 
 #### 1.3 试题管理
 
-**复用Phase 3的questions表**，扩展字段：
-```sql
-questions:
-  - skill_id: 关联Skill
-  - focus_area_id: 关联Focus Area
-  - question_type: 'technical' | 'behavioral' | 'algorithm'（新增）
-  - answer_key_points: JSON数组（答题重点）
-  - knowledge_points: JSON数组（关联知识点标签）
-```
+**复用questions表**（已有question_type字段）：
+- `question_type`：已有字段，包含'behavioral'、'technical'、'design'、'programming'
+- `answer_requirement`：已有字段，用于存储答题重点
+- 不需要新增`answer_key_points`和`knowledge_points`字段
 
-**示例**：
-```json
-{
-  "question_text": "解释Kubernetes Pod的生命周期",
-  "answer_key_points": [
-    "Pending阶段：调度和镜像拉取",
-    "Running阶段：容器启动和健康检查",
-    "Succeeded/Failed：终止状态",
-    "重启策略的影响"
-  ],
-  "knowledge_points": ["Pod管理", "容器生命周期", "健康检查"]
-}
-```
+**知识点关联**：
+- 用户自己在`user_learning_content_knowledge_points`表中总结知识点
+- 可关联AI总结的知识点或用户自己的知识点
+<Austin> AI生成的可以认为是特殊用户AI 生成的学习总结，和知识点总结，还是复用user_learning_content_notes，user_learning_content_knowledge_points表
 
 #### 1.4 用户学习笔记
 
-**两种笔记类型**：
+**复用现有表**：
 
-**A. 整体笔记**（针对整个Learning Content）
-```sql
-user_learning_notes:
-  - user_id
-  - content_id（关联learning_content）
-  - overall_note: 整体理解笔记（Markdown）
-```
+**A. 整体笔记**（`user_learning_content_notes`表）
+- 已有表结构，不需要新增
 
-**B. 知识点笔记**（针对Learning Content中的具体知识点）
-```sql
-user_knowledge_point_notes:
-  - user_id
-  - content_id
-  - knowledge_point_tag: 知识点标签（如"Pod调度策略"）
-  - note: 知识点笔记（Markdown）
-```
+**B. 知识点笔记**（`user_learning_content_knowledge_points`表）
+- 已有表结构，不需要新增
+- 知识点是用户自己总结的
 
-**交互设计**：
-- 学习资料页面底部：整体笔记编辑区
-- 知识点笔记：点击正文中的知识点标签，弹出笔记编辑器
+**AI笔记功能**（新增）：
+- 在`learning_contents`表中新增字段标记AI生成的笔记
+- AI笔记所有人可见，帮助用户整理学习内容和知识点 
+
+<Austin> 不需要，可以固定一个特定的用户id，比如-1来表示AI生成比较，就不要在learning_contents表加字段
 
 #### 1.5 用户答题笔记
 
-**扩展Phase 3的user_question_notes表**：
-```sql
-user_question_notes:
-  - template_type: 'technical' | 'behavioral' | 'star' | null（新增）
-  - key_points: JSON数组（结构化答题要点，按模版字段存储）
-  - related_knowledge_points: JSON数组（关联的知识点标签）
-```
+**复用user_question_notes表**：
+- 已有`core_strategy`字段：用于技术类答题的核心思路
+- 已有`note_content`字段：用于Behavioral类的STAR答题笔记
+- 不需要新增`key_points`和`related_knowledge_points`字段
+- 可关联AI总结的知识点或用户的知识点（通过应用逻辑实现）
 
-**技术类答题模版示例**：
-```json
-{
-  "template_type": "technical",
-  "key_points": {
-    "core_concept": "Kubernetes Pod是最小调度单元...",
-    "deep_dive": "调度过程涉及Scheduler组件...",
-    "real_world_example": "我在eBay项目中遇到Pod调度失败..."
-  },
-  "related_knowledge_points": ["Pod管理", "Scheduler"]
-}
-```
+<Austin> - 可关联AI总结的知识点或用户的知识点（通过应用逻辑实现）, 这个最好加一个字段
 
 ---
 
-### 2. 第二类技能：Behavioral、People Management、Project Management
+### 2. 第二类技能：Behavioral、人员管理、项目管理
 
 #### 2.1 简化结构（Skill → Focus Area）
 
@@ -209,6 +188,11 @@ Skill: Behavioral
 - 后端：为每个第二类Skill创建默认Major Category "General"
 - 前端：检测到"General"分类时，隐藏大分类层级，直接显示Focus Area列表
 
+**管理界面**：
+- 复用"设置-内容-职业技能库"页面
+- 左侧下栏：直接显示Focus Area列表（隐藏大分类层级）
+- 右侧：学习资料和试题管理
+
 #### 2.2 STAR答题模版
 
 **STAR框架**：
@@ -221,14 +205,19 @@ Skill: Behavioral
 ```sql
 CREATE TABLE answer_templates (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  template_name VARCHAR(50) UNIQUE NOT NULL, -- 'STAR', 'Technical', 'Algorithm'
-  template_fields JSON NOT NULL, -- 模版字段定义
-  description TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  template_name VARCHAR(50) UNIQUE NOT NULL COMMENT '模版名称（STAR, Technical等）',
+  template_fields JSON NOT NULL COMMENT '模版字段定义',
+  description TEXT COMMENT '模版说明',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT '答题模版表';
 ```
 
-**STAR模版字段**：
+**Skill与模版关联**：
+- **方案A**：在`skills`表中新增`template_id`字段
+- **方案B**：创建新的关联表`skill_templates`
+
+**STAR模版字段定义**：
 ```json
 {
   "template_name": "STAR",
@@ -240,36 +229,47 @@ CREATE TABLE answer_templates (
   ]
 }
 ```
+<Austin> 用方案B吧，更灵活，对于一个skill的问题，答题模版，可能可以用skill默认模版，但也用所有问题的通用模版，就是自己写markdown内容。
+
+
+**模版管理**：
+- 答题模版是针对Skill的
+- 需要专门的管理页面或在现有设置页面中管理
 
 #### 2.3 Behavioral题目管理
 
-**questions表扩展**：
-```sql
-questions:
-  - question_type: 'behavioral'
-  - suggested_template: 'STAR'（推荐使用的答题模版）
-```
+**questions表**（已有字段）：
+- `question_type: 'behavioral'`
+- `answer_requirement`: 存储答题要求
 
 **示例题目**：
 ```
 题目: "Describe a time when you had to resolve a conflict within your team."
-推荐模版: STAR
+question_type: behavioral
 ```
 
 #### 2.4 用户STAR答题笔记
 
-**user_question_notes表存储示例**：
-```json
-{
-  "question_id": 123,
-  "template_type": "star",
-  "key_points": {
-    "situation": "在eBay搜索团队，两位工程师对架构设计有分歧...",
-    "task": "作为Tech Lead，需要在2周内解决分歧并推进项目...",
-    "action": "1. 组织技术评审会议；2. 建立决策框架；3. 促进双方对话...",
-    "result": "最终采纳混合方案，项目按时交付，团队满意度提升20%"
-  }
-}
+**user_question_notes表**（复用已有字段）：
+- 使用已有的`note_content`字段存储STAR答题笔记
+- 前端根据Skill关联的模版动态渲染输入界面
+- 不需要新增`key_points`字段
+
+**存储示例**（使用note_content字段）：
+```markdown
+**Situation（情境）**
+在eBay搜索团队，两位工程师对架构设计有分歧...
+
+**Task（任务）**
+作为Tech Lead，需要在2周内解决分歧并推进项目...
+
+**Action（行动）**
+1. 组织技术评审会议
+2. 建立决策框架
+3. 促进双方对话
+
+**Result（结果）**
+最终采纳混合方案，项目按时交付，团队满意度提升20%
 ```
 
 ---
@@ -278,143 +278,132 @@ questions:
 
 ### 1. 管理员页面
 
-#### 1.1 通用技能管理（云计算、DevOps等）
+#### 1.1 职业技能库管理（统一页面）
 
-**布局**：三栏（复用Phase 4 AlgorithmLearning.vue）
+**路径**：设置 → 内容 → 职业技能库
 
-**左侧Tab**：
-- 云计算
-- eBay Knowledge
-- DevOps
-- Software Development
+**布局**：两栏
 
-**中间栏**：
-- Major Category列表（可折叠）
-- Focus Area树（每个大分类下）
-
-**右侧栏**：
-- Learning Content管理（理论、代码、命令、架构图）
-- Questions管理（CRUD）
-
-**新增功能**：
-- 批量导入学习资料（Markdown文件）
-- 知识点标签管理（自动提取或手动添加）
-
-#### 1.2 Behavioral技能管理
-
-**布局**：两栏（简化版）
-
-**左侧**：
-- Focus Area列表（Leadership, Conflict Resolution等）
+**左侧**（上下两栏树形结构）：
+- **上栏树**：职业路径 → 技能（树形展开）
+- **下栏树**：
+  - **第一类技能**：大分类 → Focus Area
+  - **第二类技能**：直接显示Focus Area（隐藏大分类）
 
 **右侧**：
-- Learning Content（STAR方法论文档）
-- Questions管理（题库维护）
+- Learning Content管理（CRUD）
+  - 理论文档
+  - 代码示例（带语言标识）
+  - 命令示例
+  - 架构图
+  - AI学习笔记导入
+- Questions管理（CRUD）
 
 **特殊功能**：
-- 答题模版编辑器（STAR框架字段定义）
+- AI学习笔记导入（管理员可导入AI生成的学习资料）
+- 试题没有知识点字段，知识点由用户自己总结
+
+<Austin> AI学习笔记是针对学习内容的，右侧是两个tab，一个是学习内容tab，对于学习内容tab，编辑内容，对于某个内容，可以导入AI学习笔记，一个是试题库tab，试题库，显示试题列表，可以新增修改试题
+
+
+#### 1.2 答题模版管理
+
+**位置**：待定（可以是专门页面或在职业技能库页面中管理）
+
+**功能**：
+- 模版CRUD（创建、编辑、删除STAR、Technical等模版）
+- 模版字段定义（JSON配置）
+- Skill与模版关联管理
 
 ---
 
 ### 2. 用户学习页面
 
-#### 2.1 学习模式（新页面：GeneralSkillLearning.vue）
+#### 2.1 统一学习页面（复用现有页面）
 
-**布局**：左右分栏
+**路径**：学习 → 职业路径 → 职业技能
 
-**左侧导航**（30%宽度）：
-```
-[Skill Tabs]
-  └─ 云计算 | DevOps | Behavioral
+**布局**：两栏
 
-[知识树]
-  云计算
-    ├─ Kubernetes（大分类）
-    │   ├─ Pod管理（Focus Area）✓
-    │   └─ Service网络
-    └─ Network
-        └─ VPC设计
+**左侧**：
+- 复用"设置-内容-职业技能库"页面的左侧布局
+- **上栏树**：职业路径 → 技能
+- **下栏树**：
+  - **第一类技能**：大分类 → Focus Area
+  - **第二类技能**：直接显示Focus Area
+- 不显示学习进度
 
-[进度显示]
-  已学习: 15/30 Focus Areas
-```
+**右侧内容区**（双Tab布局，类似Phase 4算法学习）：
 
-**右侧内容区**（70%宽度）：
+**Tab 1: 学习资料**
 ```
 [Focus Area标题] Pod管理
 
-[学习资料]
+[学习资料列表]
   📄 理论文档（Markdown渲染）
   💻 代码示例（语法高亮）
-  📊 架构图
+  🖼️ 架构图
 
-  [我的整体笔记]
+  🤖 AI学习笔记（标记AI生成）
+
+[我的整体笔记]
   （可展开/折叠的笔记编辑区）
 
 [知识点笔记]
-  #Pod调度策略 [编辑笔记]
-  #生命周期管理 [编辑笔记]
+  用户自己总结的知识点列表
+  - 点击可编辑
+```
+<Austin> 对于每个学习资料，可以显示学习资料内容，然后AI的学习笔记和我的笔记（很多card，显示整体笔记和知识点笔记），如果AI和我的知识点标题重合了，可以合并在一起。
 
-[相关试题]
+**Tab 2: 试题库**
+```
+[试题列表]
   Q1: 解释Pod的生命周期
   Q2: 如何调试Pod启动失败
 
-  [查看答题笔记] → 跳转到"我的试题库"
+[浏览模式 / 答题模式]
+  - 浏览模式：查看题目和要求
+  - 答题模式：根据Skill关联的模版呈现答案输入界面
+    - Behavioral类：STAR框架输入
+    - 技术类：自由答题或结构化输入
 ```
-
-**交互特性**：
-- 单页连续阅读（滚动到底自动加载下一个Focus Area）
-- 知识点高亮（点击跳转到笔记编辑）
-- 学习进度自动保存
 
 #### 2.2 Behavioral学习模式
 
-**布局差异**：
-- 左侧：直接显示Focus Area列表（隐藏大分类层级）
-- 右侧：STAR方法论文档 + 典型题目示例
-
-**示例内容**：
-```
-[Focus Area] Conflict Resolution
-
-[STAR方法论]
-  1. Situation: 如何描述冲突背景
-  2. Task: 明确你的角色和职责
-  3. Action: 具体行动步骤（建议3-5个）
-  4. Result: 可量化的成果
-
-[典型题目]
-  Q: "Describe a time when you resolved a conflict..."
-  [使用STAR模版回答] → 跳转到答题模式
-```
+**无需单独页面**，和2.1相同：
+- 左侧：直接显示Focus Area（隐藏大分类）
+- 右侧：
+  - 学习资料Tab：STAR方法论文档 + 其他学习资料
+  - 试题库Tab：
+    - 浏览模式：查看题目
+    - 答题模式：STAR框架结构化输入（根据Skill模版动态渲染）
 
 ---
 
-### 3. 答题模式（扩展MyQuestionBank.vue）
+### 3. 答题模式（改写MyQuestionBank.vue）
 
-#### 3.1 新增功能
+#### 3.1 搜索模式
 
-**A. 答题模版选择**
-
-题目详情页新增：
+**新增筛选条件**：
 ```
-[选择答题框架]
-  ○ 自由作答
-  ● STAR框架
-  ○ 技术答题模版
-
-（选中后，下方显示结构化输入框）
+[技能类型] 云计算 ▼
+[大分类] Kubernetes ▼（仅第一类技能显示）
+[Focus Area] Pod管理 ▼
+[题目类型] 全部 | Behavioral | 技术 | 设计 | 编程
+[答题状态] 全部 | 已答 | 未答
 ```
 
-**B. STAR框架输入界面**
+#### 3.2 答题界面
 
+**根据Skill模版动态渲染**：
+
+**Behavioral类（STAR模版）**：
 ```
 [我的回答]
 
 Situation（情境）
 ┌────────────────────────────────────┐
 │ 描述项目背景和挑战...              │
-│                                    │
 └────────────────────────────────────┘
 
 Task（任务）
@@ -424,8 +413,7 @@ Task（任务）
 
 Action（行动）
 ┌────────────────────────────────────┐
-│ 1. ...                             │
-│ 2. ...                             │
+│ 你采取的具体行动...                │
 └────────────────────────────────────┘
 
 Result（结果）
@@ -433,44 +421,26 @@ Result（结果）
 │ 可量化的成果...                    │
 └────────────────────────────────────┘
 
-[保存笔记]
+[保存笔记] → 保存到note_content字段（Markdown格式）
 ```
+<Austin> 仍然可以有核心思路字段，也可以关联知识点。
 
-**C. 技术答题模版**
-
+**技术类**：
 ```
-[我的回答]
-
-核心概念
+[核心思路]（core_strategy字段）
 ┌────────────────────────────────────┐
-│ 简明扼要解释核心概念...            │
+│ 核心概念、技术细节...              │
 └────────────────────────────────────┘
 
-深入解析
+[详细回答]（note_content字段）
 ┌────────────────────────────────────┐
-│ 技术细节、工作原理...              │
+│ 深入解析、实际案例...              │
 └────────────────────────────────────┘
 
-实际案例
-┌────────────────────────────────────┐
-│ 我在XX项目中的实践...              │
-└────────────────────────────────────┘
-
-关联知识点
-[ ] Pod管理  [ ] Scheduler  [ ] 健康检查
+[关联知识点]
+  可选择AI总结的知识点或用户自己的知识点
 
 [保存笔记]
-```
-
-#### 3.2 筛选和导航
-
-**新增筛选条件**：
-```
-[技能类型] 云计算 ▼
-[大分类] Kubernetes ▼
-[Focus Area] Pod管理 ▼
-[答题状态] 全部 | 已答 | 未答
-[模版类型] 全部 | STAR | 技术类
 ```
 
 ---
@@ -486,70 +456,67 @@ CREATE TABLE answer_templates (
   template_name VARCHAR(50) UNIQUE NOT NULL COMMENT '模版名称（STAR, Technical等）',
   template_fields JSON NOT NULL COMMENT '模版字段定义',
   description TEXT COMMENT '模版说明',
-  skill_types JSON COMMENT '适用的技能类型（如["Behavioral", "People Management"]）',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT '答题模版表';
 ```
 
-#### 2. user_learning_notes（整体笔记）
+**Skill与模版关联**（待定方案）：
+
+**方案A**：在skills表添加字段
 ```sql
-CREATE TABLE user_learning_notes (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL,
-  content_id BIGINT NOT NULL COMMENT '关联learning_content.id',
-  overall_note TEXT COMMENT '整体理解笔记（Markdown）',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_user_content (user_id, content_id),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (content_id) REFERENCES learning_content(id) ON DELETE CASCADE
-) COMMENT '用户学习整体笔记';
+ALTER TABLE skills
+  ADD COLUMN template_id BIGINT COMMENT '关联的答题模版ID',
+  ADD CONSTRAINT fk_skill_template FOREIGN KEY (template_id) REFERENCES answer_templates(id);
 ```
 
-#### 3. user_knowledge_point_notes（知识点笔记）
+**方案B**：创建关联表
 ```sql
-CREATE TABLE user_knowledge_point_notes (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL,
-  content_id BIGINT NOT NULL COMMENT '关联learning_content.id',
-  knowledge_point_tag VARCHAR(100) NOT NULL COMMENT '知识点标签',
-  note TEXT COMMENT '知识点笔记（Markdown）',
+CREATE TABLE skill_templates (
+  skill_id BIGINT NOT NULL,
+  template_id BIGINT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_user_content_kp (user_id, content_id, knowledge_point_tag),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (content_id) REFERENCES learning_content(id) ON DELETE CASCADE
-) COMMENT '用户知识点笔记';
+  PRIMARY KEY (skill_id, template_id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
+  FOREIGN KEY (template_id) REFERENCES answer_templates(id) ON DELETE CASCADE
+) COMMENT 'Skill与答题模版关联表';
 ```
 
 ### 扩展表
 
-#### 1. learning_content（扩展）
+#### 1. learning_contents（扩展）
 ```sql
-ALTER TABLE learning_content
-  ADD COLUMN content_type ENUM('theory', 'code', 'command', 'diagram') DEFAULT 'theory' COMMENT '内容类型',
-  ADD COLUMN code_language VARCHAR(50) COMMENT '代码语言（仅code类型）',
+ALTER TABLE learning_contents
+  ADD COLUMN code_language VARCHAR(50) COMMENT '代码语言（仅code/code_example类型）',
   ADD COLUMN diagram_url VARCHAR(500) COMMENT '图片链接（仅diagram类型）',
-  ADD COLUMN knowledge_points JSON COMMENT '知识点标签数组';
+  ADD COLUMN is_ai_generated BOOLEAN DEFAULT FALSE COMMENT '是否为AI生成的笔记';
 ```
 
-#### 2. questions（扩展）
-```sql
-ALTER TABLE questions
-  ADD COLUMN question_type ENUM('technical', 'behavioral', 'algorithm') DEFAULT 'technical' COMMENT '题目类型',
-  ADD COLUMN answer_key_points JSON COMMENT '答题重点（JSON数组）',
-  ADD COLUMN knowledge_points JSON COMMENT '关联知识点标签',
-  ADD COLUMN suggested_template VARCHAR(50) COMMENT '推荐答题模版（关联answer_templates.template_name）';
-```
+**说明**：
+- `content_type`已有enum，可支持'article'、'video'、'code_example'等
+- 不需要新增`knowledge_points`字段（知识点由用户总结，存在`user_learning_content_knowledge_points`表）
 
-#### 3. user_question_notes（扩展）
-```sql
-ALTER TABLE user_question_notes
-  ADD COLUMN template_type VARCHAR(50) COMMENT '使用的答题模版（star, technical等）',
-  ADD COLUMN key_points JSON COMMENT '结构化答题要点（按模版字段存储）',
-  ADD COLUMN related_knowledge_points JSON COMMENT '关联的知识点标签';
-```
+#### 2. questions（无需扩展）
+
+**已有字段满足需求**：
+- `question_type`：已有'behavioral'、'technical'、'design'、'programming'
+- `answer_requirement`：已有，用于答题重点
+
+**不需要新增**：
+- ~~answer_key_points~~（使用answer_requirement）
+- ~~knowledge_points~~（知识点由用户总结）
+- ~~suggested_template~~（通过Skill关联模版）
+
+#### 3. user_question_notes（无需扩展）
+
+**已有字段满足需求**：
+- `note_content`：用于存储STAR答题笔记或技术类详细回答
+- `core_strategy`：用于技术类核心思路
+
+**不需要新增**：
+- ~~template_type~~（通过question关联的Skill获取模版）
+- ~~key_points~~（使用note_content + Markdown格式）
+- ~~related_knowledge_points~~（通过应用逻辑关联）
 
 ---
 
@@ -558,27 +525,23 @@ ALTER TABLE user_question_notes
 ### 1. 复用Phase 4架构
 
 **复用组件**：
-- `major_categories`表：存储云计算、Kubernetes等大分类
+- `major_categories`表：存储云计算、Kubernetes等大分类（关联到skill_id）
 - `focus_area_categories`关联表：Focus Area归属大分类
-- 三栏布局UI组件：管理员页面
+- 两栏布局UI组件：管理员和用户页面
 
 **差异处理**：
-- Skill类型字段：`skills.skill_category` ENUM('career_path', 'algorithm', 'system_design', 'general_technical', 'general_soft')
 - 第二类技能（Behavioral）：创建隐式"General"大分类，前端UI隐藏
 
-### 2. 知识点标签系统
+### 2. 知识点系统
 
-**自动提取**：
-- 管理员创建Learning Content时，自动提取Markdown标题作为知识点标签
-- 示例：`## Pod调度策略` → 标签 "Pod调度策略"
+**用户知识点**（`user_learning_content_knowledge_points`表）：
+- 用户自己总结的知识点
+- 关联到learning_content_id
 
-**手动编辑**：
-- 管理员可手动添加/删除标签
-- 标签存储在`learning_content.knowledge_points` JSON字段
-
-**用户笔记关联**：
-- 用户点击正文中的知识点标签 → 弹出笔记编辑器
-- 笔记保存到`user_knowledge_point_notes`表
+**AI知识点**（learning_contents表）：
+- 管理员导入的AI生成学习笔记
+- `is_ai_generated = TRUE`标记
+- 所有用户可见
 
 ### 3. 答题模版渲染引擎
 
@@ -597,14 +560,15 @@ const renderTemplateForm = (template) => {
 
 **后端验证**：
 ```java
-// 验证用户提交的key_points是否符合模版结构
-public boolean validateKeyPoints(String templateName, Map<String, String> keyPoints) {
+// 验证笔记内容是否包含必需的模版字段（可选）
+public boolean validateNoteContent(String templateName, String noteContent) {
   AnswerTemplate template = templateRepository.findByName(templateName);
-  List<String> requiredFields = template.getTemplateFields().stream()
-    .map(field -> field.get("key"))
+  List<String> requiredLabels = template.getTemplateFields().stream()
+    .map(field -> field.get("label"))
     .collect(Collectors.toList());
 
-  return keyPoints.keySet().containsAll(requiredFields);
+  // 检查noteContent是否包含所有必需的标签（如"Situation（情境）"）
+  return requiredLabels.stream().allMatch(noteContent::contains);
 }
 ```
 
@@ -612,53 +576,67 @@ public boolean validateKeyPoints(String templateName, Map<String, String> keyPoi
 
 ## 实施路径
 
-### Phase 6.1: 第一类技能（云计算等）- 2周
+### Phase 6.1: 数据模型和基础架构 - 1周
 
 **Week 1**:
-- [ ] 数据模型扩展（learning_content, questions, user_learning_notes, user_knowledge_point_notes）
-- [ ] 复用Phase 4大分类架构（major_categories）
-- [ ] 管理员三栏界面（Learning Content CRUD + 知识点标签管理）
+- [ ] 创建`answer_templates`表
+- [ ] 扩展`learning_contents`表（code_language, diagram_url, is_ai_generated）
+- [ ] Skill与模版关联（方案A或B）
+- [ ] 为第二类技能创建"General"大分类数据
+- [ ] STAR和Technical模版预置数据
+
+### Phase 6.2: 管理员页面 - 1周
 
 **Week 2**:
-- [ ] 用户学习页面（GeneralSkillLearning.vue）
-- [ ] 整体笔记 + 知识点笔记功能
-- [ ] 学习资料类型支持（theory, code, command, diagram）
-- [ ] 知识点标签自动提取
+- [ ] 修改"设置-内容-职业技能库"页面
+  - [ ] 左侧上下两栏树形结构
+  - [ ] 支持第一类/第二类技能的大分类显示逻辑
+  - [ ] AI学习笔记导入功能
+- [ ] 答题模版管理页面（或集成到现有页面）
 
-### Phase 6.2: 第二类技能（Behavioral）- 1.5周
+### Phase 6.3: 用户学习页面 - 1周
 
 **Week 3**:
-- [ ] 答题模版系统（answer_templates表 + 管理界面）
-- [ ] STAR模版预置数据
-- [ ] user_question_notes扩展（template_type, key_points）
+- [ ] 修改"学习-职业路径-职业技能"页面
+  - [ ] 左侧复用管理页面布局
+  - [ ] 右侧双Tab（学习资料 + 试题库）
+  - [ ] AI笔记展示（标记AI生成）
+  - [ ] 知识点笔记功能
 
-**Week 4-5**:
-- [ ] MyQuestionBank.vue扩展（答题模版选择 + 结构化输入）
-- [ ] STAR答题界面（动态表单渲染）
+### Phase 6.4: 答题模式 - 1周
+
+**Week 4**:
+- [ ] 改写MyQuestionBank.vue
+  - [ ] 搜索模式（新增筛选条件）
+  - [ ] 根据Skill模版动态渲染答题界面
+  - [ ] STAR框架输入界面
+  - [ ] 技术类答题界面
+  - [ ] 知识点关联功能
+
+### Phase 6.5: 数据导入和测试 - 0.5周
+
+**Week 5**:
+- [ ] 云计算、DevOps等技能数据导入
 - [ ] Behavioral题库导入（50道典型题）
-
-### Phase 6.3: 整合与优化 - 0.5周
-
-- [ ] 学习模式与答题模式导航联动
-- [ ] 进度跟踪（Focus Area学习完成度）
-- [ ] 批量导入工具（学习资料 + 题目）
+- [ ] AI学习笔记导入
+- [ ] 全流程测试
 
 ---
 
 ## 成功指标
 
 ### 功能完整性
-- [ ] 支持4个第一类技能（云计算、eBay Knowledge、DevOps、Software Development）
-- [ ] 支持3个第二类技能（Behavioral、People Management、Project Management）
+- [ ] 支持5个第一类技能（云计算、eBay Knowledge、DevOps、Software Development、AI/机器学习）
+- [ ] 支持3个第二类技能（Behavioral、人员管理、项目管理）
 - [ ] 每个技能至少3个Focus Area
 - [ ] 每个Focus Area至少5篇学习资料
 - [ ] 每个Focus Area至少10道试题
 
 ### 用户体验
-- [ ] 学习模式支持单页连续阅读
-- [ ] 知识点笔记编辑流畅（点击标签即开即编）
+- [ ] 学习模式双Tab切换流畅
+- [ ] AI笔记清晰标记，易于识别
 - [ ] STAR答题模版输入友好（清晰的字段分隔）
-- [ ] 学习进度可视化（进度条、已学/未学标记）
+- [ ] 知识点笔记编辑流畅
 
 ### 技术质量
 - [ ] 零axios bug（遵循CLAUDE.md Guardrails #8-9）
@@ -670,53 +648,32 @@ public boolean validateKeyPoints(String templateName, Map<String, String> keyPoi
 
 ## 待决策问题
 
-### 1. 知识点标签的存储方式
-**选项A**：JSON数组存储在learning_content表
-```json
-["Pod调度策略", "生命周期管理", "健康检查"]
-```
-- 优点：简单，无需额外表
-- 缺点：难以统计标签使用频率，无法聚合查询
+### 1. Skill与模版的关联方式
 
-**选项B**：独立knowledge_points表（多对多关系）
-```sql
-CREATE TABLE knowledge_points (
-  id BIGINT PRIMARY KEY,
-  tag VARCHAR(100) UNIQUE,
-  usage_count INT DEFAULT 0
-)
-```
-- 优点：支持标签聚合查询、热门标签统计
+**方案A**：在`skills`表中新增`template_id`字段
+- 优点：简单直接，查询效率高
+- 缺点：一个Skill只能关联一个模版
+
+**方案B**：创建`skill_templates`关联表
+- 优点：支持多对多关系（未来扩展）
 - 缺点：增加表关联复杂度
 
-**建议**：暂用选项A（JSON存储），若后续需要标签推荐功能，再迁移到选项B
+**建议**：暂用方案A（一个Skill一个模版），若后续需要多模版支持，再迁移到方案B
+<Austin> 用方案B
 
-### 2. 第二类技能是否需要Learning Content？
-**问题**：Behavioral类技能主要是刷题，是否需要STAR方法论文档？
+### 2. 答题模版管理位置
 
-**建议**：需要，理由：
-- 新手不了解STAR框架，需要学习文档
-- 每个Focus Area有独特的答题技巧（如Leadership vs Conflict Resolution）
-- Learning Content可以包含优秀回答示例
+**方案A**：专门的模版管理页面
+- 优点：功能独立，便于维护
+- 缺点：增加菜单复杂度
 
-### 3. 学习进度如何定义？
-**选项A**：完成Focus Area下的所有试题 → 标记为"已学习"
-**选项B**：用户点击"标记为已学习"按钮 → 手动标记
-**选项C**：查看过学习资料 + 回答过至少1道题 → 自动标记
+**方案B**：集成在"设置-内容"页面
+- 优点：减少菜单层级
+- 缺点：页面功能可能过于复杂
 
-**建议**：选项C（最灵活），新增`user_focus_area_progress`表：
-```sql
-CREATE TABLE user_focus_area_progress (
-  user_id BIGINT,
-  focus_area_id BIGINT,
-  viewed_content BOOLEAN DEFAULT FALSE,
-  answered_questions INT DEFAULT 0,
-  status ENUM('not_started', 'in_progress', 'completed'),
-  PRIMARY KEY (user_id, focus_area_id)
-)
-```
-
+**建议**：方案A（专门页面），位置：设置 → 内容 → 答题模版管理
 ---
+<Austin> 方案A
 
 ## 参考资料
 

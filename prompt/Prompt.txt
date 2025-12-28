@@ -428,6 +428,8 @@ Prompt: "更新prompt文件，包含核心prompt和response"
 **Issue**: 算法模板不需要分类功能
 **Solution**: algorithm_templates表去掉category字段，左侧直接显示算法列表
 
+---
+
 ## Phase 4 Design Review Comments
 
 ### Comment 1 (Line 344):
@@ -633,13 +635,13 @@ Phase 4 实施计划
   - 创建系统设计Skill (id=2)
   - 创建3个Major Categories（核心概念、关键技术、设计模式）
   - 复用Focus Area和Learning Content架构
-  
+
 ✅ Phase 5.2 - 典型案例模块
   - V15 migration: 创建5张表（system_design_cases, case_resources, case_solutions, solution_diagrams, user_case_notes）
   - 6步骤答题框架（step1-6）
   - 支持多参考答案方案
   - 左右对比编辑模式
-  
+
 ✅ Phase 5.3 - 设计演进
   - V16 migration: 添加结构化关键点字段（kp_requirement, kp_nfr, kp_entity, kp_components, kp_api, kp_object1, kp_object2）
   - 新增学习总结页面（SystemDesignSummary.vue）
@@ -671,7 +673,7 @@ Phase 4 实施计划
 3. 答案可见性控制 - UX改进（独立思考再查看参考）
 4. 取消is_primary字段 - 简化设计，所有答案平等
 
-> 根据git commit历史和我的大概估计
+> 根据git commit历史和我的大概估计
   1. 需求及设计 1-2小时
   2. 实施，先基础知识，基础知识根据hello interview 导入 1-2小时
   3. 实施，案例模块，答题，大约2-3小时，包含用户体验的迭代更新
@@ -680,15 +682,73 @@ Phase 4 实施计划
   6. 文档更新 - 0.5小时
   完成Phase5的交付总结
 
-  好，现在继续需求实现，Phase 6
-  剩下的Skill可以分成目两类
-  第一类，云计算，eBay Knowledge，DevOps，Software Development
-  1. 这一类，可能会有很多Focus Area，还是需要有大分类，比如云计算可以分为， Kubernetes，Network，Security，Kernel
-  2. 这样Skill - 大分类 - Focus Area
-  3. 还是围绕学习技能，Focus Area 可以添加学习资料，可以添加试题。对于学习资料，用户可以有笔记，包括整体笔记和知识点笔记。对于试题，有答题重点，用户有答题笔记，可以关联知识点。
+=== Phase 6: 通用技能学习模块 (2025-12-27 开始) ===
 
-  第二类， Behaviroal，People Management，Project Management
-  1. 这些可能只要Focus Area就可以了， Focus Area不多
-  2. Focus Area下可以有学习资料，但是更重要的是试题，试题也相对比较固定，但是每个试题的解答最好是用STAR方法，结合个人实例。答题笔记关联STAR模版
+**初始需求 (2025-12-27)**:
+好，现在继续需求实现，Phase 6
+剩下的Skill可以分成目两类
+第一类，云计算，eBay Knowledge，DevOps，Software Development，AI/机器学习
+1. 这一类，可能会有很多Focus Area，还是需要有大分类，比如云计算可以分为， Kubernetes，Network，Security，Kernel
+2. 这样Skill - 大分类 - Focus Area
+3. 还是围绕学习技能，Focus Area 可以添加学习资料，可以添加试题。对于学习资料，用户可以有笔记，包括整体笔记和知识点笔记。对于试题，有答题重点，用户有答题笔记，可以关联知识点。
 
-  但是总的来说还是两部分，一部分是学习，另一部分是笔记也答题，答题对于不同的skill可以有模版。我再考虑是不是改造现有的职业技能页面（侧重学习），和我的试题库（侧重答题），还是将学习和答题融合在一起。请给一些建议，作为新的Phase 6的需求概要，保存在requirement目录
+第二类， Behaviroal，人员管理，项目管理
+1. 这些可能只要Focus Area就可以了， Focus Area不多
+2. Focus Area下可以有学习资料，但是更重要的是试题，试题也相对比较固定，但是每个试题的解答最好是用STAR方法，结合个人实例。答题笔记关联STAR模版
+
+但是总的来说还是两部分，一部分是学习，另一部分是笔记也答题，答题对于不同的skill可以有模版。我再考虑是不是改造现有的职业技能页面（侧重学习），和我的试题库（侧重答题），还是将学习和答题融合在一起。请给一些建议，作为新的Phase 6的需求概要，保存在requirement目录
+
+**Austin Review Comments (2025-12-27)**:
+
+### 核心矛盾与设计决策
+1. (Line 42) **双轨制架构** - 很好就用这个策略
+2. (Line 59) STAR方法论学习只是一部分，还会有其他的学习资料的
+3. (Line 74) **答题模版系统** - 可以这样
+
+### 功能需求 - 第一类技能
+
+4. (Line 130) 答题重点 - answer_requirement 已经存在，知识点是user自己添加的，不需要在questions中
+
+5. (Line 165-166) **用户学习笔记** - 之前有user_learning_content_notes, user_learning_content_knowledge_points, 不用加入新的表。知识点是user自己总结的，不过可以加入一个AI笔记，AI帮助整理学习内容，以及整理知识点。AI笔记所有人可见
+
+6. (Line 192) **用户答题笔记** - 已经有core_strategy，不需要key_points, related_knowledge_points，可以关联AI总结的知识点或者用户的知识点
+
+### 功能需求 - 第二类技能
+
+7. (Line 274) **用户STAR答题笔记** - 原来有note_content，可以利用这个字段，不用key_points新字段
+
+### 页面设计
+
+8. (Line 303-304) **管理员页面** - 修改现在的设置-内容-职业技能库页面，两栏，左侧，从上到下，职业，技能，大分类，Focus Area，可以上下两栏，树形结构显示，职业和技能一个树，大分类和Focus Area是另一个树。右侧学习资料和试题管理，知识点标签管理（自动提取或手动添加），试题没知识点，但是允许管理员导入AI学习笔记。
+
+9. (Line 321) **Behavioral技能管理** - 还是复用设置-内容-职业技能库页面，左侧下栏没有大分类，直接显示focus area。答题模版是针对Skill的。要考虑怎么管理，或者有一个专门的页面也可以
+
+10. (Line 341) **用户学习页面** - 复用学习-职业路径-职业技能页面，不需要新的用户学习页面，两栏，左侧复用设置-内容-职业技能库页面的左侧页面，不需要进度显示
+
+11. (Line 370) 右侧内容区，类似学习-算法与数据结构-学习路径的布局，两个tab，学习资料和试题库
+
+12. (Line 391) **Behavioral学习模式** - 不需要单独的页面，和2.1相同，只是试题库tab下，有浏览和答题模式，会根据Skill对应的模版来呈现答案。
+
+13. (Line 464-477) **答题模式** - 这些在之前页面已经体现
+
+14. (Line 477) **筛选和导航** - 这部分会改写我的试题库，更多是搜索模式。
+
+### 数据模型设计
+
+15. (Line 494) **Skill与模版关联** - skill和template的对应关系，可以建立一个新的表，或者在skill表中加入template id
+
+16. (Line 511) **user_learning_notes** - 有user_learning_content_notes，不需要新表
+
+17. (Line 528) **user_knowledge_point_notes** - 有user_learning_content_knowledge_points，不需要新表
+
+18. (Line 540) **learning_content扩展** - knowledge_points不需要，知识点是AI或者用户总结的
+
+### 待决策问题
+
+19. (Line 692) **知识点标签存储** - user_learning_content_knowledge_points表
+
+20. (Line 704) **第二类技能Learning Content** - 需要
+
+21. (Line 722) **学习进度** - 先不考虑学习进度
+
+**文档状态**: ✅ 已根据所有comments完成修改
