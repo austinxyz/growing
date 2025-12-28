@@ -774,9 +774,9 @@
                   </div>
 
                   <!-- 已选中试题 -->
-                  <div v-else class="p-6">
+                  <div v-else class="h-full flex flex-col">
                     <!-- 模式切换按钮 -->
-                    <div class="mb-4 flex items-center justify-between">
+                    <div class="p-6 pb-4 flex items-center justify-between flex-shrink-0">
                       <h3 class="text-lg font-bold text-gray-900">{{ selectedQuestion.title }}</h3>
                       <div class="flex gap-2">
                         <button
@@ -804,29 +804,64 @@
                       </div>
                     </div>
 
-                    <!-- 浏览模式 -->
-                    <div v-if="questionViewMode === 'browse'" class="space-y-4">
-                      <!-- 题目类型 -->
-                      <div class="bg-gray-50 p-3 rounded-lg">
-                        <span class="text-xs font-semibold text-gray-500">题目类型：</span>
-                        <span class="text-sm text-gray-900">{{ selectedQuestion.questionType }}</span>
+                    <!-- 浏览模式 - 左右两栏布局 -->
+                    <div v-if="questionViewMode === 'browse'" class="flex-1 flex gap-4 px-6 overflow-hidden">
+                      <!-- 左栏：题目 (50%) -->
+                      <div class="w-1/2 space-y-4 overflow-y-auto pr-2">
+                        <!-- 题目类型 -->
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                          <span class="text-xs font-semibold text-gray-500">题目类型：</span>
+                          <span class="text-sm text-gray-900">{{ selectedQuestion.questionType }}</span>
+                        </div>
+
+                        <!-- 题目描述 -->
+                        <div>
+                          <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
+                          <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                        </div>
+
+                        <!-- 答案要求 -->
+                        <div v-if="selectedQuestion.answerRequirement">
+                          <h4 class="text-sm font-semibold text-gray-700 mb-2">📋 答案要求</h4>
+                          <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
+                        </div>
                       </div>
 
-                      <!-- 题目描述 -->
-                      <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">题目描述</h4>
-                        <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
-                      </div>
+                      <!-- 右栏：答案 (50%) -->
+                      <div class="w-1/2 space-y-4 overflow-y-auto pl-2 border-l-2 border-gray-200">
+                        <!-- 有答案时显示 -->
+                        <template v-if="selectedQuestion.note?.noteContent">
+                          <!-- 核心要点（如果有） -->
+                          <div v-if="selectedQuestion.note?.coreStrategy" class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              核心要点
+                            </h4>
+                            <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.note.coreStrategy)"></div>
+                          </div>
 
-                      <!-- 答案要求 -->
-                      <div v-if="selectedQuestion.answerRequirement">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">答案要求</h4>
-                        <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
+                          <!-- 答案主体 -->
+                          <div>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-2">✍️ 参考答案</h4>
+                            <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.note.noteContent)"></div>
+                          </div>
+                        </template>
+
+                        <!-- 无答案时显示提示 -->
+                        <div v-else class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p class="text-sm font-medium mb-1">暂无答案</p>
+                          <p class="text-xs">切换到"答题模式"开始作答</p>
+                        </div>
                       </div>
                     </div>
 
                     <!-- 答题模式 -->
-                    <div v-else class="space-y-4">
+                    <div v-else class="flex-1 px-6 pb-6 overflow-y-auto space-y-4">
                       <!-- 有模版：根据模版字段渲染结构化输入 -->
                       <div v-if="answerTemplate && answerTemplate.templateFields" class="space-y-4">
                         <div class="bg-blue-50 p-3 rounded-lg mb-4">
