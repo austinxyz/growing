@@ -1,5 +1,6 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- Modal模式 -->
+  <div v-if="isOpen && !inline" class="fixed inset-0 z-50 overflow-y-auto">
     <!-- 背景遮罩 -->
     <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$emit('cancel')"></div>
 
@@ -214,6 +215,206 @@
       </div>
     </div>
   </div>
+
+  <!-- Inline模式 -->
+  <div v-else-if="inline" class="space-y-4">
+    <!-- 表单头部 -->
+    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">
+        {{ isEdit ? '编辑试题' : '新增试题' }}
+      </h3>
+      <div class="flex gap-2">
+        <button
+          @click="$emit('cancel')"
+          type="button"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm"
+        >
+          取消
+        </button>
+        <button
+          @click="handleSubmit"
+          type="button"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+        >
+          保存
+        </button>
+      </div>
+    </div>
+
+    <!-- 表单内容 -->
+    <div class="space-y-6">
+      <!-- 所属技能和专注领域（同一行） -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- 所属技能（级联选择第一步） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            所属技能 <span class="text-red-500">*</span>
+          </label>
+          <select
+            v-model="selectedSkillId"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">请先选择技能</option>
+            <option
+              v-for="skill in skills"
+              :key="skill.id"
+              :value="skill.id"
+            >
+              {{ skill.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- 所属 Focus Area（级联选择第二步） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            所属专注领域 <span class="text-red-500">*</span>
+          </label>
+          <select
+            v-model="form.focusAreaId"
+            required
+            :disabled="!selectedSkillId"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="">{{ selectedSkillId ? '请选择专注领域' : '请先选择技能' }}</option>
+            <option
+              v-for="fa in filteredFocusAreas"
+              :key="fa.id"
+              :value="fa.id"
+            >
+              {{ fa.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 当前提示信息（编辑时显示） -->
+      <p v-if="isEdit && currentFocusAreaName" class="text-xs text-gray-500 -mt-4">
+        当前: {{ currentSkillName }} / {{ currentFocusAreaName }}
+      </p>
+
+      <!-- 题目标题 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          题目标题 <span class="text-red-500">*</span>
+        </label>
+        <input
+          v-model="form.title"
+          type="text"
+          required
+          placeholder="例如: [5] Longest Palindromic Substring"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p class="mt-1 text-xs text-gray-500">简短标题，用于列表显示</p>
+      </div>
+
+      <!-- 问题描述 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          问题描述
+        </label>
+        <textarea
+          v-model="form.questionDescription"
+          rows="6"
+          placeholder="输入详细的题目描述（支持 Markdown）&#10;&#10;例如：&#10;**题目描述**: ...&#10;&#10;**考察点**: ...&#10;&#10;**示例**:&#10;```&#10;输入: ...&#10;输出: ...&#10;```"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+        <p class="mt-1 text-xs text-gray-500">支持 Markdown 格式，包括代码块</p>
+      </div>
+
+      <!-- 难度级别 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          难度级别 <span class="text-red-500">*</span>
+        </label>
+        <div class="flex space-x-4">
+          <label class="inline-flex items-center">
+            <input
+              type="radio"
+              v-model="form.difficulty"
+              value="EASY"
+              required
+              class="form-radio text-green-500 focus:ring-green-500"
+            />
+            <span class="ml-2">Easy</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input
+              type="radio"
+              v-model="form.difficulty"
+              value="MEDIUM"
+              class="form-radio text-yellow-500 focus:ring-yellow-500"
+            />
+            <span class="ml-2">Medium</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input
+              type="radio"
+              v-model="form.difficulty"
+              value="HARD"
+              class="form-radio text-red-500 focus:ring-red-500"
+            />
+            <span class="ml-2">Hard</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 答案要求 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          答案要求
+        </label>
+        <textarea
+          v-model="form.answerRequirement"
+          rows="4"
+          placeholder="说明如何回答这个问题（支持 Markdown）"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+        <p class="mt-1 text-xs text-gray-500">例如：1. 定义核心概念 2. 说明关键要点 3. 给出实例</p>
+      </div>
+
+      <!-- 针对职位 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          针对职位
+        </label>
+        <select
+          v-model="form.targetPosition"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">不限职位</option>
+          <option
+            v-for="cp in careerPaths"
+            :key="cp.id"
+            :value="cp.name"
+          >
+            {{ cp.icon }} {{ cp.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- 针对级别 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          针对级别
+        </label>
+        <select
+          v-model="form.targetLevel"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">不限级别</option>
+          <option value="Junior">Junior</option>
+          <option value="Senior">Senior</option>
+          <option value="Staff">Staff</option>
+          <option value="Principal">Principal</option>
+        </select>
+      </div>
+
+      <!-- Red Flags -->
+      <RedFlagList v-model="form.redFlags" />
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -242,6 +443,10 @@ const props = defineProps({
   currentFocusAreaName: {
     type: String,
     default: ''
+  },
+  inline: {
+    type: Boolean,
+    default: false
   }
 })
 

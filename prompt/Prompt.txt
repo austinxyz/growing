@@ -752,3 +752,175 @@ Phase 4 实施计划
 21. (Line 722) **学习进度** - 先不考虑学习进度
 
 **文档状态**: ✅ 已根据所有comments完成修改
+
+---
+
+## Phase 6 Additional Review Comments (2025-12-27 Second Round)
+
+### Comment 1 (Requirements Line 118):
+> <Austin> 需要是文档和录像，代码命令架构图可能不重要，会在文档中出现
+
+**Context**: Section 1.2 学习资料管理 - Learning Content类型
+**Decision**: 简化Learning Content类型，只保留文档和录像
+**Impact**:
+- 移除独立的代码、命令、架构图类型
+- content_type只使用'article'和'video'
+- 代码、命令、架构图作为文档内容的一部分
+- 无需扩展learning_contents表字段
+
+---
+
+### Comment 2 (Requirements Line 143):
+> <Austin> AI生成的可以认为是特殊用户AI 生成的学习总结，和知识点总结，还是复用user_learning_content_notes，user_learning_content_knowledge_points表
+
+**Context**: Section 1.3 试题管理 - 知识点关联
+**Decision**: AI内容使用特殊用户ID（user_id=-1）
+**Impact**:
+- 不创建新的AI专用表
+- 复用user_learning_content_notes表（AI整体笔记）
+- 复用user_learning_content_knowledge_points表（AI知识点）
+- 前端根据user_id=-1识别并显示AI标记
+
+---
+
+### Comment 3 (Requirements Line 160):
+> <Austin> 不需要，可以固定一个特定的用户id，比如-1来表示AI生成比较，就不要在learning_contents表加字段
+
+**Context**: Section 1.4 用户学习笔记 - AI笔记功能
+**Decision**: 不在learning_contents表新增is_ai_generated字段
+**Implementation**:
+- 使用user_id=-1标识AI生成内容
+- AI笔记存储在user_learning_content_notes表
+- AI知识点存储在user_learning_content_knowledge_points表
+- 初始化时创建特殊用户（id=-1, username='AI', role='system'）
+
+---
+
+### Comment 4 (Requirements Line 170):
+> <Austin> - 可关联AI总结的知识点或用户的知识点（通过应用逻辑实现）, 这个最好加一个字段
+
+**Context**: Section 1.5 用户答题笔记 - 知识点关联
+**Decision**: 在user_question_notes表新增字段
+**Implementation**:
+```sql
+ALTER TABLE user_question_notes
+  ADD COLUMN related_knowledge_point_ids JSON COMMENT '关联的知识点ID列表（JSON数组）';
+```
+**说明**:
+- 存储关联的知识点ID列表
+- 可以关联AI知识点（user_id=-1的记录）
+- 可以关联用户自己的知识点
+- 前端显示时可以区分AI和用户知识点
+
+---
+
+### Comment 5 (Requirements Line 232):
+> <Austin> 用方案B吧，更灵活，对于一个skill的问题，答题模版，可能可以用skill默认模版，但也用所有问题的通用模版，就是自己写markdown内容。
+
+**Context**: Section 2.2 STAR答题模版 - Skill与模版关联
+**Decision**: 采用方案B（skill_templates关联表）
+**Rationale**:
+- 支持一个Skill关联多个模版（多对多关系）
+- 可以设置默认模版（is_default字段）
+- 用户可选择使用Skill默认模版或通用模版
+- 通用模版允许用户自由编写Markdown内容
+**Implementation**:
+```sql
+CREATE TABLE skill_templates (
+  skill_id BIGINT NOT NULL,
+  template_id BIGINT NOT NULL,
+  is_default BOOLEAN DEFAULT FALSE COMMENT '是否为该Skill的默认模版',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (skill_id, template_id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
+  FOREIGN KEY (template_id) REFERENCES answer_templates(id) ON DELETE CASCADE
+) COMMENT 'Skill与答题模版关联表（多对多）';
+```
+
+---
+
+### Comment 6 (Requirements Line 306):
+> <Austin> AI学习笔记是针对学习内容的，右侧是两个tab，一个是学习内容tab，对于学习内容tab，编辑内容，对于某个内容，可以导入AI学习笔记，一个是试题库tab，试题库，显示试题列表，可以新增修改试题
+
+**Context**: Section 1.1 职业技能库管理 - 管理员页面右侧布局
+**Decision**: 右侧采用双Tab布局
+**Tab 1: 学习内容**
+- Learning Content列表（文档、录像）
+- CRUD功能
+- 对每个学习内容可以导入AI学习笔记
+  - AI整体笔记（user_id=-1 in user_learning_content_notes）
+  - AI知识点笔记（user_id=-1 in user_learning_content_knowledge_points）
+
+**Tab 2: 试题库**
+- Questions列表（按Focus Area过滤）
+- CRUD功能
+- 试题本身不包含知识点字段
+
+---
+
+### Comment 7 (Requirements Line 356):
+> <Austin> 对于每个学习资料，可以显示学习资料内容，然后AI的学习笔记和我的笔记（很多card，显示整体笔记和知识点笔记），如果AI和我的知识点标题重合了，可以合并在一起。
+
+**Context**: Section 2.1 用户学习页面 - Tab 1学习资料展示
+**Decision**: 卡片式布局展示学习资料和笔记
+**UI Structure**:
+```
+学习资料1: Kubernetes Pod基础
+  ├─ 学习资料内容（Markdown渲染/视频播放）
+  ├─ 🤖 AI学习笔记卡片
+  │   ├─ AI整体笔记（user_id=-1）
+  │   └─ AI知识点列表（user_id=-1）
+  └─ 📝 我的学习笔记卡片
+      ├─ 我的整体笔记（可编辑）
+      └─ 我的知识点列表（可编辑）
+```
+**知识点合并逻辑**:
+- 如果AI知识点和用户知识点标题相同，则UI上合并显示
+- 底层仍是两条独立记录（user_id=-1和实际user_id）
+- UI上显示为一个卡片，同时展示AI总结和用户笔记
+
+---
+
+### Comment 8 (Requirements Line 426):
+> <Austin> 仍然可以有核心思路字段，也可以关联知识点。
+
+**Context**: Section 3.2 答题界面 - Behavioral类答题
+**Decision**: Behavioral答题也支持核心思路和知识点关联
+**Implementation**:
+- core_strategy字段：Behavioral类也可使用（简要核心思路）
+- note_content字段：存储STAR结构化答题笔记
+- related_knowledge_point_ids字段：关联AI或用户知识点
+**UI调整**:
+```
+[Behavioral答题界面]
+Situation / Task / Action / Result（note_content）
++
+核心思路（core_strategy）
++
+关联知识点（related_knowledge_point_ids）
+```
+
+---
+
+### Comment 9 (Requirements Line 662):
+> <Austin> 用方案B
+
+**Context**: Section "待决策问题" - Skill与模版的关联方式
+**Decision**: ✅ 采用方案B（创建skill_templates关联表）
+**Impact**: 已在Comment 5中详细说明
+
+---
+
+### Comment 10 (Requirements Line 676):
+> <Austin> 方案A
+
+**Context**: Section "待决策问题" - 答题模版管理位置
+**Decision**: ✅ 采用方案A（专门的模版管理页面）
+**Implementation**:
+- 位置：设置 → 内容 → 答题模版管理
+- 功能：模版CRUD + Skill关联管理 + 字段配置
+- 独立页面便于维护和扩展
+
+---
+
+**文档状态**: ✅ 已根据第二轮所有comments完成修改（10条新comments）

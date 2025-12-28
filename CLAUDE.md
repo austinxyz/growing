@@ -33,6 +33,7 @@
    apiClient.get('/major-categories')
    ```
 10. **NEVER forget to populate nested objects in Service DTOs** - Check `SkillService.getSkillsByCareerPathId()` includes `focusAreas`
+11. **ALWAYS use GlobalExceptionHandler for consistent error responses** - `ResponseStatusException` reason must be included in response body (see `GlobalExceptionHandler.java:24`)
 
 ### ⚠️ Common Mistakes from Previous Prompts
 

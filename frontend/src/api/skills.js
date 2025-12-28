@@ -105,3 +105,8 @@ export const updateResource = (resourceId, resourceData) => {
 export const deleteResource = (resourceId) => {
   return request.delete(`/admin/skills/resources/${resourceId}`)
 }
+
+// 获取未关联到任何职业路径的技能（管理员）
+export const getUnassociatedSkills = () => {
+  return request.get('/skills/unassociated')
+}

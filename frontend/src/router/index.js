@@ -65,13 +65,6 @@ const routes = [
     name: 'MyQuestionBank',
     component: () => import('../views/questions/MyQuestionBank.vue')
   },
-  // 管理员 - 试题管理
-  {
-    path: '/admin/questions',
-    name: 'QuestionManagement',
-    component: () => import('../views/questions/admin/QuestionManagement.vue'),
-    meta: { requiresAdmin: true }
-  },
   // 管理员 - 算法内容管理（Phase 4）
   {
     path: '/admin/algorithm-content',
@@ -135,6 +128,20 @@ const routes = [
     path: '/system-design/summary',
     name: 'SystemDesignSummary',
     component: () => import('../views/SystemDesignSummary.vue')
+  },
+  // 管理员 - 通用技能内容管理（Phase 6）
+  {
+    path: '/admin/general-skills',
+    name: 'GeneralSkillContentManagement',
+    component: () => import('../views/admin/GeneralSkillContentManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  // 管理员 - 答题模版管理（Phase 6）
+  {
+    path: '/admin/answer-templates',
+    name: 'AnswerTemplateManagement',
+    component: () => import('../views/admin/AnswerTemplateManagement.vue'),
+    meta: { requiresAdmin: true }
   }
 ]
 

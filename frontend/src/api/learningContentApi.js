@@ -131,6 +131,50 @@ export const createTemplate = (data) => {
   return api.post('/admin/learning-contents/templates', data)
 }
 
+// ===== Phase 6: AI笔记 API =====
+
+/**
+ * 导入AI整体笔记（管理员）
+ * POST /admin/learning-contents/{contentId}/ai-note
+ * @param {Number} contentId - 学习内容ID
+ * @param {String} noteContent - AI整体笔记内容(Markdown)
+ * @returns {Promise} UserLearningContentNoteDTO
+ */
+export const importAINote = (contentId, noteContent) => {
+  return api.post(`/admin/${contentId}/ai-note`, { noteContent })
+}
+
+/**
+ * 批量导入AI知识点（管理员）
+ * POST /admin/learning-contents/{contentId}/ai-knowledge-points
+ * @param {Number} contentId - 学习内容ID
+ * @param {Array} knowledgePoints - [{ title, content }, ...]
+ * @returns {Promise} UserLearningContentKnowledgePointDTO[]
+ */
+export const importAIKnowledgePoints = (contentId, knowledgePoints) => {
+  return api.post(`/admin/${contentId}/ai-knowledge-points`, knowledgePoints)
+}
+
+/**
+ * 获取笔记（AI笔记 + 用户笔记）
+ * GET /learning-contents/{contentId}/notes
+ * @param {Number} contentId - 学习内容ID
+ * @returns {Promise} { aiNote: UserLearningContentNoteDTO, userNote: UserLearningContentNoteDTO }
+ */
+export const getNotes = (contentId) => {
+  return api.get(`/learning-contents/${contentId}/notes`)
+}
+
+/**
+ * 获取知识点（AI知识点 + 用户知识点）
+ * GET /learning-contents/{contentId}/knowledge-points
+ * @param {Number} contentId - 学习内容ID
+ * @returns {Promise} { aiKnowledgePoints: [], userKnowledgePoints: [] }
+ */
+export const getKnowledgePoints = (contentId) => {
+  return api.get(`/learning-contents/${contentId}/knowledge-points`)
+}
+
 export default {
   getContentsByFocusArea,
   getContentById,
@@ -142,5 +186,9 @@ export default {
   deleteContent,
   reorderContents,
   getTemplates,
-  createTemplate
+  createTemplate,
+  importAINote,
+  importAIKnowledgePoints,
+  getNotes,
+  getKnowledgePoints
 }

@@ -174,16 +174,16 @@
             class="nav-item"
             :class="isActive('/admin/skills')"
           >
-            <Target class="w-5 h-5" />
-            <span>职业技能库</span>
+            <Layers class="w-5 h-5" />
+            <span>技能架构管理</span>
           </router-link>
           <router-link
-            to="/admin/questions"
+            to="/admin/general-skills"
             class="nav-item"
-            :class="isActive('/admin/questions')"
+            :class="isActive('/admin/general-skills')"
           >
-            <FileQuestion class="w-5 h-5" />
-            <span>试题库</span>
+            <Target class="w-5 h-5" />
+            <span>技能内容库</span>
           </router-link>
           <router-link
             to="/admin/algorithm-content"

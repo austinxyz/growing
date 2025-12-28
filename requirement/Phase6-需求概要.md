@@ -110,25 +110,19 @@ Skill: 云计算
 #### 1.2 学习资料管理
 
 **Learning Content类型**：
-- 理论文档（Markdown）
-- 代码示例（代码片段 + 语言标识）
-- 命令示例（Shell、kubectl等）
-- 架构图（图片URL）
+- 文档（Markdown格式）
+- 录像（视频URL）
 
-<Austin> 需要是文档和录像，代码命令架构图可能不重要，会在文档中出现
-
-**扩展learning_contents表**：
-```sql
-ALTER TABLE learning_contents
-  ADD COLUMN content_type ENUM('theory', 'code', 'command', 'diagram', 'article', 'video', 'code_example', 'template', 'case_study') COMMENT '内容类型',
-  ADD COLUMN code_language VARCHAR(50) COMMENT '代码语言（仅code/code_example类型）',
-  ADD COLUMN diagram_url VARCHAR(500) COMMENT '图片链接（仅diagram类型）';
-```
+**说明**：
+- `learning_contents`表的`content_type`字段已支持'article'和'video'类型
+- 代码、命令、架构图等内容会嵌入在文档中，不需要单独的content_type
+- 无需扩展`learning_contents`表字段
 
 **AI学习笔记**（所有人可见）：
-- 新增字段：`is_ai_generated BOOLEAN DEFAULT FALSE` - 标记是否为AI生成
-- AI笔记用于整理学习内容和总结知识点
-- 管理员可以导入或编辑AI笔记
+- 使用特殊用户ID（user_id=-1）表示AI生成的内容
+- AI笔记存储在`user_learning_content_notes`和`user_learning_content_knowledge_points`表中
+- 不需要在`learning_contents`表中新增`is_ai_generated`字段
+- 管理员可以为学习内容导入或编辑AI生成的笔记和知识点
 
 #### 1.3 试题管理
 
@@ -139,8 +133,8 @@ ALTER TABLE learning_contents
 
 **知识点关联**：
 - 用户自己在`user_learning_content_knowledge_points`表中总结知识点
-- 可关联AI总结的知识点或用户自己的知识点
-<Austin> AI生成的可以认为是特殊用户AI 生成的学习总结，和知识点总结，还是复用user_learning_content_notes，user_learning_content_knowledge_points表
+- AI生成的学习总结和知识点总结使用特殊用户ID（user_id=-1）存储在`user_learning_content_notes`和`user_learning_content_knowledge_points`表中
+- 复用现有表结构，不需要新建AI专用表
 
 #### 1.4 用户学习笔记
 
@@ -153,21 +147,19 @@ ALTER TABLE learning_contents
 - 已有表结构，不需要新增
 - 知识点是用户自己总结的
 
-**AI笔记功能**（新增）：
-- 在`learning_contents`表中新增字段标记AI生成的笔记
-- AI笔记所有人可见，帮助用户整理学习内容和知识点 
-
-<Austin> 不需要，可以固定一个特定的用户id，比如-1来表示AI生成比较，就不要在learning_contents表加字段
+**AI笔记功能**（使用特殊用户）：
+- 使用特殊用户ID（user_id=-1）表示AI生成的笔记
+- AI笔记存储在`user_learning_content_notes`和`user_learning_content_knowledge_points`表中
+- 不需要在`learning_contents`表中新增字段
+- AI笔记对所有用户可见，帮助用户整理学习内容和知识点
 
 #### 1.5 用户答题笔记
 
-**复用user_question_notes表**：
+**复用user_question_notes表**（需扩展）：
 - 已有`core_strategy`字段：用于技术类答题的核心思路
 - 已有`note_content`字段：用于Behavioral类的STAR答题笔记
-- 不需要新增`key_points`和`related_knowledge_points`字段
-- 可关联AI总结的知识点或用户的知识点（通过应用逻辑实现）
-
-<Austin> - 可关联AI总结的知识点或用户的知识点（通过应用逻辑实现）, 这个最好加一个字段
+- **新增字段**：`related_knowledge_point_ids` (JSON数组) - 关联的知识点ID列表（可以是AI生成的或用户自己的知识点）
+- 不需要新增`key_points`字段
 
 ---
 
@@ -229,7 +221,11 @@ CREATE TABLE answer_templates (
   ]
 }
 ```
-<Austin> 用方案B吧，更灵活，对于一个skill的问题，答题模版，可能可以用skill默认模版，但也用所有问题的通用模版，就是自己写markdown内容。
+
+**设计决策**：
+- 采用方案B（`skill_templates`关联表）实现Skill与模版的多对多关系
+- 一个Skill可以关联多个答题模版（默认模版 + 通用模版）
+- 用户可以选择使用Skill的默认模版，或使用通用模版自由编写Markdown内容
 
 
 **模版管理**：
@@ -290,20 +286,19 @@ question_type: behavioral
   - **第一类技能**：大分类 → Focus Area
   - **第二类技能**：直接显示Focus Area（隐藏大分类）
 
-**右侧**：
-- Learning Content管理（CRUD）
-  - 理论文档
-  - 代码示例（带语言标识）
-  - 命令示例
-  - 架构图
-  - AI学习笔记导入
-- Questions管理（CRUD）
+**右侧**（双Tab布局）：
 
-**特殊功能**：
-- AI学习笔记导入（管理员可导入AI生成的学习资料）
-- 试题没有知识点字段，知识点由用户自己总结
+**Tab 1: 学习内容**
+- Learning Content列表（文档、录像）
+- CRUD功能（创建、编辑、删除学习内容）
+- 对于每个学习内容，可以导入AI学习笔记
+  - AI整体笔记（user_id=-1存储在`user_learning_content_notes`表）
+  - AI知识点笔记（user_id=-1存储在`user_learning_content_knowledge_points`表）
 
-<Austin> AI学习笔记是针对学习内容的，右侧是两个tab，一个是学习内容tab，对于学习内容tab，编辑内容，对于某个内容，可以导入AI学习笔记，一个是试题库tab，试题库，显示试题列表，可以新增修改试题
+**Tab 2: 试题库**
+- Questions列表（按Focus Area过滤）
+- CRUD功能（创建、编辑、删除试题）
+- 试题本身不包含知识点字段，知识点由用户在答题时总结
 
 
 #### 1.2 答题模版管理
@@ -340,20 +335,19 @@ question_type: behavioral
 [Focus Area标题] Pod管理
 
 [学习资料列表]
-  📄 理论文档（Markdown渲染）
-  💻 代码示例（语法高亮）
-  🖼️ 架构图
+  📄 学习资料1: Kubernetes Pod基础
+    ├─ 学习资料内容（Markdown渲染/视频播放）
+    ├─ 🤖 AI学习笔记卡片
+    │   ├─ AI整体笔记（user_id=-1）
+    │   └─ AI知识点列表（user_id=-1）
+    └─ 📝 我的学习笔记卡片
+        ├─ 我的整体笔记（可编辑）
+        └─ 我的知识点列表（可编辑）
 
-  🤖 AI学习笔记（标记AI生成）
-
-[我的整体笔记]
-  （可展开/折叠的笔记编辑区）
-
-[知识点笔记]
-  用户自己总结的知识点列表
-  - 点击可编辑
+  💡 知识点合并逻辑：
+    如果AI知识点和用户知识点标题相同，则在UI上合并显示
+    （底层仍是两条记录，但UI上显示为一个卡片）
 ```
-<Austin> 对于每个学习资料，可以显示学习资料内容，然后AI的学习笔记和我的笔记（很多card，显示整体笔记和知识点笔记），如果AI和我的知识点标题重合了，可以合并在一起。
 
 **Tab 2: 试题库**
 ```
@@ -421,9 +415,16 @@ Result（结果）
 │ 可量化的成果...                    │
 └────────────────────────────────────┘
 
-[保存笔记] → 保存到note_content字段（Markdown格式）
+[核心思路]（core_strategy字段，Behavioral类也支持）
+┌────────────────────────────────────┐
+│ 简要核心思路...                    │
+└────────────────────────────────────┘
+
+[关联知识点]（related_knowledge_point_ids字段）
+  可选择AI总结的知识点或用户自己的知识点
+
+[保存笔记] → 保存到note_content + core_strategy + related_knowledge_point_ids字段
 ```
-<Austin> 仍然可以有核心思路字段，也可以关联知识点。
 
 **技术类**：
 ```
@@ -470,30 +471,33 @@ ALTER TABLE skills
   ADD CONSTRAINT fk_skill_template FOREIGN KEY (template_id) REFERENCES answer_templates(id);
 ```
 
-**方案B**：创建关联表
+**方案B**：创建关联表（✅ 采用此方案）
 ```sql
 CREATE TABLE skill_templates (
   skill_id BIGINT NOT NULL,
   template_id BIGINT NOT NULL,
+  is_default BOOLEAN DEFAULT FALSE COMMENT '是否为该Skill的默认模版',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (skill_id, template_id),
   FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
   FOREIGN KEY (template_id) REFERENCES answer_templates(id) ON DELETE CASCADE
-) COMMENT 'Skill与答题模版关联表';
-```
-
-### 扩展表
-
-#### 1. learning_contents（扩展）
-```sql
-ALTER TABLE learning_contents
-  ADD COLUMN code_language VARCHAR(50) COMMENT '代码语言（仅code/code_example类型）',
-  ADD COLUMN diagram_url VARCHAR(500) COMMENT '图片链接（仅diagram类型）',
-  ADD COLUMN is_ai_generated BOOLEAN DEFAULT FALSE COMMENT '是否为AI生成的笔记';
+) COMMENT 'Skill与答题模版关联表（多对多）';
 ```
 
 **说明**：
-- `content_type`已有enum，可支持'article'、'video'、'code_example'等
+- 采用方案B实现Skill与模版的多对多关系
+- 一个Skill可以关联多个模版（默认模版 + 通用模版）
+- `is_default`字段标记该Skill的默认模版
+- 用户可选择使用默认模版或通用模版自由编写
+
+### 扩展表
+
+#### 1. learning_contents（无需扩展）
+
+**已有字段满足需求**：
+- `content_type`：已有enum，支持'article'、'video'等类型
+- 不需要新增`code_language`、`diagram_url`字段（代码、架构图嵌入在文档中）
+- 不需要新增`is_ai_generated`字段（使用user_id=-1标识AI内容）
 - 不需要新增`knowledge_points`字段（知识点由用户总结，存在`user_learning_content_knowledge_points`表）
 
 #### 2. questions（无需扩展）
@@ -507,16 +511,22 @@ ALTER TABLE learning_contents
 - ~~knowledge_points~~（知识点由用户总结）
 - ~~suggested_template~~（通过Skill关联模版）
 
-#### 3. user_question_notes（无需扩展）
+#### 3. user_question_notes（需扩展）
 
-**已有字段满足需求**：
+**已有字段**：
 - `note_content`：用于存储STAR答题笔记或技术类详细回答
-- `core_strategy`：用于技术类核心思路
+- `core_strategy`：用于技术类核心思路（Behavioral类也可使用）
 
-**不需要新增**：
-- ~~template_type~~（通过question关联的Skill获取模版）
-- ~~key_points~~（使用note_content + Markdown格式）
-- ~~related_knowledge_points~~（通过应用逻辑关联）
+**新增字段**：
+```sql
+ALTER TABLE user_question_notes
+  ADD COLUMN related_knowledge_point_ids JSON COMMENT '关联的知识点ID列表（JSON数组）';
+```
+
+**说明**：
+- `related_knowledge_point_ids`：存储关联的知识点ID列表（可以是AI生成的或用户自己的）
+- 不需要新增`template_type`字段（通过question关联的Skill获取模版）
+- 不需要新增`key_points`字段（使用note_content + Markdown格式）
 
 ---
 
@@ -538,9 +548,9 @@ ALTER TABLE learning_contents
 - 用户自己总结的知识点
 - 关联到learning_content_id
 
-**AI知识点**（learning_contents表）：
-- 管理员导入的AI生成学习笔记
-- `is_ai_generated = TRUE`标记
+**AI知识点**（user_learning_content_knowledge_points表）：
+- 使用特殊用户ID（user_id=-1）标识AI生成的知识点
+- 存储在`user_learning_content_knowledge_points`表中
 - 所有用户可见
 
 ### 3. 答题模版渲染引擎
@@ -580,10 +590,11 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 
 **Week 1**:
 - [ ] 创建`answer_templates`表
-- [ ] 扩展`learning_contents`表（code_language, diagram_url, is_ai_generated）
-- [ ] Skill与模版关联（方案A或B）
+- [ ] 创建`skill_templates`关联表（方案B，多对多关系）
+- [ ] 扩展`user_question_notes`表（related_knowledge_point_ids字段）
 - [ ] 为第二类技能创建"General"大分类数据
 - [ ] STAR和Technical模版预置数据
+- [ ] 创建AI特殊用户（user_id=-1）
 
 ### Phase 6.2: 管理员页面 - 1周
 
@@ -658,8 +669,10 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 - 优点：支持多对多关系（未来扩展）
 - 缺点：增加表关联复杂度
 
-**建议**：暂用方案A（一个Skill一个模版），若后续需要多模版支持，再迁移到方案B
-<Austin> 用方案B
+**决策**：✅ 采用方案B（创建`skill_templates`关联表）
+- 优点：支持多对多关系，一个Skill可以有多个模版
+- 实现：通过`is_default`字段标记默认模版
+- 灵活性：用户可选择使用默认模版或通用模版
 
 ### 2. 答题模版管理位置
 
@@ -671,9 +684,9 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 - 优点：减少菜单层级
 - 缺点：页面功能可能过于复杂
 
-**建议**：方案A（专门页面），位置：设置 → 内容 → 答题模版管理
----
-<Austin> 方案A
+**决策**：✅ 采用方案A（专门页面）
+- 位置：设置 → 内容 → 答题模版管理
+- 功能：模版CRUD + Skill关联管理 + 字段配置
 
 ## 参考资料
 

@@ -54,6 +54,30 @@
           </label>
         </div>
 
+        <!-- 是否为通用分类 -->
+        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <div class="flex items-start">
+            <input
+              v-model="form.isGeneralOnly"
+              type="checkbox"
+              id="isGeneralOnly"
+              :disabled="!canToggleGeneralOnly && !form.isGeneralOnly"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <div class="ml-3 flex-1">
+              <label for="isGeneralOnly" class="block text-sm font-medium text-gray-900">
+                通用分类模式 📋
+              </label>
+              <p class="text-xs text-gray-500 mt-1">
+                启用后，该技能将跳过大分类层级，直接管理 Focus Area
+              </p>
+              <p v-if="generalOnlyError && !form.isGeneralOnly" class="text-xs text-red-600 mt-2">
+                ⚠️ {{ generalOnlyError }}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- 图标 Emoji -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">图标 Emoji</label>
@@ -123,9 +147,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { getAllCareerPaths } from '@/api/careerPaths'
 import { createSkill, updateSkill } from '@/api/skills'
+import majorCategoryApi from '@/api/majorCategoryApi'
 
 const props = defineProps({
   skill: {
@@ -138,6 +163,9 @@ const emit = defineEmits(['close', 'success'])
 
 const careerPaths = ref([])
 const submitting = ref(false)
+const categories = ref([])
+const canToggleGeneralOnly = ref(true)
+const generalOnlyError = ref('')
 
 // 常用技能相关emoji
 const commonEmojis = [
@@ -155,6 +183,7 @@ const form = ref({
   name: '',
   description: '',
   isImportant: false,
+  isGeneralOnly: false,
   icon: '',
   careerPathIds: []
 })
@@ -167,6 +196,32 @@ const loadCareerPaths = async () => {
   }
 }
 
+// 检查是否可以切换通用分类模式
+const checkGeneralOnlyToggle = async () => {
+  if (!props.skill || !props.skill.id) {
+    canToggleGeneralOnly.value = true
+    generalOnlyError.value = ''
+    return
+  }
+
+  try {
+    categories.value = await majorCategoryApi.getAllMajorCategories(props.skill.id)
+    const hasNonGeneral = categories.value.some(c => c.name !== 'General')
+
+    if (hasNonGeneral) {
+      canToggleGeneralOnly.value = false
+      generalOnlyError.value = '该技能下存在非 General 的大分类，请先删除这些大分类后再启用通用分类模式'
+    } else {
+      canToggleGeneralOnly.value = true
+      generalOnlyError.value = ''
+    }
+  } catch (error) {
+    console.error('Failed to check categories:', error)
+    canToggleGeneralOnly.value = true
+    generalOnlyError.value = ''
+  }
+}
+
 // 初始化表单数据
 const initForm = () => {
   if (props.skill) {
@@ -174,6 +229,7 @@ const initForm = () => {
       name: props.skill.name || '',
       description: props.skill.description || '',
       isImportant: props.skill.isImportant || false,
+      isGeneralOnly: props.skill.isGeneralOnly || false,
       icon: props.skill.icon || '',
       careerPathIds: props.skill.careerPaths?.map(p => p.id) || []
     }
@@ -191,7 +247,14 @@ const handleSubmit = async () => {
     emit('success')
   } catch (error) {
     console.error('Failed to save skill:', error)
-    alert('保存失败,请重试')
+    // 如果是后端验证错误，显示具体错误信息
+    if (error.response?.data?.message) {
+      alert(error.response.data.message)
+    } else if (error.response?.status === 400) {
+      alert('保存失败：' + (error.message || '请检查输入'))
+    } else {
+      alert('保存失败,请重试')
+    }
   } finally {
     submitting.value = false
   }
@@ -199,10 +262,12 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   await loadCareerPaths()
+  await checkGeneralOnlyToggle()
   initForm()
 })
 
-watch(() => props.skill, () => {
+watch(() => props.skill, async () => {
+  await checkGeneralOnlyToggle()
   initForm()
 })
 </script>
