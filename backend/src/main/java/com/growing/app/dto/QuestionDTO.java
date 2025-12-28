@@ -29,6 +29,9 @@ public class QuestionDTO {
     // 用户笔记（仅在获取详情时包含）
     private UserQuestionNoteDTO userNote;
 
+    // AI笔记（user_id = -1的笔记，仅在获取详情时包含）
+    private UserQuestionNoteDTO aiNote;
+
     // 编程题详情（仅在编程题时包含）
     private ProgrammingQuestionDetailsDTO programmingDetails;
 

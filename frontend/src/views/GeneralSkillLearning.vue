@@ -829,28 +829,61 @@
 
                       <!-- 右栏：答案 (50%) -->
                       <div class="w-1/2 space-y-4 overflow-y-auto pl-2 border-l-2 border-gray-200">
-                        <!-- 有答案时显示 -->
-                        <template v-if="selectedQuestion.note?.noteContent">
-                          <!-- 核心要点（如果有） -->
-                          <div v-if="selectedQuestion.note?.coreStrategy" class="bg-blue-50 rounded-lg p-4">
-                            <h4 class="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        <!-- AI笔记（优先显示） -->
+                        <template v-if="selectedQuestion.aiNote?.noteContent">
+                          <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border-2 border-purple-200">
+                            <div class="flex items-center gap-2 mb-3">
+                              <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 7H7v6h6V7z" />
+                                <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
                               </svg>
-                              核心要点
-                            </h4>
-                            <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.note.coreStrategy)"></div>
-                          </div>
+                              <h4 class="text-sm font-bold text-purple-900">🤖 AI 参考答案</h4>
+                            </div>
 
-                          <!-- 答案主体 -->
-                          <div>
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">✍️ 参考答案</h4>
-                            <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.note.noteContent)"></div>
+                            <!-- AI核心要点（如果有） -->
+                            <div v-if="selectedQuestion.aiNote?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
+                              <h5 class="text-xs font-semibold text-purple-800 mb-2 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                核心要点
+                              </h5>
+                              <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.aiNote.coreStrategy)"></div>
+                            </div>
+
+                            <!-- AI答案主体 -->
+                            <div class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.aiNote.noteContent)"></div>
+                          </div>
+                        </template>
+
+                        <!-- 用户笔记 -->
+                        <template v-if="selectedQuestion.note?.noteContent">
+                          <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200">
+                            <div class="flex items-center gap-2 mb-3">
+                              <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                              </svg>
+                              <h4 class="text-sm font-bold text-green-900">✍️ 我的答案</h4>
+                            </div>
+
+                            <!-- 用户核心要点（如果有） -->
+                            <div v-if="selectedQuestion.note?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
+                              <h5 class="text-xs font-semibold text-green-800 mb-2 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                核心要点
+                              </h5>
+                              <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.note.coreStrategy)"></div>
+                            </div>
+
+                            <!-- 用户答案主体 -->
+                            <div class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.note.noteContent)"></div>
                           </div>
                         </template>
 
                         <!-- 无答案时显示提示 -->
-                        <div v-else class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                        <div v-if="!selectedQuestion.aiNote?.noteContent && !selectedQuestion.note?.noteContent" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
                           <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>

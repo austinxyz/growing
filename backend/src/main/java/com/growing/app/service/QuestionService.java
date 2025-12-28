@@ -77,7 +77,7 @@ public class QuestionService {
     }
 
     /**
-     * 获取试题详情（含用户笔记）
+     * 获取试题详情（含用户笔记和AI笔记）
      */
     public QuestionDTO getQuestionByIdForUser(Long id, Long userId) {
         Question question = questionRepository.findById(id)
@@ -88,6 +88,10 @@ public class QuestionService {
         // 加载用户笔记
         Optional<UserQuestionNote> note = noteRepository.findByQuestionIdAndUserId(id, userId);
         note.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
+
+        // 加载AI笔记（user_id = -1）
+        Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(id, -1L);
+        aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
 
         return dto;
     }
@@ -366,6 +370,10 @@ public class QuestionService {
         // 加载用户笔记
         Optional<UserQuestionNote> note = noteRepository.findByQuestionIdAndUserId(questionId, userId);
         note.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
+
+        // 加载AI笔记（user_id = -1）
+        Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(questionId, -1L);
+        aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
 
         return dto;
     }
