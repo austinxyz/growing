@@ -815,13 +815,13 @@
                       <!-- 题目描述 -->
                       <div>
                         <h4 class="text-sm font-semibold text-gray-700 mb-2">题目描述</h4>
-                        <div class="prose max-w-none text-sm" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                        <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
                       </div>
 
                       <!-- 答案要求 -->
                       <div v-if="selectedQuestion.answerRequirement">
                         <h4 class="text-sm font-semibold text-gray-700 mb-2">答案要求</h4>
-                        <div class="prose max-w-none text-sm" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
+                        <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
                       </div>
                     </div>
 
@@ -1669,3 +1669,58 @@ const init = async () => {
 
 init()
 </script>
+
+<style scoped>
+/* 紧凑模式 Markdown 渲染 - 减少间距 */
+.compact-prose :deep(p) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.compact-prose :deep(h1),
+.compact-prose :deep(h2),
+.compact-prose :deep(h3),
+.compact-prose :deep(h4),
+.compact-prose :deep(h5),
+.compact-prose :deep(h6) {
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
+}
+
+.compact-prose :deep(ul),
+.compact-prose :deep(ol) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.compact-prose :deep(li) {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.compact-prose :deep(pre) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.compact-prose :deep(blockquote) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.compact-prose :deep(hr) {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* 第一个元素去掉顶部间距 */
+.compact-prose :deep(> *:first-child) {
+  margin-top: 0;
+}
+
+/* 最后一个元素去掉底部间距 */
+.compact-prose :deep(> *:last-child) {
+  margin-bottom: 0;
+}
+</style>
