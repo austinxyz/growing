@@ -10,7 +10,25 @@ import api from './index'
 
 const skillTemplateApi = {
   /**
-   * 获取技能的所有关联模版
+   * 公开API: 获取技能的所有关联模版（供用户答题使用）
+   * GET /skills/{skillId}/templates
+   * @param {Number} skillId
+   */
+  getSkillTemplatesPublic(skillId) {
+    return api.get(`/skills/${skillId}/templates`)
+  },
+
+  /**
+   * 公开API: 获取技能的默认模版（供用户答题使用）
+   * GET /skills/{skillId}/templates/default
+   * @param {Number} skillId
+   */
+  getDefaultTemplatePublic(skillId) {
+    return api.get(`/skills/${skillId}/templates/default`)
+  },
+
+  /**
+   * 管理员API: 获取技能的所有关联模版
    * GET /admin/skill-templates?skillId=X
    * @param {Number} skillId
    */

@@ -9,9 +9,14 @@
     </div>
 
     <!-- 两栏布局 -->
-    <div class="flex h-[calc(100vh-9rem)]">
+    <div class="flex h-[calc(100vh-9rem)] relative">
       <!-- 左侧面板 (25%) - 上下两栏树形结构 -->
-      <div class="w-1/4 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
+      <div
+        :class="[
+          'bg-white border-r border-gray-200 overflow-hidden flex flex-col transition-all duration-300',
+          isSidebarCollapsed ? 'w-0' : 'w-1/4'
+        ]"
+      >
 
         <!-- 上栏树：职业路径 → 技能 (40% height) -->
         <div class="h-2/5 border-b-2 border-gray-200 overflow-hidden flex flex-col">
@@ -185,7 +190,24 @@
       </div>
 
       <!-- 右侧面板 (75%) - Tab 1: 学习资料 + Tab 2: 试题库 -->
-      <div class="flex-1 bg-white overflow-hidden flex flex-col">
+      <div class="flex-1 bg-white overflow-hidden flex flex-col relative">
+        <!-- 左侧栏折叠/展开按钮 -->
+        <button
+          @click="isSidebarCollapsed = !isSidebarCollapsed"
+          class="absolute top-4 left-4 z-10 p-2 bg-white border border-gray-300 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+          :title="isSidebarCollapsed ? '展开侧边栏' : '折叠侧边栏'"
+        >
+          <svg
+            :class="['w-5 h-5 text-gray-600 transition-transform', isSidebarCollapsed ? '' : 'rotate-180']"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+
+
         <!-- 未选择Focus Area时的提示 -->
         <div v-if="!selectedFocusAreaId" class="flex-1 flex items-center justify-center text-gray-500">
           <div class="text-center">
@@ -658,36 +680,216 @@
               </template>
             </div>
 
-            <!-- Tab 2: 试题库 -->
-            <div v-if="activeTab === 'questions'" class="p-6">
-              <div v-if="loadingQuestions" class="text-center py-12">
-                <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                加载中...
-              </div>
-
-              <div v-else-if="questions.length === 0" class="text-center text-gray-400 py-12">
-                该Focus Area暂无试题
-              </div>
-
-              <div v-else class="space-y-2">
-                <div
-                  v-for="question in questions"
-                  :key="question.id"
-                  @click="openQuestionModal(question)"
-                  class="p-3 bg-white rounded-lg hover:bg-blue-50 transition-all cursor-pointer border border-gray-200 hover:border-blue-300 hover:shadow-md"
-                >
-                  <div class="flex items-start gap-3">
-                    <div class="flex-1">
-                      <h4 class="text-sm font-semibold text-gray-900">{{ question.title }}</h4>
-                      <p class="text-xs text-gray-500 mt-1">{{ question.questionType }}</p>
-                    </div>
-                    <span v-if="question.note" class="text-xs text-green-600 font-semibold">已答</span>
-                  </div>
+            <!-- Tab 2: 试题库 - 两栏布局 -->
+            <div v-if="activeTab === 'questions'" class="h-full flex overflow-hidden relative">
+              <!-- 加载状态 -->
+              <div v-if="loadingQuestions" class="flex-1 flex items-center justify-center">
+                <div class="text-center">
+                  <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  加载中...
                 </div>
               </div>
+
+              <!-- 无试题状态 -->
+              <div v-else-if="questions.length === 0" class="flex-1 flex items-center justify-center">
+                <div class="text-center text-gray-400">
+                  <svg class="mx-auto h-12 w-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p class="text-sm">该Focus Area暂无试题</p>
+                </div>
+              </div>
+
+              <!-- 试题库两栏布局 -->
+              <template v-else>
+                <!-- 左侧：试题列表 (可隐藏) -->
+                <div
+                  :class="[
+                    'border-r border-gray-200 overflow-y-auto bg-gray-50 transition-all duration-300',
+                    isQuestionListCollapsed ? 'w-0' : 'w-[30%]'
+                  ]"
+                >
+                  <div class="p-4 space-y-2">
+                    <div
+                      v-for="(question, index) in questions"
+                      :key="question.id"
+                      @click="selectQuestion(question)"
+                      :class="[
+                        'p-3 rounded-lg cursor-pointer transition-all border-2',
+                        selectedQuestion?.id === question.id
+                          ? 'bg-blue-50 border-blue-400 shadow-md'
+                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow'
+                      ]"
+                    >
+                      <div class="flex items-start gap-2">
+                        <span class="text-xs font-bold text-gray-500 mt-0.5">Q{{ index + 1 }}</span>
+                        <div class="flex-1 min-w-0">
+                          <h4 :class="[
+                            'text-sm font-semibold truncate',
+                            selectedQuestion?.id === question.id ? 'text-blue-700' : 'text-gray-900'
+                          ]">
+                            {{ question.title }}
+                          </h4>
+                          <p class="text-xs text-gray-500 mt-1">{{ question.questionType }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                          <span v-if="question.note" class="inline-block px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded">
+                            已答
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右侧：浏览模式 / 答题模式 -->
+                <div class="flex-1 overflow-y-auto bg-white relative">
+                  <!-- 试题列表折叠/展开按钮 -->
+                  <button
+                    @click="isQuestionListCollapsed = !isQuestionListCollapsed"
+                    class="absolute top-4 left-4 z-10 p-2 bg-white border border-gray-300 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+                    :title="isQuestionListCollapsed ? '展开试题列表' : '折叠试题列表'"
+                  >
+                    <svg
+                      :class="['w-5 h-5 text-gray-600 transition-transform', isQuestionListCollapsed ? '' : 'rotate-180']"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <!-- 未选中试题 -->
+                  <div v-if="!selectedQuestion" class="h-full flex items-center justify-center text-gray-400">
+                    <div class="text-center">
+                      <svg class="mx-auto h-12 w-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                      <p class="text-sm">请从左侧选择一道试题</p>
+                    </div>
+                  </div>
+
+                  <!-- 已选中试题 -->
+                  <div v-else class="p-6">
+                    <!-- 模式切换按钮 -->
+                    <div class="mb-4 flex items-center justify-between">
+                      <h3 class="text-lg font-bold text-gray-900">{{ selectedQuestion.title }}</h3>
+                      <div class="flex gap-2">
+                        <button
+                          @click="questionViewMode = 'browse'"
+                          :class="[
+                            'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                            questionViewMode === 'browse'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ]"
+                        >
+                          📖 浏览模式
+                        </button>
+                        <button
+                          @click="questionViewMode = 'answer'"
+                          :class="[
+                            'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                            questionViewMode === 'answer'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ]"
+                        >
+                          ✍️ 答题模式
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 浏览模式 -->
+                    <div v-if="questionViewMode === 'browse'" class="space-y-4">
+                      <!-- 题目类型 -->
+                      <div class="bg-gray-50 p-3 rounded-lg">
+                        <span class="text-xs font-semibold text-gray-500">题目类型：</span>
+                        <span class="text-sm text-gray-900">{{ selectedQuestion.questionType }}</span>
+                      </div>
+
+                      <!-- 题目描述 -->
+                      <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">题目描述</h4>
+                        <div class="prose max-w-none text-sm" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                      </div>
+
+                      <!-- 答案要求 -->
+                      <div v-if="selectedQuestion.answerRequirement">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">答案要求</h4>
+                        <div class="prose max-w-none text-sm" v-html="renderMarkdown(selectedQuestion.answerRequirement)"></div>
+                      </div>
+                    </div>
+
+                    <!-- 答题模式 -->
+                    <div v-else class="space-y-4">
+                      <!-- 有模版：根据模版字段渲染结构化输入 -->
+                      <div v-if="answerTemplate && answerTemplate.templateFields" class="space-y-4">
+                        <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                          <h4 class="text-sm font-semibold text-blue-900 mb-1">{{ answerTemplate.templateName }} 答题框架</h4>
+                          <p class="text-xs text-blue-700">{{ answerTemplate.description }}</p>
+                        </div>
+
+                        <!-- 动态渲染模版字段 -->
+                        <div
+                          v-for="field in parseTemplateFields(answerTemplate.templateFields)"
+                          :key="field.key"
+                          class="space-y-2"
+                        >
+                          <label class="block text-sm font-semibold text-gray-700">
+                            {{ field.label }}
+                          </label>
+                          <textarea
+                            v-model="answerForm[field.key]"
+                            :placeholder="field.placeholder"
+                            rows="4"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          ></textarea>
+                        </div>
+
+                        <!-- 保存按钮 -->
+                        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                          <button
+                            @click="saveAnswer"
+                            class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            💾 保存答案
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 无模版：自由文本输入 -->
+                      <div v-else class="space-y-4">
+                        <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                          <h4 class="text-sm font-semibold text-gray-700">自由答题</h4>
+                          <p class="text-xs text-gray-500 mt-1">请根据题目要求,自由发挥作答</p>
+                        </div>
+
+                        <textarea
+                          v-model="answerForm.freeText"
+                          placeholder="请输入你的答案..."
+                          rows="12"
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        ></textarea>
+
+                        <!-- 保存按钮 -->
+                        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                          <button
+                            @click="saveAnswer"
+                            class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            💾 保存答案
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </template>
@@ -764,6 +966,7 @@ import majorCategoryApi from '@/api/majorCategoryApi'
 import focusAreaApi from '@/api/focusAreaApi'
 import learningContentApi from '@/api/learningContentApi'
 import { questionApi } from '@/api/questionApi'
+import skillTemplateApi from '@/api/skillTemplateApi'
 import { marked } from 'marked'
 import VideoPlayer from '@/components/VideoPlayer.vue'
 
@@ -794,6 +997,10 @@ const activeTab = ref('learning') // 'learning' or 'questions'
 const learningContents = ref([])
 const selectedContent = ref(null) // 当前选中的学习资料
 const questions = ref([])
+const selectedQuestion = ref(null) // 当前选中的试题
+const questionViewMode = ref('browse') // 'browse' or 'answer'
+const answerTemplate = ref(null) // 当前技能的答题模版
+const answerForm = ref({}) // 答题表单数据
 
 // 卡片折叠状态
 const cardStates = ref({
@@ -825,6 +1032,12 @@ const knowledgePointForm = ref({
 // 文档全屏查看状态
 const isDocumentMaximized = ref(false)
 const iframeLoadError = ref(false)
+
+// 左侧栏折叠状态
+const isSidebarCollapsed = ref(false)
+
+// 试题列表折叠状态
+const isQuestionListCollapsed = ref(false)
 
 // DOM引用
 const overallNoteContent = ref(null)
@@ -895,6 +1108,21 @@ const selectSkill = async (skillId) => {
 
   // 加载该技能的大分类和Focus Area
   await loadCategoriesAndFocusAreas()
+
+  // 加载该技能的答题模版
+  await loadSkillTemplate(skillId)
+}
+
+// 加载技能的答题模版
+const loadSkillTemplate = async (skillId) => {
+  try {
+    // 获取技能的默认模版
+    const template = await skillTemplateApi.getDefaultTemplatePublic(skillId)
+    answerTemplate.value = template
+  } catch (error) {
+    console.error('Failed to load skill template:', error)
+    answerTemplate.value = null
+  }
 }
 
 const loadCategoriesAndFocusAreas = async () => {
@@ -1061,10 +1289,93 @@ const loadQuestions = async () => {
     // Note: interceptor returns response.data already
     const data = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
     questions.value = data || []
+    // 自动选中第一道试题
+    if (data && data.length > 0) {
+      selectedQuestion.value = data[0]
+      questionViewMode.value = 'browse'
+    } else {
+      selectedQuestion.value = null
+    }
   } catch (error) {
     console.error('Failed to load questions:', error)
+    questions.value = []
+    selectedQuestion.value = null
   } finally {
     loadingQuestions.value = false
+  }
+}
+
+// 选择试题
+const selectQuestion = (question) => {
+  selectedQuestion.value = question
+  questionViewMode.value = 'browse'
+
+  // 初始化答题表单
+  initAnswerForm(question)
+}
+
+// 初始化答题表单
+const initAnswerForm = (question) => {
+  // 如果有模版,根据模版字段初始化表单
+  if (answerTemplate.value && answerTemplate.value.templateFields) {
+    const fields = {}
+    try {
+      const templateFields = typeof answerTemplate.value.templateFields === 'string'
+        ? JSON.parse(answerTemplate.value.templateFields)
+        : answerTemplate.value.templateFields
+
+      templateFields.forEach(field => {
+        fields[field.key] = ''
+      })
+    } catch (error) {
+      console.error('Failed to parse template fields:', error)
+    }
+    answerForm.value = fields
+  } else {
+    // 没有模版,使用自由文本
+    answerForm.value = { freeText: '' }
+  }
+
+  // 如果已有答题笔记,加载到表单中
+  if (question.note && question.note.noteContent) {
+    try {
+      const savedAnswer = JSON.parse(question.note.noteContent)
+      answerForm.value = { ...answerForm.value, ...savedAnswer }
+    } catch (error) {
+      // 如果不是JSON格式,可能是旧版自由文本
+      answerForm.value.freeText = question.note.noteContent
+    }
+  }
+}
+
+// 保存答题笔记
+const saveAnswer = async () => {
+  if (!selectedQuestion.value) return
+
+  try {
+    // 将答题表单转换为JSON字符串保存
+    const noteContent = JSON.stringify(answerForm.value)
+
+    // 调用API保存
+    const savedNote = await questionApi.saveOrUpdateNote(selectedQuestion.value.id, noteContent)
+
+    // 更新本地数据
+    if (selectedQuestion.value.note) {
+      selectedQuestion.value.note.noteContent = noteContent
+    } else {
+      selectedQuestion.value.note = { noteContent }
+    }
+
+    // 更新questions列表中的note标记
+    const questionIndex = questions.value.findIndex(q => q.id === selectedQuestion.value.id)
+    if (questionIndex !== -1) {
+      questions.value[questionIndex].note = selectedQuestion.value.note
+    }
+
+    alert('答题笔记保存成功！')
+  } catch (error) {
+    console.error('Failed to save answer:', error)
+    alert('保存失败: ' + (error.message || '未知错误'))
   }
 }
 
@@ -1142,10 +1453,6 @@ const deleteKnowledgePoint = async (contentId, kpId) => {
   }
 }
 
-const openQuestionModal = (question) => {
-  // TODO: 打开试题详情Modal
-  console.log('Open question modal:', question)
-}
 
 const closeAddKnowledgePointModal = () => {
   showAddKnowledgePointModal.value = false
@@ -1159,6 +1466,17 @@ const closeAddKnowledgePointModal = () => {
 const renderMarkdown = (content) => {
   if (!content) return ''
   return marked(content, { breaks: true })
+}
+
+// 解析模版字段（JSON字符串 → 数组对象）
+const parseTemplateFields = (templateFields) => {
+  if (!templateFields) return []
+  try {
+    return typeof templateFields === 'string' ? JSON.parse(templateFields) : templateFields
+  } catch (error) {
+    console.error('Failed to parse template fields:', error)
+    return []
+  }
 }
 
 // 检测内容是否溢出

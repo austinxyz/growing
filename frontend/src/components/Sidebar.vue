@@ -1,7 +1,28 @@
 <template>
-  <aside class="w-64 lg:w-64 md:w-56 sm:w-64 bg-card border-r border-border flex flex-col h-full">
+  <aside
+    :class="[
+      'bg-card border-r border-border flex flex-col h-full transition-all duration-300 relative',
+      isCollapsed ? 'w-16' : 'w-64 lg:w-64 md:w-56 sm:w-64'
+    ]"
+  >
+    <!-- 折叠/展开按钮 -->
+    <button
+      @click="isCollapsed = !isCollapsed"
+      class="absolute top-2 right-2 z-20 p-1.5 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors"
+      :title="isCollapsed ? '展开侧边栏' : '折叠侧边栏'"
+    >
+      <svg
+        :class="['w-4 h-4 text-gray-600 transition-transform', isCollapsed ? 'rotate-180' : '']"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+      </svg>
+    </button>
+
     <!-- User Info Section -->
-    <div class="p-4 border-b border-border bg-accent/20">
+    <div v-if="!isCollapsed" class="p-4 border-b border-border bg-accent/20">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2 min-w-0 flex-1">
           <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -29,8 +50,17 @@
       </div>
     </div>
 
+    <!-- Collapsed User Avatar -->
+    <div v-else class="p-2 border-b border-border bg-accent/20 flex justify-center">
+      <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+        <span class="text-primary-foreground font-semibold text-sm">
+          {{ displayName.charAt(0).toUpperCase() }}
+        </span>
+      </div>
+    </div>
+
     <!-- Logo/Brand -->
-    <div class="p-6 border-b border-border">
+    <div v-if="!isCollapsed" class="p-6 border-b border-border">
       <router-link to="/dashboard" class="flex items-center space-x-2">
         <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <span class="text-primary-foreground font-bold text-lg">📚</span>
@@ -42,9 +72,16 @@
       </router-link>
     </div>
 
+    <!-- Collapsed Logo -->
+    <div v-else class="p-2 border-b border-border flex justify-center">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+        <span class="text-primary-foreground font-bold text-lg">📚</span>
+      </div>
+    </div>
+
     <!-- Top Level Menu Tabs -->
     <div class="border-b border-border">
-      <div class="flex">
+      <div v-if="!isCollapsed" class="flex">
         <button
           v-for="tab in topLevelTabs"
           :key="tab.key"
@@ -60,10 +97,28 @@
           <span class="block text-xs">{{ tab.label }}</span>
         </button>
       </div>
+
+      <!-- Collapsed Tabs (Vertical Icons) -->
+      <div v-else class="flex flex-col items-center py-2 space-y-2">
+        <button
+          v-for="tab in topLevelTabs"
+          :key="tab.key"
+          @click="activeTopTab = tab.key"
+          :class="[
+            'p-2 rounded transition-colors',
+            activeTopTab === tab.key
+              ? 'text-primary bg-primary/10'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+          ]"
+          :title="tab.label"
+        >
+          <component :is="tab.icon" class="w-5 h-5" />
+        </button>
+      </div>
     </div>
 
     <!-- Navigation - Dynamic based on active tab -->
-    <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+    <nav v-if="!isCollapsed" class="flex-1 overflow-y-auto p-4 space-y-2">
       <!-- 仪表盘 (always visible) -->
       <router-link
         v-if="activeTopTab === 'learning'"
@@ -247,8 +302,115 @@
       </template>
     </nav>
 
+    <!-- Collapsed Navigation (Icons Only) -->
+    <nav v-else class="flex-1 overflow-y-auto p-2 space-y-1">
+      <router-link
+        v-if="activeTopTab === 'learning'"
+        to="/dashboard"
+        class="flex items-center justify-center p-2 rounded-md transition-colors"
+        :class="isActive('/dashboard')"
+        title="仪表盘"
+      >
+        <LayoutDashboard class="w-5 h-5" />
+      </router-link>
+
+      <template v-if="activeTopTab === 'learning'">
+        <router-link
+          to="/general-skills/learning"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/general-skills/learning')"
+          title="职业技能"
+        >
+          <Briefcase class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/my-questions"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/my-questions')"
+          title="我的试题库"
+        >
+          <BookOpen class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/algorithm-learning"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/algorithm-learning')"
+          title="学习路径"
+        >
+          <Code class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/algorithm-templates"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/algorithm-templates')"
+          title="模版库"
+        >
+          <FileCode class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/learning-review"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/learning-review')"
+          title="学习总结"
+        >
+          <BookCheck class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/system-design/basics"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/system-design/basics')"
+          title="基础知识"
+        >
+          <Network class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/system-design/cases"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/system-design/cases')"
+          title="典型案例"
+        >
+          <Layers class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/system-design/summary"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/system-design/summary')"
+          title="学习总结"
+        >
+          <FileText class="w-5 h-5" />
+        </router-link>
+      </template>
+
+      <template v-if="activeTopTab === 'settings' && isAdmin">
+        <router-link
+          to="/admin/skills"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/admin/skills')"
+          title="技能架构管理"
+        >
+          <Layers class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/admin/general-skills"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/admin/general-skills')"
+          title="技能内容库"
+        >
+          <Target class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/settings/users"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/settings/users')"
+          title="用户管理"
+        >
+          <Users class="w-5 h-5" />
+        </router-link>
+      </template>
+    </nav>
+
     <!-- Footer/User Section -->
-    <div class="p-4 border-t border-border">
+    <div v-if="!isCollapsed" class="p-4 border-t border-border">
       <div class="text-xs text-muted-foreground">
         <p>v1.0.0</p>
         <p>© 2025 Growing</p>
@@ -258,7 +420,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   LayoutDashboard,
@@ -282,6 +444,20 @@ import { useAuth } from '@/composables/useAuth';
 
 const route = useRoute();
 const activeTopTab = ref('learning');
+const isCollapsed = ref(false);
+
+// 从localStorage加载折叠状态
+onMounted(() => {
+  const saved = localStorage.getItem('sidebar-collapsed');
+  if (saved !== null) {
+    isCollapsed.value = saved === 'true';
+  }
+});
+
+// 保存折叠状态到localStorage
+watch(isCollapsed, (newValue) => {
+  localStorage.setItem('sidebar-collapsed', newValue.toString());
+});
 
 // 用户认证状态
 const { displayName, username, isAdmin, logout } = useAuth();
