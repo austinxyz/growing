@@ -2,6 +2,7 @@
   "name": "generate-ai-answer",
   "description": "Generate AI reference answer for a question based on its skill's answer template. Use this skill when the user asks to generate AI answer for a specific question ID.",
   "tags": ["database", "ai", "questions"],
+  "userInvocable": true,
   "arguments": [
     {
       "name": "question_id",
@@ -15,6 +16,13 @@
       "required": false,
       "type": "number",
       "default": 500
+    },
+    {
+      "name": "mode",
+      "description": "Mode: preview (save to notes/ai) or run (save to database)",
+      "required": false,
+      "type": "string",
+      "default": "preview"
     }
   ]
 }

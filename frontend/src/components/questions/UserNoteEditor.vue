@@ -254,7 +254,9 @@ watch(() => props.initialNote, (newNote) => {
 
     // 尝试解析模版格式
     for (const field of fields) {
-      const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+      // 转义正则表达式中的特殊字符
+      const escapedLabel = field.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const pattern = new RegExp(`## ${escapedLabel}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
       const match = newNote.noteContent.match(pattern)
 
       if (match) {

@@ -249,12 +249,12 @@ if [ "$MODE" = "run" ]; then
     fi
 fi
 
-# Create note/ai directory if it doesn't exist
-mkdir -p note/ai
+# Create notes/ai directory if it doesn't exist
+mkdir -p notes/ai
 
 # Output file path
 if [ "$MODE" = "preview" ]; then
-    OUTPUT_FILE="note/ai/question_${QUESTION_ID}_ai_answer.md"
+    OUTPUT_FILE="notes/ai/question_${QUESTION_ID}_ai_answer.md"
     echo "📄 Preview mode: Answer will be saved to $OUTPUT_FILE"
 else
     OUTPUT_FILE="/tmp/ai_answer_${QUESTION_ID}.md"

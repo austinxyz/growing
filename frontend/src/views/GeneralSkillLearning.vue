@@ -344,17 +344,33 @@
                     </div>
                   </div>
 
-                  <!-- iframe容器 -->
-                  <div class="flex-1 relative bg-white">
+                  <!-- 内容容器 -->
+                  <div class="flex-1 relative bg-white overflow-auto">
+                    <!-- 视频类型：显示视频播放器 -->
+                    <div v-if="selectedContent.contentType === 'video' && selectedContent.url" class="h-full flex items-center justify-center bg-black p-8">
+                      <div class="w-full max-w-5xl">
+                        <VideoPlayer :url="selectedContent.url" />
+                      </div>
+                    </div>
+
+                    <!-- 文档类型：显示iframe -->
                     <iframe
-                      v-if="selectedContent.url && !iframeLoadError"
+                      v-else-if="selectedContent.url && selectedContent.contentType !== 'video' && !iframeLoadError"
                       :src="selectedContent.url"
                       class="w-full h-full border-0"
                       @error="handleIframeError"
                     ></iframe>
 
+                    <!-- 纯文本内容（无URL） -->
+                    <div v-else-if="!selectedContent.url && selectedContent.contentData" class="h-full overflow-auto p-8">
+                      <div class="prose max-w-none">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ selectedContent.title }}</h2>
+                        <div class="text-gray-700 whitespace-pre-wrap">{{ selectedContent.contentData }}</div>
+                      </div>
+                    </div>
+
                     <!-- iframe加载失败提示 -->
-                    <div v-if="iframeLoadError" class="absolute inset-0 bg-white flex items-center justify-center">
+                    <div v-else-if="iframeLoadError" class="absolute inset-0 bg-white flex items-center justify-center">
                       <div class="text-center p-8 max-w-md">
                         <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -376,8 +392,147 @@
                         </a>
                       </div>
                     </div>
+
+                    <!-- 无内容提示 -->
+                    <div v-else class="absolute inset-0 bg-white flex items-center justify-center">
+                      <div class="text-center text-gray-400">
+                        <p class="text-sm">暂无可显示的内容</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                  <!-- 卡片最大化视图 -->
+                  <div v-else-if="selectedContent && maximizedCard" class="flex-1 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden">
+                    <!-- 工具栏 -->
+                    <div class="bg-gray-100 px-4 py-2 flex items-center justify-between border-b border-gray-200">
+                      <h2 class="text-sm font-semibold text-gray-900">
+                        {{
+                          maximizedCard === 'aiNote' ? '🤖 AI 整体笔记' :
+                          maximizedCard === 'userNote' ? '📝 整体笔记' :
+                          maximizedCard.startsWith('aiKnowledgePoint-') ? '🤖 AI 知识点' :
+                          '💡 知识点'
+                        }}
+                      </h2>
+                      <button
+                        @click="minimizeCard"
+                        class="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                      >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        返回卡片视图
+                      </button>
+                    </div>
+
+                    <!-- 内容区域 -->
+                    <div class="flex-1 overflow-auto p-6">
+                      <!-- AI整体笔记 -->
+                      <div v-if="maximizedCard === 'aiNote' && selectedContent.aiNote?.noteContent" class="prose prose-lg max-w-none">
+                        <div v-html="renderMarkdown(selectedContent.aiNote.noteContent)" class="text-gray-700"></div>
+                      </div>
+
+                      <!-- 用户整体笔记 -->
+                      <div v-else-if="maximizedCard === 'userNote'">
+                        <!-- 笔记编辑区 -->
+                        <div v-if="isEditingNote || !selectedContent.userNote?.noteContent" class="max-w-4xl mx-auto">
+                          <textarea
+                            v-model="noteContent"
+                            rows="20"
+                            class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono"
+                            placeholder="记录整体学习笔记 (支持Markdown)..."
+                          ></textarea>
+                          <div class="flex justify-end gap-2 mt-4">
+                            <button
+                              v-if="selectedContent.userNote?.noteContent"
+                              @click="cancelEditNote"
+                              class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                            >
+                              取消
+                            </button>
+                            <button
+                              @click="saveNote"
+                              :disabled="!noteContent.trim()"
+                              class="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {{ selectedContent.userNote?.noteContent ? '保存' : '添加' }}
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- 笔记显示区 -->
+                        <div v-else-if="selectedContent.userNote?.noteContent" class="prose prose-lg max-w-none">
+                          <div class="flex justify-end gap-2 mb-4">
+                            <button
+                              @click="startEditNote"
+                              class="px-3 py-1.5 text-xs text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                            >
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              编辑
+                            </button>
+                            <button
+                              @click="deleteNote"
+                              class="px-3 py-1.5 text-xs text-red-700 bg-white border border-red-300 rounded hover:bg-red-50 flex items-center gap-1"
+                            >
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              删除
+                            </button>
+                          </div>
+                          <div v-html="renderMarkdown(selectedContent.userNote.noteContent)" class="text-gray-700"></div>
+                        </div>
+                      </div>
+
+                      <!-- AI知识点 -->
+                      <div v-else-if="maximizedCard.startsWith('aiKnowledgePoint-')" class="max-w-4xl mx-auto">
+                        <template v-for="(kp, index) in selectedContent.aiKnowledgePoints" :key="kp.id || index">
+                          <div v-if="maximizedCard === 'aiKnowledgePoint-' + (kp.id || index)">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ kp.title }}</h3>
+                            <div class="prose prose-lg max-w-none">
+                              <div v-html="renderMarkdown(kp.summary)" class="text-gray-700"></div>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+
+                      <!-- 用户知识点 -->
+                      <div v-else-if="maximizedCard.startsWith('userKnowledgePoint-')" class="max-w-4xl mx-auto">
+                        <template v-for="(kp, index) in selectedContent.userKnowledgePoints" :key="kp.id || index">
+                          <div v-if="maximizedCard === 'userKnowledgePoint-' + (kp.id || index)">
+                            <div class="flex justify-between items-start mb-4">
+                              <h3 class="text-xl font-bold text-gray-900">{{ kp.title }}</h3>
+                              <div class="flex gap-2">
+                                <button
+                                  @click="editKnowledgePoint(kp)"
+                                  class="px-3 py-1.5 text-xs text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                >
+                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  编辑
+                                </button>
+                                <button
+                                  @click="deleteKnowledgePoint(kp.id)"
+                                  class="px-3 py-1.5 text-xs text-red-700 bg-white border border-red-300 rounded hover:bg-red-50 flex items-center gap-1"
+                                >
+                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  删除
+                                </button>
+                              </div>
+                            </div>
+                            <div class="prose prose-lg max-w-none">
+                              <div v-html="renderMarkdown(kp.summary)" class="text-gray-700"></div>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
 
                   <!-- 卡片网格布局 -->
                   <div v-else-if="selectedContent" class="overflow-y-auto flex-1">
@@ -419,12 +574,11 @@
                         <h3 class="font-semibold text-xs">📚 学习资料</h3>
                       </div>
                       <div class="flex items-center gap-1">
-                        <!-- 全屏查看按钮（仅对非视频类型的文档显示） -->
+                        <!-- 全屏查看按钮（所有类型的学习资料都可以最大化） -->
                         <button
-                          v-if="selectedContent.contentType !== 'video' && selectedContent.url"
                           @click.stop="maximizeDocument"
                           class="p-1 hover:bg-blue-600 rounded transition-all"
-                          title="文档全屏查看"
+                          title="全屏查看"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -490,17 +644,30 @@
                         <div class="w-1.5 h-5 bg-gradient-to-b from-blue-300 to-white rounded-full"></div>
                         <h3 class="font-semibold text-xs">🤖 AI 整体笔记</h3>
                       </div>
-                      <button
-                        @click.stop="cardStates.aiNote = !cardStates.aiNote"
-                        class="p-1 hover:bg-blue-600 rounded transition-all"
-                      >
-                        <svg
-                          :class="['w-3.5 h-3.5 transition-transform', cardStates.aiNote ? 'rotate-180' : '']"
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      <div class="flex items-center gap-1">
+                        <!-- 最大化按钮 -->
+                        <button
+                          @click.stop="maximizeCard('aiNote')"
+                          class="p-1 hover:bg-blue-600 rounded transition-all"
+                          title="全屏查看"
                         >
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                          </svg>
+                        </button>
+                        <!-- 折叠按钮 -->
+                        <button
+                          @click.stop="cardStates.aiNote = !cardStates.aiNote"
+                          class="p-1 hover:bg-blue-600 rounded transition-all"
+                        >
+                          <svg
+                            :class="['w-3.5 h-3.5 transition-transform', cardStates.aiNote ? 'rotate-180' : '']"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <div v-show="cardStates.aiNote" class="p-3">
                       <div
@@ -559,6 +726,16 @@
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                        <!-- 最大化按钮 -->
+                        <button
+                          @click.stop="maximizeCard('userNote')"
+                          class="p-1 hover:bg-green-600 rounded transition-all"
+                          title="全屏查看"
+                        >
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                           </svg>
                         </button>
                         <!-- 折叠按钮 -->
@@ -651,17 +828,30 @@
                         <span class="text-xs">🤖</span>
                         <h3 class="font-semibold text-xs truncate">{{ index + 1 }}. {{ point.title || '未命名' }}</h3>
                       </div>
-                      <button
-                        @click.stop="toggleAiKnowledgePointCard('ai-' + (point.id || index))"
-                        class="p-1 hover:bg-indigo-600 rounded transition-all flex-shrink-0"
-                      >
-                        <svg
-                          :class="['w-3.5 h-3.5 transition-transform', cardStates.aiKnowledgePoints['ai-' + (point.id || index)] ? 'rotate-180' : '']"
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                        <!-- 最大化按钮 -->
+                        <button
+                          @click.stop="maximizeCard('aiKnowledgePoint-' + (point.id || index))"
+                          class="p-1 hover:bg-indigo-600 rounded transition-all"
+                          title="全屏查看"
                         >
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                          </svg>
+                        </button>
+                        <!-- 折叠按钮 -->
+                        <button
+                          @click.stop="toggleAiKnowledgePointCard('ai-' + (point.id || index))"
+                          class="p-1 hover:bg-indigo-600 rounded transition-all"
+                        >
+                          <svg
+                            :class="['w-3.5 h-3.5 transition-transform', cardStates.aiKnowledgePoints['ai-' + (point.id || index)] ? 'rotate-180' : '']"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <div v-show="cardStates.aiKnowledgePoints['ai-' + (point.id || index)]" class="p-3">
                       <div
@@ -692,14 +882,15 @@
 
                   <!-- 添加知识点卡片 - 使用渐变背景 -->
                   <div
-                    @click="showAddKnowledgePointModal = true"
-                    class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-md overflow-hidden border-2 border-dashed border-purple-300 hover:border-purple-500 hover:from-purple-100 hover:shadow-xl transition-all cursor-pointer"
+                    @click="addNewKnowledgePointCard"
+                    class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-md overflow-hidden border-2 border-dashed border-purple-300 hover:border-purple-500 hover:from-purple-100 hover:shadow-xl transition-all cursor-pointer min-h-[150px]"
                   >
-                    <div class="flex flex-col items-center justify-center h-full py-6">
-                      <svg class="w-10 h-10 text-purple-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                      <svg class="w-12 h-12 text-purple-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
-                      <p class="text-sm font-medium text-purple-600">添加知识点</p>
+                      <p class="text-sm font-semibold text-purple-600">添加知识点</p>
+                      <p class="text-xs text-purple-400 mt-1">点击创建新卡片</p>
                     </div>
                   </div>
 
@@ -719,6 +910,17 @@
                         <h3 class="font-semibold text-xs truncate">{{ index + 1 }}. {{ point.title || '未命名' }}</h3>
                       </div>
                       <div class="flex items-center gap-1 flex-shrink-0">
+                        <!-- 最大化按钮 -->
+                        <button
+                          v-if="point.title && point.summary"
+                          @click.stop="maximizeCard('userKnowledgePoint-' + (point.id || index))"
+                          class="p-1 hover:bg-purple-600 rounded transition-all"
+                          title="全屏查看"
+                        >
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                          </svg>
+                        </button>
                         <!-- 编辑按钮 -->
                         <button
                           v-if="point.title && point.summary"
@@ -917,51 +1119,53 @@
 
                   <!-- 已选中试题 -->
                   <div v-else class="h-full flex flex-col">
-                    <!-- 模式切换按钮 -->
-                    <div class="px-6 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
-                      <h3 class="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                        {{ selectedQuestion.title || '新建试题' }}
-                      </h3>
-                      <div class="flex gap-1">
-                        <button
-                          v-if="selectedQuestion.id"
-                          @click="questionViewMode = 'browse'"
-                          :class="[
-                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
-                            questionViewMode === 'browse'
-                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg'
-                              : 'bg-white text-gray-700 hover:bg-gray-50'
-                          ]"
-                          title="浏览模式"
-                        >
-                          📖 浏览
-                        </button>
-                        <button
-                          v-if="selectedQuestion.id"
-                          @click="questionViewMode = 'answer'"
-                          :class="[
-                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
-                            questionViewMode === 'answer'
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:shadow-lg'
-                              : 'bg-white text-gray-700 hover:bg-gray-50'
-                          ]"
-                          title="答题模式"
-                        >
-                          ✍️ 答题
-                        </button>
-                        <button
-                          v-if="canEditQuestion"
-                          @click="questionViewMode = 'edit'"
-                          :class="[
-                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
-                            questionViewMode === 'edit'
-                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 hover:shadow-lg'
-                              : 'bg-white text-gray-700 hover:bg-gray-50'
-                          ]"
-                          title="编辑模式"
-                        >
-                          ✏️ 编辑
-                        </button>
+                    <!-- 标题栏 + 模式切换按钮 -->
+                    <div class="px-6 pt-4 pb-3 flex-shrink-0 border-b border-gray-200">
+                      <div class="flex items-center justify-between">
+                        <!-- 左侧：试题标题 -->
+                        <h3 class="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                          {{ selectedQuestion.title || '新建试题' }}
+                        </h3>
+
+                        <!-- 右侧：模式切换按钮组 -->
+                        <div class="flex items-center gap-2">
+                          <button
+                            v-if="selectedQuestion.id"
+                            @click="questionViewMode = 'browse'"
+                            :class="[
+                              'px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200',
+                              questionViewMode === 'browse'
+                                ? 'bg-blue-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ]"
+                          >
+                            📖 浏览
+                          </button>
+                          <button
+                            v-if="selectedQuestion.id"
+                            @click="questionViewMode = 'answer'"
+                            :class="[
+                              'px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200',
+                              questionViewMode === 'answer'
+                                ? 'bg-green-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ]"
+                          >
+                            ✍️ 答题
+                          </button>
+                          <button
+                            v-if="canEditQuestion"
+                            @click="questionViewMode = 'edit'"
+                            :class="[
+                              'px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200',
+                              questionViewMode === 'edit'
+                                ? 'bg-purple-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ]"
+                          >
+                            ✏️ 编辑
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -1125,50 +1329,43 @@
                       </div>
                     </div>
                     <!-- 答题模式 -->
-                    <div v-else-if="questionViewMode === 'answer'" class="flex-1 flex flex-col overflow-hidden">
-                      <!-- 答题身份切换（所有题型通用） -->
-                      <div class="flex-shrink-0 px-6 pt-3 pb-2 bg-gradient-to-r from-blue-50 to-purple-50 border-b-2 border-blue-200">
-                        <div class="flex items-center justify-between">
-                          <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold text-gray-700">编辑身份:</span>
-                            <div class="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                              <button
-                                @click="answerNoteType = 'user'"
-                                :class="[
-                                  'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2',
-                                  answerNoteType === 'user'
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
-                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                                ]"
-                              >
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                </svg>
-                                我的答案
-                              </button>
-                              <button
-                                v-if="canEditAiNote"
-                                @click="answerNoteType = 'ai'"
-                                :class="[
-                                  'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2',
-                                  answerNoteType === 'ai'
-                                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md'
-                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                                ]"
-                              >
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M13 7H7v6h6V7z" />
-                                  <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
-                                </svg>
-                                AI参考答案
-                              </button>
-                            </div>
-                          </div>
-                          <span class="text-xs text-gray-500 italic">
-                            {{ answerNoteType === 'user' ? '作为用户编辑自己的答案' : '编辑AI推荐答案（对所有用户可见）' }}
-                          </span>
+                    <div v-else-if="questionViewMode === 'answer'" class="flex-1 flex overflow-hidden">
+                      <!-- 左侧：编辑身份tab (侧边栏) -->
+                      <div class="w-12 flex-shrink-0 bg-gradient-to-b from-gray-50 to-gray-100 border-r-2 border-gray-300">
+                        <div class="py-6 space-y-3 flex flex-col items-center">
+                          <!-- 我的答案 tab -->
+                          <button
+                            @click="answerNoteType = 'user'"
+                            :class="[
+                              'w-10 py-8 rounded-lg font-medium transition-all duration-200 flex items-center justify-center relative',
+                              answerNoteType === 'user'
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-white hover:shadow-md'
+                            ]"
+                            :title="answerNoteType === 'user' ? '当前：我的答案' : '切换到我的答案'"
+                          >
+                            <span class="vertical-text text-sm tracking-wider">我的答案</span>
+                          </button>
+
+                          <!-- AI参考答案 tab -->
+                          <button
+                            v-if="canEditAiNote"
+                            @click="answerNoteType = 'ai'"
+                            :class="[
+                              'w-10 py-8 rounded-lg font-medium transition-all duration-200 flex items-center justify-center relative',
+                              answerNoteType === 'ai'
+                                ? 'bg-gradient-to-br from-purple-500 to-indigo-500 text-white shadow-lg'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-white hover:shadow-md'
+                            ]"
+                            :title="answerNoteType === 'ai' ? '当前：AI参考答案' : '切换到AI参考答案'"
+                          >
+                            <span class="vertical-text text-sm tracking-wider">AI答案</span>
+                          </button>
                         </div>
                       </div>
+
+                      <!-- 右侧：答题内容区域 -->
+                      <div class="flex-1 flex flex-col overflow-hidden">
 
                       <!-- Programming题目：左右两栏布局 -->
                       <template v-if="selectedQuestion.questionType === 'programming'">
@@ -1344,48 +1541,42 @@
 
                       <!-- 非Programming题目：单栏布局（题目描述固定） -->
                       <template v-else>
-                        <!-- 固定顶部：题目描述 + 模式切换 -->
-                        <div class="flex-shrink-0 px-6 pt-4 border-b border-gray-200">
-                          <!-- 题目描述 -->
-                          <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-3">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
-                            <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
-                          </div>
+                        <!-- 固定顶部：题目描述 + 模式切换（横向布局） -->
+                        <div class="flex-shrink-0 px-6 pt-4 pb-3 border-b border-gray-200">
+                          <div class="flex gap-4">
+                            <!-- 题目描述（左侧，自动占据剩余空间） -->
+                            <div class="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
+                              <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                            </div>
 
-                          <!-- 模式切换按钮 -->
-                          <div v-if="answerTemplate && answerTemplate.templateFields" class="pb-2">
-                            <div class="flex items-center justify-between">
-                              <div class="flex items-center gap-3">
-                                <span class="text-sm font-medium text-gray-700">答题模式:</span>
-                                <div class="flex bg-gray-100 rounded-lg p-1">
-                                  <button
-                                    @click="answerMode = 'template'"
-                                    :class="[
-                                      'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                                      answerMode === 'template'
-                                        ? 'bg-white text-blue-700 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-800'
-                                    ]"
-                                  >
-                                    📋 {{ answerTemplate.templateName }} 模版
-                                  </button>
-                                  <button
-                                    @click="answerMode = 'free'"
-                                    :class="[
-                                      'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                                      answerMode === 'free'
-                                        ? 'bg-white text-blue-700 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-800'
-                                    ]"
-                                  >
-                                    ✍️ 自由答题
-                                  </button>
-                                </div>
+                            <!-- 答题模式切换（右侧，固定宽度，如果有模版） -->
+                            <div v-if="answerTemplate && answerTemplate.templateFields" class="flex flex-col items-start">
+                              <label class="block text-xs font-medium text-gray-700 mb-1.5">答题模式</label>
+                              <div class="flex flex-col space-y-1.5">
+                                <button
+                                  @click="answerMode = 'template'"
+                                  :class="[
+                                    'px-2 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap',
+                                    answerMode === 'template'
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  ]"
+                                >
+                                  {{ answerTemplate.templateName }} 模版
+                                </button>
+                                <button
+                                  @click="answerMode = 'free'"
+                                  :class="[
+                                    'px-2 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap',
+                                    answerMode === 'free'
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  ]"
+                                >
+                                  自由答题
+                                </button>
                               </div>
-                              <!-- 模版说明（右侧提示） -->
-                              <span v-if="answerMode === 'template'" class="text-xs text-gray-500 italic">
-                                {{ answerTemplate.description }}
-                              </span>
                             </div>
                           </div>
                         </div>
@@ -1508,6 +1699,7 @@
                           </div>
                         </div>
                       </template>
+                      </div>
                     </div>
                     <!-- 编辑模式 -->
                     <div v-else-if="questionViewMode === 'edit'" class="flex-1 px-6 pb-6 overflow-y-auto">
@@ -1566,8 +1758,22 @@
           </template>
           <!-- 如果是添加模式，提示在卡片中编辑 -->
           <template v-else>
-            <div class="text-sm text-gray-600">
-              新知识点已添加，请在卡片中直接编辑内容
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <div class="flex justify-center mb-4">
+                <svg class="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-green-900 mb-2">新知识点已添加！</h4>
+              <p class="text-sm text-green-700 mb-4">
+                新卡片已自动展开，关闭此对话框后即可在卡片中直接编辑标题和内容
+              </p>
+              <div class="flex items-center justify-center gap-2 text-xs text-green-600 bg-green-100 rounded-md p-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>输入内容后点击其他区域即可自动保存</span>
+              </div>
             </div>
           </template>
         </div>
@@ -1706,6 +1912,9 @@ const knowledgePointForm = ref({
 const isDocumentMaximized = ref(false)
 const iframeLoadError = ref(false)
 
+// 卡片最大化状态
+const maximizedCard = ref(null) // 'aiNote' | 'userNote' | 'aiKnowledgePoint-{id}' | 'userKnowledgePoint-{id}' | null
+
 // 左侧栏折叠状态
 const isSidebarCollapsed = ref(false)
 
@@ -1715,6 +1924,7 @@ const isQuestionListCollapsed = ref(false)
 // DOM引用
 const aiNoteContent = ref(null)
 const overallNoteContent = ref(null)
+const aiKnowledgePointContents = ref({})
 const knowledgePointContents = ref({})
 
 // Computed
@@ -1902,9 +2112,57 @@ const loadLearningContents = async () => {
     learningContents.value = allContents
     // 自动选中第一个学习资料
     if (allContents.length > 0) {
-      selectedContent.value = allContents[0]
-      // 文档类型 + 支持iframe → 默认iframe模式；视频类型 → 卡片视图
-      isDocumentMaximized.value = allContents[0].contentType !== 'video' && isSupportIframe(allContents[0])
+      const firstContent = allContents[0]
+      selectedContent.value = firstContent
+
+      // 初始化AI知识点卡片折叠状态（默认展开卡片，内容折叠显示max-h-48）
+      if (firstContent.aiKnowledgePoints) {
+        firstContent.aiKnowledgePoints.forEach((kp, index) => {
+          const key = 'ai-' + (kp.id || index)
+          cardStates.value.aiKnowledgePoints[key] = true  // 卡片展开
+          cardStates.value.aiKnowledgePointsExpanded[key] = false  // 内容初始折叠（显示max-h-48高度）
+        })
+      }
+
+      // 初始化用户知识点卡片折叠状态（默认展开）
+      if (firstContent.userKnowledgePoints) {
+        firstContent.userKnowledgePoints.forEach((kp, index) => {
+          cardStates.value.knowledgePoints[kp.id || index] = true
+          cardStates.value.knowledgePointsExpanded[kp.id || index] = false
+        })
+      }
+
+      // 优先显示卡片视图的情况：
+      // 1. 视频类型
+      // 2. 有AI笔记或AI知识点（便于查看学习笔记）
+      // 3. 不支持iframe
+      const hasAIContent = firstContent.aiNote || (firstContent.aiKnowledgePoints && firstContent.aiKnowledgePoints.length > 0)
+      const shouldShowCards = firstContent.contentType === 'video' || hasAIContent || !isSupportIframe(firstContent)
+      isDocumentMaximized.value = !shouldShowCards
+
+      // 检测内容溢出 - 使用延迟以等待 Markdown 渲染完成
+      await nextTick()
+      // 延迟检测，确保 Markdown 已完全渲染到 DOM
+      setTimeout(() => {
+        cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
+        cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
+
+        // 检测AI知识点溢出
+        if (firstContent.aiKnowledgePoints) {
+          firstContent.aiKnowledgePoints.forEach((kp, index) => {
+            const element = aiKnowledgePointContents.value['ai-' + (kp.id || index)]
+            cardStates.value.aiKnowledgePointsOverflow['ai-' + (kp.id || index)] = checkOverflow(element)
+          })
+        }
+
+        // 检测用户知识点溢出
+        if (firstContent.userKnowledgePoints) {
+          firstContent.userKnowledgePoints.forEach((kp, index) => {
+            const element = knowledgePointContents.value[kp.id || index]
+            cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
+          })
+        }
+      }, 200) // 200ms 延迟，确保 Markdown 渲染完成
     } else {
       selectedContent.value = null
       isDocumentMaximized.value = false
@@ -1939,7 +2197,16 @@ const onContentSelectChange = async (event) => {
     isDocumentMaximized.value = content.contentType !== 'video' && isSupportIframe(content)
     iframeLoadError.value = false
 
-    // 初始化知识点卡片折叠状态
+    // 初始化AI知识点卡片折叠状态（默认展开）
+    if (content.aiKnowledgePoints) {
+      content.aiKnowledgePoints.forEach((kp, index) => {
+        const key = 'ai-' + (kp.id || index)
+        cardStates.value.aiKnowledgePoints[key] = true
+        cardStates.value.aiKnowledgePointsExpanded[key] = false
+      })
+    }
+
+    // 初始化用户知识点卡片折叠状态（默认展开）
     if (content.userKnowledgePoints) {
       content.userKnowledgePoints.forEach((kp, index) => {
         cardStates.value.knowledgePoints[kp.id || index] = true
@@ -1947,23 +2214,41 @@ const onContentSelectChange = async (event) => {
       })
     }
 
-    // 检测内容溢出
+    // 检测内容溢出 - 使用延迟以等待 Markdown 渲染完成
     await nextTick()
-    // 检测AI笔记溢出
-    cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
-    // 检测整体笔记溢出
-    cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
-    // 检测知识点溢出
-    if (content.userKnowledgePoints) {
-      content.userKnowledgePoints.forEach((kp, index) => {
-        const element = knowledgePointContents.value[kp.id || index]
-        cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
-      })
-    }
+    setTimeout(() => {
+      // 检测AI笔记溢出
+      cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
+      // 检测整体笔记溢出
+      cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
+      // 检测AI知识点溢出
+      if (content.aiKnowledgePoints) {
+        content.aiKnowledgePoints.forEach((kp, index) => {
+          const element = aiKnowledgePointContents.value['ai-' + (kp.id || index)]
+          cardStates.value.aiKnowledgePointsOverflow['ai-' + (kp.id || index)] = checkOverflow(element)
+        })
+      }
+      // 检测用户知识点溢出
+      if (content.userKnowledgePoints) {
+        content.userKnowledgePoints.forEach((kp, index) => {
+          const element = knowledgePointContents.value[kp.id || index]
+          cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
+        })
+      }
+    }, 200)
   }
 }
 
-// 切换知识点卡片折叠状态
+// 切换AI知识点卡片折叠状态
+const toggleAiKnowledgePointCard = (pointKey) => {
+  if (cardStates.value.aiKnowledgePoints[pointKey] === undefined) {
+    cardStates.value.aiKnowledgePoints[pointKey] = true
+  } else {
+    cardStates.value.aiKnowledgePoints[pointKey] = !cardStates.value.aiKnowledgePoints[pointKey]
+  }
+}
+
+// 切换用户知识点卡片折叠状态
 const toggleKnowledgePointCard = (pointKey) => {
   if (cardStates.value.knowledgePoints[pointKey] === undefined) {
     cardStates.value.knowledgePoints[pointKey] = true
@@ -2069,7 +2354,9 @@ const initAnswerForm = (question, noteSource = null) => {
 
         // 尝试解析模版格式
         for (const field of templateFields) {
-          const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+          // 转义正则表达式中的特殊字符
+          const escapedLabel = field.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          const pattern = new RegExp(`## ${escapedLabel}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
           const match = noteContent.match(pattern)
 
           if (match) {
@@ -2307,11 +2594,46 @@ const deleteKnowledgePoint = async (contentId, kpId) => {
 }
 
 
+// 直接添加新知识点卡片（不显示模态框）
+const addNewKnowledgePointCard = () => {
+  if (!selectedContent.value) return
+
+  // 立即添加一个空知识点到当前学习资料
+  addKnowledgePoint(selectedContent.value.id)
+
+  // 自动展开新添加的知识点卡片（使用index作为key）
+  nextTick(() => {
+    const newIndex = selectedContent.value.userKnowledgePoints.length - 1
+    if (newIndex >= 0) {
+      // 展开新卡片
+      cardStates.value.knowledgePoints[newIndex] = true
+
+      // 滚动到新卡片位置（可选）
+      setTimeout(() => {
+        const cardElements = document.querySelectorAll('.bg-gradient-to-br.from-purple-50')
+        if (cardElements && cardElements.length > 0) {
+          const lastCard = cardElements[cardElements.length - 1]
+          lastCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }, 100)
+    }
+  })
+}
+
 const closeAddKnowledgePointModal = () => {
   showAddKnowledgePointModal.value = false
   // 自动添加一个空知识点到当前学习资料
   if (selectedContent.value) {
     addKnowledgePoint(selectedContent.value.id)
+
+    // 自动展开新添加的知识点卡片（使用index作为key）
+    nextTick(() => {
+      const newIndex = selectedContent.value.userKnowledgePoints.length - 1
+      if (newIndex >= 0) {
+        // 展开新卡片
+        cardStates.value.knowledgePoints[newIndex] = true
+      }
+    })
   }
 }
 
@@ -2458,19 +2780,38 @@ const minimizeDocument = async () => {
   isDocumentMaximized.value = false
   iframeLoadError.value = false
 
-  // 切换到卡片视图后，重新检测内容溢出
+  // 切换到卡片视图后，重新检测内容溢出 - 使用延迟
   await nextTick()
-  // 检测AI笔记溢出
-  cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
-  // 检测整体笔记溢出
-  cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
-  // 检测知识点溢出
-  if (selectedContent.value?.userKnowledgePoints) {
-    selectedContent.value.userKnowledgePoints.forEach((kp, index) => {
-      const element = knowledgePointContents.value[kp.id || index]
-      cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
-    })
-  }
+  setTimeout(() => {
+    // 检测AI笔记溢出
+    cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
+    // 检测整体笔记溢出
+    cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
+    // 检测AI知识点溢出
+    if (selectedContent.value?.aiKnowledgePoints) {
+      selectedContent.value.aiKnowledgePoints.forEach((kp, index) => {
+        const element = aiKnowledgePointContents.value['ai-' + (kp.id || index)]
+        cardStates.value.aiKnowledgePointsOverflow['ai-' + (kp.id || index)] = checkOverflow(element)
+      })
+    }
+    // 检测用户知识点溢出
+    if (selectedContent.value?.userKnowledgePoints) {
+      selectedContent.value.userKnowledgePoints.forEach((kp, index) => {
+        const element = knowledgePointContents.value[kp.id || index]
+        cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
+      })
+    }
+  }, 200)
+}
+
+// 最大化卡片
+const maximizeCard = (cardType) => {
+  maximizedCard.value = cardType
+}
+
+// 最小化卡片
+const minimizeCard = () => {
+  maximizedCard.value = null
 }
 
 // 处理iframe加载错误 - 自动回退到卡片视图
@@ -2479,19 +2820,28 @@ const handleIframeError = async () => {
   // 网站不支持iframe，自动切换到卡片视图
   isDocumentMaximized.value = false
 
-  // 切换到卡片视图后，重新检测内容溢出
+  // 切换到卡片视图后，重新检测内容溢出 - 使用延迟
   await nextTick()
-  // 检测AI笔记溢出
-  cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
-  // 检测整体笔记溢出
-  cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
-  // 检测知识点溢出
-  if (selectedContent.value?.userKnowledgePoints) {
-    selectedContent.value.userKnowledgePoints.forEach((kp, index) => {
-      const element = knowledgePointContents.value[kp.id || index]
-      cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
-    })
-  }
+  setTimeout(() => {
+    // 检测AI笔记溢出
+    cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
+    // 检测整体笔记溢出
+    cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
+    // 检测AI知识点溢出
+    if (selectedContent.value?.aiKnowledgePoints) {
+      selectedContent.value.aiKnowledgePoints.forEach((kp, index) => {
+        const element = aiKnowledgePointContents.value['ai-' + (kp.id || index)]
+        cardStates.value.aiKnowledgePointsOverflow['ai-' + (kp.id || index)] = checkOverflow(element)
+      })
+    }
+    // 检测用户知识点溢出
+    if (selectedContent.value?.userKnowledgePoints) {
+      selectedContent.value.userKnowledgePoints.forEach((kp, index) => {
+        const element = knowledgePointContents.value[kp.id || index]
+        cardStates.value.knowledgePointsOverflow[kp.id || index] = checkOverflow(element)
+      })
+    }
+  }, 200)
 }
 
 // Watch activeTab切换
@@ -2548,6 +2898,12 @@ init()
 </script>
 
 <style scoped>
+/* 垂直文本样式 */
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
 /* 紧凑模式 Markdown 渲染 - 减少间距 */
 .compact-prose :deep(p) {
   margin-top: 0.5em;

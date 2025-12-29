@@ -484,45 +484,9 @@
               </div>
 
               <!-- 右栏：试题详情/编辑/AI答题 (60%) -->
-              <div class="w-3/5 flex flex-col pl-4">
-                <!-- 模式切换按钮栏 (选中试题后显示) -->
-                <div v-if="selectedQuestionId || editingQuestion" class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                  <div class="flex space-x-2">
-                    <button
-                      @click="questionViewMode = 'view'"
-                      :class="[
-                        'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                        questionViewMode === 'view'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      ]"
-                    >
-                      👁️ 浏览模式
-                    </button>
-                    <button
-                      @click="handleSwitchToEdit"
-                      :class="[
-                        'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                        questionViewMode === 'edit'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      ]"
-                    >
-                      ✏️ 编辑模式
-                    </button>
-                    <button
-                      @click="handleSwitchToAIAnswer"
-                      :class="[
-                        'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                        questionViewMode === 'ai-answer'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      ]"
-                    >
-                      🤖 AI答题模式
-                    </button>
-                  </div>
-                </div>
+              <div class="w-3/5 flex pl-4">
+                <!-- 主内容区域 -->
+                <div class="flex-1 flex flex-col">
 
                 <!-- 未选中试题时的提示 -->
                 <div v-if="!selectedQuestionId && !editingQuestion" class="flex-1 flex items-center justify-center text-gray-400">
@@ -548,7 +512,7 @@
                 </div>
 
                 <!-- 编辑模式 - 编辑试题 -->
-                <div v-else-if="questionViewMode === 'edit' && editingQuestion" class="flex-1 overflow-hidden">
+                <div v-else-if="questionViewMode === 'edit' && editingQuestion" class="flex-1 overflow-hidden p-4">
                   <QuestionEditModal
                     :is-open="true"
                     :question="editingQuestion"
@@ -577,38 +541,41 @@
                   <!-- 试题标题 -->
                   <h2 class="text-lg font-bold text-gray-900 mb-4">{{ viewingQuestion.title }}</h2>
 
-                  <!-- 试题描述（只读） -->
-                  <div class="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
-                    <div class="prose prose-sm max-w-none text-gray-700" v-html="renderMarkdown(viewingQuestion.questionDescription)"></div>
-                  </div>
+                  <!-- 题目描述和答题模式切换 (横向布局) -->
+                  <div class="flex gap-4 mb-4">
+                    <!-- 试题描述（左侧，自动占据剩余空间） -->
+                    <div class="flex-1 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
+                      <div class="prose prose-sm max-w-none text-gray-700" v-html="renderMarkdown(viewingQuestion.questionDescription)"></div>
+                    </div>
 
-                  <!-- 答题模式切换 (如果有模版) -->
-                  <div v-if="aiAnswerTemplate && aiAnswerTemplate.templateFields" class="border-b border-gray-200 pb-4 mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">答题模式</label>
-                    <div class="flex space-x-4">
-                      <button
-                        @click="aiAnswerMode = 'template'"
-                        :class="[
-                          'px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                          aiAnswerMode === 'template'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        ]"
-                      >
-                        {{ aiAnswerTemplate.templateName }} 模版
-                      </button>
-                      <button
-                        @click="aiAnswerMode = 'free'"
-                        :class="[
-                          'px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                          aiAnswerMode === 'free'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        ]"
-                      >
-                        自由答题
-                      </button>
+                    <!-- 答题模式切换 (右侧，固定宽度，如果有模版) -->
+                    <div v-if="aiAnswerTemplate && aiAnswerTemplate.templateFields" class="flex flex-col items-start">
+                      <label class="block text-xs font-medium text-gray-700 mb-1.5">答题模式</label>
+                      <div class="flex flex-col space-y-1.5">
+                        <button
+                          @click="aiAnswerMode = 'template'"
+                          :class="[
+                            'px-2 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap',
+                            aiAnswerMode === 'template'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ]"
+                        >
+                          {{ aiAnswerTemplate.templateName }} 模版
+                        </button>
+                        <button
+                          @click="aiAnswerMode = 'free'"
+                          :class="[
+                            'px-2 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap',
+                            aiAnswerMode === 'free'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ]"
+                        >
+                          自由答题
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -773,6 +740,55 @@
                         💾 保存AI答案
                       </button>
                     </div>
+                  </div>
+                </div>
+                </div>
+                <!-- 主内容区域结束 -->
+
+                <!-- 右侧垂直Tab栏 (选中试题后一直显示) -->
+                <div v-if="viewingQuestion || editingQuestion" class="w-12 flex-shrink-0 bg-gradient-to-b from-gray-50 to-gray-100 border-l-2 border-gray-300 ml-2">
+                  <div class="py-6 space-y-3 flex flex-col items-center">
+                    <!-- 浏览按钮 -->
+                    <button
+                      @click="questionViewMode = 'view'"
+                      :class="[
+                        'w-10 py-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center',
+                        questionViewMode === 'view'
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg'
+                          : 'text-gray-600 hover:text-gray-800 hover:bg-white hover:shadow-md'
+                      ]"
+                      :title="questionViewMode === 'view' ? '当前：浏览模式' : '切换到浏览模式'"
+                    >
+                      <span class="vertical-text text-sm tracking-wider">浏览</span>
+                    </button>
+
+                    <!-- 编辑按钮 -->
+                    <button
+                      @click="handleSwitchToEdit"
+                      :class="[
+                        'w-10 py-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center',
+                        questionViewMode === 'edit'
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg'
+                          : 'text-gray-600 hover:text-gray-800 hover:bg-white hover:shadow-md'
+                      ]"
+                      :title="questionViewMode === 'edit' ? '当前：编辑模式' : '切换到编辑模式'"
+                    >
+                      <span class="vertical-text text-sm tracking-wider">编辑</span>
+                    </button>
+
+                    <!-- AI答题按钮 -->
+                    <button
+                      @click="handleSwitchToAIAnswer"
+                      :class="[
+                        'w-10 py-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center',
+                        questionViewMode === 'ai-answer'
+                          ? 'bg-gradient-to-br from-purple-500 to-indigo-500 text-white shadow-lg'
+                          : 'text-gray-600 hover:text-gray-800 hover:bg-white hover:shadow-md'
+                      ]"
+                      :title="questionViewMode === 'ai-answer' ? '当前：AI答题模式' : '切换到AI答题模式'"
+                    >
+                      <span class="vertical-text text-sm tracking-wider">AI</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1309,9 +1325,11 @@ export default {
         let aiNote = null
         try {
           aiNote = await adminQuestionApi.getAINote(this.viewingQuestion.id)
+          console.log('🔍 [AI答题] 获取到AI笔记:', aiNote)
         } catch (error) {
           // 404是正常的，表示还没有AI笔记
           if (error.response && error.response.status === 404) {
+            console.log('ℹ️ [AI答题] 该题目还没有AI笔记')
             aiNote = null
           } else {
             throw error
@@ -1322,27 +1340,38 @@ export default {
         // 首先从viewingQuestion的focusAreaId获取对应的skill_id
 
         let skillId = null
+        console.log('🔍 [AI答题] viewingQuestion.focusAreaId:', this.viewingQuestion.focusAreaId)
+        console.log('🔍 [AI答题] focusAreas数量:', this.focusAreas.length)
+
         if (this.viewingQuestion.focusAreaId) {
           const focusArea = this.focusAreas.find(fa => fa.id === this.viewingQuestion.focusAreaId)
+          console.log('🔍 [AI答题] 找到focusArea:', focusArea)
           if (focusArea && focusArea.skillId) {
             skillId = focusArea.skillId
+            console.log('✅ [AI答题] 从focusArea获取到skillId:', skillId)
           } else {
+            console.log('⚠️ [AI答题] focusArea没有skillId')
           }
         } else {
+          console.log('⚠️ [AI答题] viewingQuestion没有focusAreaId')
         }
 
         // 如果没有从Focus Area获取到skill_id，尝试使用selectedSkillId
         if (!skillId && this.selectedSkillId) {
           skillId = this.selectedSkillId
+          console.log('✅ [AI答题] 使用selectedSkillId:', skillId)
         }
 
+        console.log('🎯 [AI答题] 最终skillId:', skillId)
         if (skillId) {
           try {
             const template = await api.get(`/skills/${skillId}/templates/default`)
+            console.log('📋 [AI答题] 获取到模板:', template)
 
             if (template && template.templateFields && template.templateFields.length > 0) {
               this.aiAnswerTemplate = template
               this.aiAnswerMode = 'template'
+              console.log('✅ [AI答题] 成功设置模板,模式:', this.aiAnswerMode)
 
               // 解析AI笔记到模版字段
               if (aiNote && aiNote.noteContent) {
@@ -1351,23 +1380,35 @@ export default {
                 let isTemplateFormat = true
                 const parsedValues = {}
 
+                console.log('🔍 [AI答题] 开始解析模板字段，总共', templateFields.length, '个字段')
+                console.log('📝 [AI答题] AI笔记内容前500字符:', aiNote.noteContent.substring(0, 500))
+
                 // 尝试解析模版格式
                 for (const field of templateFields) {
-                  const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+                  // 转义正则表达式中的特殊字符
+                  const escapedLabel = field.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                  const pattern = new RegExp(`## ${escapedLabel}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
                   const match = aiNote.noteContent.match(pattern)
+
+                  console.log(`🔍 [AI答题] 尝试匹配字段 "${field.label}":`, match ? '✅ 成功' : '❌ 失败')
 
                   if (match) {
                     parsedValues[field.key] = match[1].trim()
+                    console.log(`  ✅ 提取内容前100字符:`, match[1].trim().substring(0, 100))
                   } else {
+                    console.log(`  ❌ 匹配失败，使用的正则:`, pattern)
                     isTemplateFormat = false
                     break
                   }
                 }
 
+                console.log('🎯 [AI答题] 是否为模板格式:', isTemplateFormat)
+
                 if (isTemplateFormat) {
                   // 是模版格式，填充到模版字段
                   this.aiAnswerData = { ...parsedValues, coreStrategy: aiNote.coreStrategy || '' }
                   this.aiAnswerMode = 'template'
+                  console.log('✅ [AI答题] 使用模板模式，解析后的数据:', Object.keys(parsedValues))
                 } else {
                   // 不是模版格式，作为自由文本
                   this.aiAnswerData = {
@@ -1375,6 +1416,7 @@ export default {
                     coreStrategy: aiNote.coreStrategy || ''
                   }
                   this.aiAnswerMode = 'free'
+                  console.log('⚠️ [AI答题] 切换到自由答题模式')
                 }
               } else {
                 // 初始化空对象
@@ -1483,3 +1525,11 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 垂直文本样式 */
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+</style>

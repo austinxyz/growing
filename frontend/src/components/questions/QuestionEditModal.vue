@@ -6,9 +6,9 @@
 
     <!-- 弹窗内容 -->
     <div class="flex min-h-screen items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full h-[90vh] flex flex-col">
         <!-- 头部 -->
-        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div class="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
           <h2 class="text-xl font-semibold text-gray-900">
             {{ isEdit ? '编辑试题' : '添加试题' }}
           </h2>
@@ -22,8 +22,9 @@
           </button>
         </div>
 
-        <!-- 表单 -->
-        <form @submit.prevent="handleSubmit" class="p-4 space-y-4">
+        <!-- 表单内容区域（可滚动） -->
+        <div class="flex-1 overflow-y-auto px-6 py-4 pb-6">
+          <form @submit.prevent="handleSubmit" class="space-y-4 pb-4">
           <!-- 所属技能和专注领域（同一行） -->
           <div class="grid grid-cols-2 gap-3">
             <!-- 所属技能（级联选择第一步） -->
@@ -102,8 +103,8 @@
             ></textarea>
           </div>
 
-          <!-- 难度级别 + 针对职位 + 针对级别（同一行） -->
-          <div class="grid grid-cols-3 gap-3">
+          <!-- 难度级别 + 题目分类（同一行） -->
+          <div class="grid grid-cols-2 gap-3">
             <!-- 难度级别 -->
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">
@@ -120,6 +121,26 @@
               </select>
             </div>
 
+            <!-- 题目分类 -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">
+                题目分类 <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="form.questionType"
+                required
+                class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="programming">Programming (编程算法)</option>
+                <option value="technical">Technical (技术概念)</option>
+                <option value="behavioral">Behavioral (行为面试)</option>
+                <option value="design">Design (系统设计)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 针对职位 + 针对级别（同一行） -->
+          <div class="grid grid-cols-2 gap-3">
             <!-- 针对职位 -->
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">
@@ -173,33 +194,35 @@
 
           <!-- Red Flags -->
           <RedFlagList v-model="form.redFlags" />
+          </form>
+        </div>
 
-          <!-- 操作按钮 -->
-          <div class="flex justify-end items-center pt-4 border-t border-gray-200">
-            <div class="flex space-x-3">
-              <button
-                type="button"
-                @click="$emit('cancel')"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                保存
-              </button>
-            </div>
+        <!-- 底部按钮区域（固定） -->
+        <div class="flex-shrink-0 border-t border-gray-200 px-6 py-4 bg-gray-50 rounded-b-lg">
+          <div class="flex justify-end space-x-3">
+            <button
+              type="button"
+              @click="$emit('cancel')"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              @click="handleSubmit"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            >
+              保存
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
   <!-- Inline模式 -->
-  <div v-else-if="inline" class="space-y-4">
-    <!-- 表单头部 -->
-    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+  <div v-else-if="inline" class="h-full flex flex-col">
+    <!-- 表单头部 (固定) -->
+    <div class="flex-shrink-0 flex items-center justify-between pb-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">
         {{ isEdit ? '编辑试题' : '新增试题' }}
       </h3>
@@ -221,8 +244,8 @@
       </div>
     </div>
 
-    <!-- 表单内容 -->
-    <div class="space-y-4">
+    <!-- 表单内容 (可滚动) -->
+    <div class="flex-1 overflow-y-auto pt-4 space-y-4">
       <!-- 所属技能和专注领域（同一行） -->
       <div class="grid grid-cols-2 gap-3">
         <!-- 所属技能（级联选择第一步） -->
@@ -301,8 +324,8 @@
         ></textarea>
       </div>
 
-      <!-- 难度级别 + 针对职位 + 针对级别（同一行） -->
-      <div class="grid grid-cols-3 gap-3">
+      <!-- 难度级别 + 题目分类（同一行） -->
+      <div class="grid grid-cols-2 gap-3">
         <!-- 难度级别 -->
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">
@@ -319,6 +342,26 @@
           </select>
         </div>
 
+        <!-- 题目分类 -->
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            题目分类 <span class="text-red-500">*</span>
+          </label>
+          <select
+            v-model="form.questionType"
+            required
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="programming">Programming (编程算法)</option>
+            <option value="technical">Technical (技术概念)</option>
+            <option value="behavioral">Behavioral (行为面试)</option>
+            <option value="design">Design (系统设计)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 针对职位 + 针对级别（同一行） -->
+      <div class="grid grid-cols-2 gap-3">
         <!-- 针对职位 -->
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">
@@ -424,6 +467,7 @@ const form = ref({
   title: '',
   questionDescription: '',
   difficulty: 'EASY',
+  questionType: 'programming',  // 默认为 programming
   answerRequirement: '',
   targetPosition: '',
   targetLevel: '',
@@ -481,6 +525,7 @@ watch(() => props.question, (newQuestion) => {
       title: newQuestion.title || '',
       questionDescription: newQuestion.questionDescription || '',
       difficulty: newQuestion.difficulty || 'EASY',
+      questionType: newQuestion.questionType || 'programming',  // 添加 questionType
       answerRequirement: newQuestion.answerRequirement || '',
       targetPosition: newQuestion.targetPosition || '',
       targetLevel: newQuestion.targetLevel || '',
@@ -501,6 +546,7 @@ watch(() => props.question, (newQuestion) => {
       title: '',
       questionDescription: '',
       difficulty: 'EASY',
+      questionType: 'programming',  // 添加 questionType 默认值
       answerRequirement: '',
       targetPosition: '',
       targetLevel: '',
