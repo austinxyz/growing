@@ -2,8 +2,10 @@ package com.growing.app.controller;
 
 import com.growing.app.dto.CreateQuestionWithDetailsRequest;
 import com.growing.app.dto.QuestionDTO;
+import com.growing.app.dto.UserQuestionNoteDTO;
 import com.growing.app.service.AuthService;
 import com.growing.app.service.QuestionService;
+import com.growing.app.service.UserQuestionNoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,9 @@ public class AdminQuestionController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UserQuestionNoteService noteService;
 
     /**
      * 检查管理员权限
@@ -158,5 +163,78 @@ public class AdminQuestionController {
                 true
         );
         return ResponseEntity.ok(updated);
+    }
+
+    // ============ AI笔记管理 ============
+
+    /**
+     * 为试题添加/更新AI笔记（user_id = -1）
+     * POST /api/admin/questions/{id}/ai-note
+     * Body: { "noteContent": "...", "coreStrategy": "..." }
+     */
+    @PostMapping("/{id}/ai-note")
+    public ResponseEntity<UserQuestionNoteDTO> saveOrUpdateAINote(
+            @PathVariable Long id,
+            @RequestBody UserQuestionNoteDTO requestDTO,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+
+        // 验证至少有一个字段不为空
+        if ((requestDTO.getNoteContent() == null || requestDTO.getNoteContent().trim().isEmpty()) &&
+            (requestDTO.getCoreStrategy() == null || requestDTO.getCoreStrategy().trim().isEmpty())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "笔记内容或核心思路至少填写一项");
+        }
+
+        // 设置questionId和userId为-1（表示AI笔记）
+        requestDTO.setQuestionId(id);
+        requestDTO.setUserId(-1L);
+
+        // 使用AI用户ID（-1）保存笔记
+        UserQuestionNoteDTO note = noteService.saveOrUpdateNote(id, requestDTO, -1L);
+
+        // 判断是创建还是更新
+        HttpStatus status = note.getCreatedAt().equals(note.getUpdatedAt())
+            ? HttpStatus.CREATED
+            : HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(note);
+    }
+
+    /**
+     * 获取试题的AI笔记
+     * GET /api/admin/questions/{id}/ai-note
+     */
+    @GetMapping("/{id}/ai-note")
+    public ResponseEntity<UserQuestionNoteDTO> getAINote(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+
+        try {
+            UserQuestionNoteDTO aiNote = noteService.getNoteByQuestionIdAndUserId(id, -1L);
+            return ResponseEntity.ok(aiNote);
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return ResponseEntity.notFound().build();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * 删除试题的AI笔记
+     * DELETE /api/admin/questions/{id}/ai-note
+     */
+    @DeleteMapping("/{id}/ai-note")
+    public ResponseEntity<Void> deleteAINote(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+
+        requireAdmin(authHeader);
+
+        noteService.deleteNote(id, -1L);
+        return ResponseEntity.noContent().build();
     }
 }

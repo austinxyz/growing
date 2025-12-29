@@ -84,5 +84,22 @@ export const adminQuestionApi = {
   // data: CreateQuestionWithDetailsRequest
   updateQuestionWithDetails(id, data) {
     return api.put(`/admin/questions/${id}/with-details`, data)
+  },
+
+  // AI笔记管理
+  // 获取试题的AI笔记
+  getAINote(questionId) {
+    return api.get(`/admin/questions/${questionId}/ai-note`)
+  },
+
+  // 保存/更新AI笔记
+  // data: { noteContent: string, coreStrategy: string }
+  saveOrUpdateAINote(questionId, data) {
+    return api.post(`/admin/questions/${questionId}/ai-note`, data)
+  },
+
+  // 删除AI笔记
+  deleteAINote(questionId) {
+    return api.delete(`/admin/questions/${questionId}/ai-note`)
   }
 }

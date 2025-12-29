@@ -154,7 +154,7 @@
                   <router-link
                     v-for="faId in selectedCase.relatedFocusAreas"
                     :key="faId"
-                    :to="{ name: 'SystemDesignBasics', query: { focusAreaId: faId } }"
+                    :to="{ name: 'GeneralSkillLearning', params: { skillId: 2 }, query: { focusAreaId: faId } }"
                     class="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-lg border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-colors cursor-pointer"
                   >
                     {{ getFocusAreaName(faId) }}

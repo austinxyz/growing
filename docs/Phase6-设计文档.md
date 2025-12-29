@@ -1,8 +1,9 @@
 # Phase 6 设计文档 - 通用技能学习模块
 
-> **架构版本**: v1.0
-> **状态**: 📋 待实施
+> **架构版本**: v1.1
+> **状态**: 🚧 部分完成 - Phase 6.1-6.2 已实现
 > **创建时间**: 2025-12-27
+> **最后更新**: 2025-12-28 (v1.1 - 根据实际实现更新)
 > **需求文档**: [Phase6-详细需求.md](../requirement/Phase6-详细需求.md)
 > **参考模块**: Phase 4 算法学习模块、Phase 5 系统设计模块
 
@@ -614,49 +615,244 @@ SkillManagement.vue
 - AI笔记导入功能: 调用`POST /api/admin/learning-contents/{contentId}/ai-note`
 - AI知识点导入功能: 调用`POST /api/admin/learning-contents/{contentId}/ai-knowledge-points`
 
-#### 4.1.2 答题模版管理页面 (新增)
+#### 4.1.2 技能模版库管理 (新增) ✅ 已实现
 
-**页面**: `/admin/answer-templates`
-**组件**: AnswerTemplateManagement.vue
+**路径**: `/admin/skill-templates` ✅ 路由已注册
+**组件**: `SkillTemplateManagement.vue`
 
 **组件结构**:
 ```vue
-AnswerTemplateManagement.vue
-├─ 左侧: 模版列表
-│   ├─ STAR模版
-│   ├─ Technical模版
-│   └─ [+ 新建模版]
-└─ 右侧: 模版编辑器
-    ├─ 模版名称
-    ├─ 模版说明
-    ├─ 字段定义 (JSON编辑器)
-    │   ├─ key (字段键名)
-    │   ├─ label (显示标签)
-    │   └─ placeholder (提示文本)
-    ├─ Skill关联管理
-    │   ├─ 已关联的Skills列表
-    │   ├─ 默认模版标记
-    │   └─ [+ 关联新Skill]
-    └─ [保存] [删除]
+SkillTemplateManagement.vue (左右两栏布局)
+├─ 左侧 30% - 职业路径与技能树
+│   ├─ 职业路径节点 (可展开/折叠)
+│   │   └─ 技能列表 (子节点)
+│   │       ├─ 技能卡片 (选中状态高亮)
+│   │       └─ 点击切换选中技能
+│   └─ 自动展开所有职业路径
+│
+└─ 右侧 70% - 模版管理面板
+    ├─ 未选择技能: 提示卡片
+    ├─ 已选择技能: 显示模版管理
+    │   ├─ 技能信息头部 (蓝色背景)
+    │   │   ├─ 技能名称
+    │   │   ├─ [新增模版] 按钮
+    │   │   └─ [关联已有模版] 按钮
+    │   │
+    │   ├─ 模版卡片列表 (Grid布局,2列)
+    │   │   ├─ 模版信息卡片
+    │   │   │   ├─ 模版名称 + 默认标记 (绿色Badge)
+    │   │   │   ├─ 模版描述
+    │   │   │   ├─ 模版字段展示
+    │   │   │   └─ 操作按钮组
+    │   │   │       ├─ [编辑] - 打开TemplateEditorModal
+    │   │   │       ├─ [设为默认] - 调用API设置默认
+    │   │   │       └─ [取消关联] - 调用API删除关联
+    │   │   │
+    │   │   └─ 空状态提示 (无关联模版时)
+    │   │
+    │   └─ 加载状态 (Spinner)
+```
+
+**核心组件**:
+
+**A. TemplateEditorModal.vue (模版编辑器)**
+```vue
+TemplateEditorModal
+├─ 模式检测: 新增 or 编辑
+├─ 基础信息输入
+│   ├─ 模版名称 (required)
+│   └─ 模版描述
+├─ 动态字段编辑器
+│   ├─ 字段卡片列表 (灰色背景)
+│   │   ├─ key输入框 (字段键名,required)
+│   │   ├─ label输入框 (显示标签,required)
+│   │   ├─ placeholder输入框 (提示文本)
+│   │   └─ [删除字段] 按钮 (红色)
+│   └─ [+ 添加字段] 按钮
+├─ 表单验证
+│   ├─ 模版名称必填
+│   ├─ 至少一个字段
+│   └─ 字段key和label必填
+└─ 操作按钮
+    ├─ [取消] - 关闭Modal
+    └─ [保存] - 调用API保存
+        ├─ 新增: POST /api/admin/answer-templates
+        └─ 编辑: PUT /api/admin/answer-templates/{id}
+```
+
+**JSON序列化逻辑**:
+```javascript
+// templateFields存储为JSON字符串
+template.templateFields = JSON.stringify(fields)
+
+// 示例存储格式:
+'[{"key":"situation","label":"Situation (情境)","placeholder":"描述项目背景..."}]'
+```
+
+**B. AssociateTemplateModal.vue (模版关联器)**
+```vue
+AssociateTemplateModal
+├─ 加载所有可用模版 (GET /api/admin/answer-templates)
+├─ 过滤已关联模版 (从列表中排除)
+├─ 单选界面
+│   ├─ 模版卡片 (边框、悬停效果)
+│   │   ├─ 圆形选择框 (蓝色高亮)
+│   │   ├─ 模版名称
+│   │   ├─ 模版描述
+│   │   └─ 模版字段数量
+│   └─ 点击选择模版
+└─ 操作按钮
+    ├─ [取消] - 关闭Modal
+    └─ [关联] - 调用API关联
+        └─ POST /api/admin/skill-templates
+            {skillId, templateId, isDefault: false}
 ```
 
 **关键实现**:
-- JSON编辑器支持template_fields字段的可视化编辑
-- Skill关联管理: 调用`POST /api/admin/skills/{skillId}/templates/{templateId}`
-- 设置默认模版: 调用`PUT /api/admin/skills/{skillId}/templates/{templateId}/set-default`
+- ✅ 动态字段编辑器: 可添加/删除字段,实时预览
+- ✅ JSON序列化: templateFields存储为JSON字符串
+- ✅ 模版卡片展示: Grid布局,默认标记用绿色Badge
+- ✅ API完整实现: SkillTemplateController (公开+管理员)
+- ✅ 反向查询支持: 可查询某个模版关联了哪些技能
+
+**API端点** (SkillTemplateController.java):
+```java
+// 公开API (供用户答题使用)
+GET /api/skills/{skillId}/templates - 获取技能所有模版
+GET /api/skills/{skillId}/templates/default - 获取默认模版 (含templateFields)
+
+// 管理员API
+GET /api/admin/skill-templates?skillId=X - 获取技能模版
+GET /api/admin/skill-templates/default?skillId=X - 获取默认模版
+POST /api/admin/skill-templates - 关联技能与模版
+PUT /api/admin/skill-templates/default - 设置默认模版
+DELETE /api/admin/skill-templates?skillId=X&templateId=Y - 取消关联
+GET /api/admin/skill-templates/by-template?templateId=X - 反向查询
+```
+
+#### 4.1.3 AI答题模式 (新增) ✅ 已实现
+
+**组件**: GeneralSkillContentManagement.vue
+**位置**: 试题库Tab右栏的第三种模式
+
+**三模式系统**:
+```
+questionViewMode: 'view' | 'edit' | 'ai-answer'
+├─ view (浏览模式): QuestionViewModal 组件 (inline)
+├─ edit (编辑模式): QuestionEditModal 组件 (inline)
+└─ ai-answer (AI答题模式): 自定义内联模版渲染
+```
+
+**AI答题模式布局**:
+```vue
+AI答题模式 (questionViewMode === 'ai-answer')
+├─ 模式说明卡片 (紫色提示: 为试题添加AI参考答案)
+├─ 题目描述 (只读,Markdown渲染)
+├─ 答题模式切换 (如果有模版)
+│   ├─ [模版模式] - 使用STAR/Technical等模版
+│   └─ [自由模式] - 自由文本输入
+├─ 模版答题 (aiAnswerMode === 'template')
+│   ├─ 模版说明卡片
+│   ├─ 动态渲染模版字段 (两栏卡片布局,彩色区分)
+│   │   ├─ Situation (蓝色渐变卡片)
+│   │   ├─ Task (绿色渐变卡片)
+│   │   ├─ Action (橙色渐变卡片)
+│   │   └─ Result (紫色渐变卡片)
+│   ├─ 核心思路输入框 (黄色边框,支持Markdown)
+│   └─ [清空] [保存AI答案]
+└─ 自由答题 (aiAnswerMode === 'free')
+    ├─ AI参考答案 (Textarea, 12行)
+    ├─ 核心思路输入框 (同上)
+    └─ [清空] [保存AI答案]
+```
+
+**模版加载逻辑** (GeneralSkillContentManagement.vue:1304-1406):
+```javascript
+async loadAIAnswer() {
+  // 1. 获取AI笔记 (user_id = -1)
+  let aiNote = await adminQuestionApi.getAINote(questionId)
+
+  // 2. 通过Focus Area获取skill_id
+  let skillId = this.selectedSkillId || focusArea.skillId
+
+  // 3. 加载Skill的默认答题模版
+  const template = await api.get(`/skills/${skillId}/templates/default`)
+
+  // 4. 如果有模版,解析AI笔记到模版字段
+  if (template && template.templateFields) {
+    this.aiAnswerTemplate = template
+    this.aiAnswerMode = 'template'
+
+    // 尝试解析Markdown格式: ## Label\nContent
+    for (const field of templateFields) {
+      const pattern = /## ${field.label}\s*\n([\s\S]*?)(?=\n## |$)/i
+      const match = aiNote.noteContent.match(pattern)
+      if (match) {
+        parsedValues[field.key] = match[1].trim()
+      }
+    }
+  } else {
+    // 无模版,使用自由模式
+    this.aiAnswerTemplate = null
+    this.aiAnswerMode = 'free'
+    this.aiAnswerData = {
+      freeAnswer: aiNote?.noteContent || '',
+      coreStrategy: aiNote?.coreStrategy || ''
+    }
+  }
+}
+```
+
+**保存AI答案逻辑** (GeneralSkillContentManagement.vue:1431-1482):
+```javascript
+async saveAIAnswer() {
+  let noteContent = ''
+  const coreStrategy = this.aiAnswerData.coreStrategy || ''
+
+  // 模版模式: 将模版字段合并为Markdown格式
+  if (this.aiAnswerMode === 'template') {
+    const parts = templateFields.map(field => {
+      return `## ${field.label}\n${this.aiAnswerData[field.key] || ''}`
+    })
+    noteContent = parts.join('\n\n')
+  } else {
+    // 自由模式: 保存纯文本
+    noteContent = this.aiAnswerData.freeAnswer || ''
+  }
+
+  // 调用API保存 (user_id = -1 在后端处理)
+  await adminQuestionApi.saveOrUpdateAINote(questionId, {
+    noteContent,
+    coreStrategy
+  })
+}
+```
+
+**关键特性**:
+- ✅ **模版字段动态渲染**: 根据template.templateFields JSON动态生成表单
+- ✅ **Markdown格式存储**: 模版字段存储为`## Label\nContent`格式,便于解析和展示
+- ✅ **核心思路字段**: 无论模版模式还是自由模式都支持coreStrategy字段
+- ✅ **模版与自由切换**: 用户可自由选择使用模版或自由文本
+- ✅ **彩色卡片UI**: 模版字段使用渐变色卡片区分,提升视觉体验
+- ✅ **实时加载**: 切换到AI答题模式时自动加载模版和已有AI笔记
+
+**API端点**:
+- `GET /api/admin/questions/{id}/ai-note` - 获取AI笔记 (user_id=-1)
+- `POST /api/admin/questions/{id}/ai-note` - 保存AI笔记
+- `GET /api/skills/{skillId}/templates/default` - 获取Skill的默认模版
 
 ---
 
 ### 4.2 用户端页面
 
-#### 4.2.1 学习页面 (双Tab模式)
+#### 4.2.1 通用技能学习页面 ✅ 已实现
 
-**页面**: `/learning/skills/{skillId}`
-**组件**: SkillLearning.vue (复用Phase 4,扩展AI笔记)
+**路径**: `/general-skills/learning` 或 `/general-skills/learning/:skillId`
+**组件**: `GeneralSkillLearning.vue`
 
 **组件结构**:
 ```vue
-SkillLearning.vue
+GeneralSkillLearning.vue
 ├─ 左侧 (上下两栏树形结构)
 │   ├─ 上栏树: 职业路径 → 技能
 │   └─ 下栏树:
@@ -718,10 +914,11 @@ SkillLearning.vue
   });
   ```
 
-#### 4.2.2 答题模式页面 (扩展)
+#### 4.2.2 独立答题页面 ⏭️ 已删除，功能已整合
 
-**页面**: `/question-bank`
-**组件**: MyQuestionBank.vue (扩展)
+**注**: `MyQuestionBank.vue`已删除，答题功能已整合到`GeneralSkillLearning.vue`的试题库Tab中
+
+**原设计 (已过时)**:
 
 **新增筛选条件**:
 ```vue
@@ -1315,29 +1512,126 @@ private String relatedKnowledgePointIds;
 
 ## 9. 实现与设计的差异说明
 
-### 9.1 AI笔记实现方式
+### 9.1 已实现内容 (Phase 6.1-6.4)
 
+#### Phase 6.1: 数据模型 ✅ 完全按设计实施
+- ✅ `answer_templates`表 - 答题模版存储
+- ✅ `skill_templates`表 - Skill与模版多对多关联
+- ✅ `user_question_notes`表扩展 - 新增`related_knowledge_point_ids`字段
+- ✅ STAR和Technical模版预置数据
+
+#### Phase 6.2: 管理员页面 ✅ 完全按设计实施
+- ✅ GeneralSkillContentManagement.vue - 通用技能内容管理
+  - 左右两栏布局,上下树形结构
+  - 双Tab模式 (学习资料 + 试题库)
+  - AI笔记导入功能 (AIImportModal组件)
+  - **新增**: AI答题模式 (三模式系统: view/edit/ai-answer)
+
+#### Phase 6.3: 技能模版管理 ✅ 超预期实现
+**设计文档未明确要求,实际完整实现**:
+- ✅ SkillTemplateManagement.vue - 技能模版库管理页面
+  - 左侧30%: 职业路径 → 技能树
+  - 右侧70%: 模版卡片列表 (默认标记、操作按钮)
+- ✅ TemplateEditorModal.vue - 模版编辑器
+  - 动态字段编辑器 (添加/删除字段)
+  - JSON序列化存储
+- ✅ AssociateTemplateModal.vue - 模版关联器
+- ✅ SkillTemplateController API完整实现
+  - 公开API: `/api/skills/{skillId}/templates` (供用户使用)
+  - 管理员API: `/api/admin/skill-templates` (含反向查询)
+
+#### Phase 6.4: 问题浏览模式 ✅ 超预期实现
+**设计文档未明确要求,实际完整实现**:
+- ✅ QuestionViewModal.vue - 两列布局
+  - 左列: 问题详情 (描述、答案要求)
+  - 右列: 答题笔记/AI答案
+  - 三种模式: view/edit/ai-answer
+  - 紧凑prose模式 (prose-sm)
+- ✅ UserNoteEditor.vue - 用户笔记编辑器
+  - **核心功能**: STAR框架动态答题界面 ✅
+  - 模版/自由两种答题模式切换
+  - 根据`answerTemplate.templateFields` JSON动态渲染输入框
+  - 自动解析已保存的模版格式笔记 (正则匹配`## Label`)
+  - 实时预览完整答案 (Markdown渲染)
+  - API调用: `skillTemplateApi.getDefaultTemplatePublic(skillId)`
+
+### 9.2 设计方案优势
+
+#### AI笔记实现方式
 **设计方案**: 使用user_id=-1标识AI笔记
 **优势**:
-- 复用现有表结构
-- 避免新增AI专用表
-- 查询逻辑简单
+- ✅ 复用现有表结构
+- ✅ 避免新增AI专用表
+- ✅ 查询逻辑简单
 
-### 9.2 第二类技能的大分类处理
-
+#### 第二类技能的大分类处理
 **设计方案**: 创建"General"大分类,前端隐藏
 **优势**:
-- 复用Phase 4的三层架构
-- 避免两套UI组件维护
-- 后端逻辑统一
+- ✅ 复用Phase 4的三层架构
+- ✅ 避免两套UI组件维护
+- ✅ 后端逻辑统一
 
-### 9.3 答题模版的关联方式
-
+#### 答题模版的关联方式
 **设计方案**: 采用多对多关联 (skill_templates表)
 **优势**:
-- 一个Skill可以关联多个模版
-- 支持默认模版标记
-- 用户可选择使用不同模版
+- ✅ 一个Skill可以关联多个模版
+- ✅ 支持默认模版标记
+- ✅ 用户可选择使用不同模版
+
+### 9.3 实施亮点 (超预期功能)
+
+#### 亮点1: 三模式系统 (GeneralSkillContentManagement.vue)
+**原设计**: 只有查看/编辑两种模式
+**实际实现**: 三模式系统
+- `view` - 浏览模式 (QuestionViewModal内联)
+- `edit` - 编辑模式 (QuestionEditModal内联)
+- `ai-answer` - AI答题模式 (新增,支持模版/自由切换)
+
+**价值**:
+- 管理员可为试题添加AI参考答案
+- 支持STAR/Technical等模版框架
+- 模版答题卡片彩色区分 (蓝/绿/橙/紫渐变)
+
+#### 亮点2: STAR框架动态答题界面 (UserNoteEditor.vue)
+**原设计**: 简要提及"根据Skill模版动态渲染"
+**实际实现**: 完整的模版渲染引擎
+```javascript
+// 1. 获取技能默认模版 (GeneralSkillLearning.vue:1803)
+const template = await skillTemplateApi.getDefaultTemplatePublic(skillId)
+
+// 2. 动态解析templateFields (支持JSON字符串/对象双格式)
+const fields = parseTemplateFields(template.templateFields)
+
+// 3. 自动解析已保存笔记 (正则匹配: ## Label\nContent)
+const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+
+// 4. 实时预览 (Markdown渲染)
+const preview = marked(templateMarkdown)
+```
+
+**价值**:
+- 用户无需手动输入STAR标签
+- 自动保存/加载为Markdown格式
+- 可随时切换模版/自由模式
+
+#### 亮点3: 完整的技能模版库管理系统
+**原设计**: 未明确设计
+**实际实现**: 三个独立组件协同工作
+- SkillTemplateManagement.vue - 主页面 (左右两栏)
+- TemplateEditorModal.vue - 模版编辑器 (动态字段管理)
+- AssociateTemplateModal.vue - 模版关联器 (单选界面)
+
+**价值**:
+- 管理员可视化管理模版字段
+- 支持多模版关联 (默认模版 + 通用模版)
+- 反向查询支持 (查询模版被哪些技能使用)
+
+### 9.4 待完成功能 (Phase 6.5)
+
+- ⏭️ 知识点关联功能 (`related_knowledge_point_ids`字段在答题笔记中的应用)
+- ⏭️ 独立题库刷题页面 (如需要，重新实现MyQuestionBank.vue，含搜索筛选)
+- ⏭️ 数据导入 (云计算、DevOps、Behavioral题库)
+- ⏭️ AI笔记批量导入工具
 
 ---
 
@@ -1361,6 +1655,42 @@ private String relatedKnowledgePointIds;
 
 ---
 
-**文档版本**: v1.0
+## 11. 版本历史
+
+### v1.1 (2025-12-28)
+**更新内容**:
+- ✅ 更新实施进度: Phase 6.1-6.4已完成
+- ✅ 新增4.1.3章节: AI答题模式实现细节
+- ✅ 新增第9章: 实现与设计的差异说明
+- ✅ 新增实施亮点章节: 三模式系统、STAR动态答题、技能模版库管理
+- ✅ 更新验收标准: 标记已完成项
+
+### v1.0 (2025-12-27)
+**初始版本**:
+- 📋 完整设计文档 (数据模型、API、前端、实施路径)
+
+---
+
+**文档版本**: v1.1
 **创建时间**: 2025-12-27
-**状态**: 📋 待实施
+**最后更新**: 2025-12-28 (v1.1 - 根据实际实现更新)
+**状态**: 🚧 部分完成 - Phase 6.1-6.4 已实现，Phase 6.5 待实施
+
+**实施进度**:
+- ✅ Phase 6.1: 数据模型和基础架构 (100%)
+- ✅ Phase 6.2: 管理员页面 (100% - 含AI答题模式)
+- ✅ Phase 6.3: 技能模版管理 (100% - 完整实现三组件系统)
+- ✅ Phase 6.4: 问题浏览模式重新设计 (100% - 含STAR动态答题界面)
+- ⏭️ Phase 6.5: 数据导入和测试 (待实施)
+
+**核心成果**:
+1. ✅ STAR框架动态答题界面完整实现 (UserNoteEditor.vue)
+2. ✅ 三模式系统 (view/edit/ai-answer) 完整实现
+3. ✅ 技能模版库管理系统完整实现 (SkillTemplateManagement.vue + 2个Modal组件)
+4. ✅ 公开API支持用户端答题 (SkillTemplateController)
+
+**待完成功能**:
+1. ⏭️ 知识点关联功能 (related_knowledge_point_ids字段在答题笔记中的应用)
+2. ⏭️ 独立题库刷题页面 (如需要，重新实现MyQuestionBank.vue)
+3. ⏭️ 数据导入 (云计算、DevOps、Behavioral题库)
+4. ⏭️ AI笔记批量导入工具

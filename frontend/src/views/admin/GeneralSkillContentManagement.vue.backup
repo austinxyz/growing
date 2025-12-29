@@ -895,20 +895,24 @@ export default {
   watch: {
     // 监听Focus Area变化，自动加载对应的学习资料或试题
     async selectedFocusAreaId(newVal) {
+      console.log('[watch selectedFocusAreaId] New value:', newVal, 'Active tab:', this.activeTab)
       if (newVal) {
         if (this.activeTab === 'learning') {
           await this.loadLearningContents()
         } else if (this.activeTab === 'questions') {
+          console.log('[watch selectedFocusAreaId] Calling loadQuestions')
           await this.loadQuestions()
         }
       }
     },
     // 监听Tab切换
     async activeTab(newVal) {
+      console.log('[watch activeTab] New value:', newVal, 'Selected focus area:', this.selectedFocusAreaId)
       if (this.selectedFocusAreaId) {
         if (newVal === 'learning') {
           await this.loadLearningContents()
         } else if (newVal === 'questions') {
+          console.log('[watch activeTab] Calling loadQuestions')
           await this.loadQuestions()
         }
       }
@@ -1046,6 +1050,7 @@ export default {
 
     // 选择Focus Area
     selectFocusArea(focusAreaId) {
+      console.log('[selectFocusArea] Selected focus area ID:', focusAreaId)
       this.selectedFocusAreaId = focusAreaId
     },
 
@@ -1058,7 +1063,9 @@ export default {
 
     // ===== 学习资料相关方法 =====
     async loadLearningContents() {
+      console.log('[loadLearningContents] Called with selectedFocusAreaId:', this.selectedFocusAreaId)
       if (!this.selectedFocusAreaId) {
+        console.log('[loadLearningContents] No focus area selected, clearing contents')
         this.learningContents = []
         return
       }
@@ -1066,16 +1073,23 @@ export default {
       this.loadingContents = true
       try {
         // 查询该Focus Area的所有学习资料
+        console.log('[loadLearningContents] Fetching learning contents for focus area:', this.selectedFocusAreaId)
         const data = await learningContentApi.getContentsForAdmin({
           focusAreaId: this.selectedFocusAreaId
         })
+        console.log('[loadLearningContents] Received data:', data)
+        console.log('[loadLearningContents] Data type:', typeof data)
+        console.log('[loadLearningContents] Is array?', Array.isArray(data))
 
         // 检查数据结构 - API可能返回分页对象
         if (data && data.content) {
+          console.log('[loadLearningContents] Data has .content property, using data.content')
           this.learningContents = data.content || []
         } else {
+          console.log('[loadLearningContents] Data is array or object, using directly')
           this.learningContents = data || []
         }
+        console.log('[loadLearningContents] Updated this.learningContents:', this.learningContents.length, 'items')
       } catch (error) {
         console.error('加载学习资料失败:', error)
         this.learningContents = []
@@ -1150,7 +1164,9 @@ export default {
 
     // ===== 试题库相关方法 =====
     async loadQuestions() {
+      console.log('[loadQuestions] Called with selectedFocusAreaId:', this.selectedFocusAreaId)
       if (!this.selectedFocusAreaId) {
+        console.log('[loadQuestions] No focus area selected, clearing questions')
         this.questions = []
         return
       }
@@ -1158,10 +1174,13 @@ export default {
       this.loadingQuestions = true
       try {
         // 查询该Focus Area的所有试题
+        console.log('[loadQuestions] Fetching questions for focus area:', this.selectedFocusAreaId)
         const data = await adminQuestionApi.getAllQuestions({
           focusAreaId: this.selectedFocusAreaId
         })
+        console.log('[loadQuestions] Received data:', data)
         this.questions = data || []
+        console.log('[loadQuestions] Updated this.questions:', this.questions.length, 'questions')
       } catch (error) {
         console.error('加载试题失败:', error)
         this.questions = []
@@ -1309,9 +1328,11 @@ export default {
         let aiNote = null
         try {
           aiNote = await adminQuestionApi.getAINote(this.viewingQuestion.id)
+          console.log('[loadAIAnswer] AI笔记:', aiNote)
         } catch (error) {
           // 404是正常的，表示还没有AI笔记
           if (error.response && error.response.status === 404) {
+            console.log('[loadAIAnswer] 暂无AI笔记，初始化空白答题')
             aiNote = null
           } else {
             throw error
@@ -1320,25 +1341,34 @@ export default {
 
         // 尝试通过Focus Area获取关联的答题模版
         // 首先从viewingQuestion的focusAreaId获取对应的skill_id
+        console.log('[loadAIAnswer] viewingQuestion.focusAreaId:', this.viewingQuestion.focusAreaId)
+        console.log('[loadAIAnswer] focusAreas数组:', this.focusAreas)
+        console.log('[loadAIAnswer] selectedSkillId:', this.selectedSkillId)
 
         let skillId = null
         if (this.viewingQuestion.focusAreaId) {
           const focusArea = this.focusAreas.find(fa => fa.id === this.viewingQuestion.focusAreaId)
+          console.log('[loadAIAnswer] 找到的focusArea:', focusArea)
           if (focusArea && focusArea.skillId) {
             skillId = focusArea.skillId
+            console.log('[loadAIAnswer] 从Focus Area获取skill_id:', skillId)
           } else {
+            console.log('[loadAIAnswer] focusArea没有skillId字段')
           }
         } else {
+          console.log('[loadAIAnswer] viewingQuestion没有focusAreaId')
         }
 
         // 如果没有从Focus Area获取到skill_id，尝试使用selectedSkillId
         if (!skillId && this.selectedSkillId) {
           skillId = this.selectedSkillId
+          console.log('[loadAIAnswer] 使用selectedSkillId作为fallback:', skillId)
         }
 
         if (skillId) {
           try {
             const template = await api.get(`/skills/${skillId}/templates/default`)
+            console.log('[loadAIAnswer] 找到答题模版:', template)
 
             if (template && template.templateFields && template.templateFields.length > 0) {
               this.aiAnswerTemplate = template
@@ -1387,6 +1417,7 @@ export default {
               return
             }
           } catch (error) {
+            console.log('[loadAIAnswer] 未找到答题模版，使用自由模式', error)
           }
         }
 

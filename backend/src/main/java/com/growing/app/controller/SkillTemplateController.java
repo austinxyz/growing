@@ -1,6 +1,8 @@
 package com.growing.app.controller;
 
+import com.growing.app.dto.AnswerTemplateDTO;
 import com.growing.app.dto.SkillTemplateDTO;
+import com.growing.app.service.AnswerTemplateService;
 import com.growing.app.service.SkillTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +17,15 @@ import java.util.List;
  * ⚠️ Guardrail #4: 所有 /api/admin/* 需要管理员权限
  */
 @RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:3000")
 public class SkillTemplateController {
 
     @Autowired
     private SkillTemplateService skillTemplateService;
+
+    @Autowired
+    private AnswerTemplateService answerTemplateService;
 
     /**
      * 公开API: 获取技能的所有关联模版（供用户答题使用）
@@ -33,14 +40,22 @@ public class SkillTemplateController {
     /**
      * 公开API: 获取技能的默认模版（供用户答题使用）
      * GET /api/skills/{skillId}/templates/default
+     * 返回完整的AnswerTemplateDTO（包含templateFields）
      */
     @GetMapping("/skills/{skillId}/templates/default")
-    public ResponseEntity<SkillTemplateDTO> getDefaultTemplatePublic(@PathVariable Long skillId) {
-        SkillTemplateDTO template = skillTemplateService.getDefaultTemplate(skillId);
-        if (template == null) {
+    public ResponseEntity<AnswerTemplateDTO> getDefaultTemplatePublic(@PathVariable Long skillId) {
+        SkillTemplateDTO skillTemplate = skillTemplateService.getDefaultTemplate(skillId);
+        if (skillTemplate == null || skillTemplate.getTemplateId() == null) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(template);
+
+        // 获取完整的AnswerTemplateDTO
+        try {
+            AnswerTemplateDTO template = answerTemplateService.getTemplate(skillTemplate.getTemplateId());
+            return ResponseEntity.ok(template);
+        } catch (Exception e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     /**

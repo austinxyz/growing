@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     <!-- 顶部标题 -->
     <div class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
       <div class="px-6 py-4">
@@ -20,8 +20,8 @@
 
         <!-- 上栏树：职业路径 → 技能 (40% height) -->
         <div class="h-2/5 border-b-2 border-gray-200 overflow-hidden flex flex-col">
-          <div class="p-3 bg-gray-50 border-b border-gray-200">
-            <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wider">职业路径与技能</h3>
+          <div class="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 shadow-md">
+            <h3 class="text-xs font-semibold text-white uppercase tracking-wider">📚 职业路径与技能</h3>
           </div>
 
           <div class="flex-1 overflow-y-auto p-2">
@@ -66,10 +66,10 @@
                     :key="skill.id"
                     @click.stop="selectSkill(skill.id)"
                     :class="[
-                      'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors',
+                      'flex items-center px-2 py-1.5 rounded cursor-pointer transition-all duration-200',
                       selectedSkillId === skill.id
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-600 shadow-md text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:shadow-sm'
                     ]"
                   >
                     <!-- 技能图标 -->
@@ -92,8 +92,8 @@
 
         <!-- 下栏树：大分类 → Focus Area (60% height) -->
         <div class="h-3/5 overflow-hidden flex flex-col">
-          <div class="p-3 bg-gray-50 border-b border-gray-200">
-            <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Focus Area</h3>
+          <div class="p-3 bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md">
+            <h3 class="text-xs font-semibold text-white uppercase tracking-wider">🎯 Focus Area</h3>
           </div>
 
           <!-- 未选择技能时的提示 -->
@@ -124,10 +124,10 @@
                   :key="focusArea.id"
                   @click="selectFocusArea(focusArea.id)"
                   :class="[
-                    'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors',
+                    'flex items-center px-2 py-1.5 rounded cursor-pointer transition-all duration-200',
                     selectedFocusAreaId === focusArea.id
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-indigo-600 shadow-md text-indigo-700 font-medium'
+                      : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:shadow-sm'
                   ]"
                 >
                   <!-- Focus Area图标 -->
@@ -169,10 +169,10 @@
                       :key="focusArea.id"
                       @click.stop="selectFocusArea(focusArea.id)"
                       :class="[
-                        'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors',
+                        'flex items-center px-2 py-1.5 rounded cursor-pointer transition-all duration-200',
                         selectedFocusAreaId === focusArea.id
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-indigo-600 shadow-md text-indigo-700 font-medium'
+                          : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:shadow-sm'
                       ]"
                     >
                       <!-- Focus Area图标 -->
@@ -226,28 +226,50 @@
               {{ selectedFocusArea?.name || '学习内容' }}
             </h2>
             <!-- Tab 导航 -->
-            <nav class="flex space-x-8" aria-label="Tabs">
+            <nav class="flex space-x-1" aria-label="Tabs">
               <button
                 @click="activeTab = 'learning'"
                 :class="[
-                  'py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap',
+                  'px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-2',
                   activeTab === 'learning'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                 ]"
               >
-                📚 学习资料
+                <span>📚 学习资料</span>
+                <span
+                  v-if="learningContents.length > 0"
+                  :class="[
+                    'px-2 py-0.5 text-xs font-semibold rounded-full',
+                    activeTab === 'learning'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-600'
+                  ]"
+                >
+                  {{ learningContents.length }}
+                </span>
               </button>
               <button
                 @click="activeTab = 'questions'"
                 :class="[
-                  'py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap',
+                  'px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-2',
                   activeTab === 'questions'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
+                    : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
                 ]"
               >
-                📝 试题库
+                <span>📝 试题库</span>
+                <span
+                  v-if="questions.length > 0"
+                  :class="[
+                    'px-2 py-0.5 text-xs font-semibold rounded-full',
+                    activeTab === 'questions'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-600'
+                  ]"
+                >
+                  {{ questions.length }}
+                </span>
               </button>
             </nav>
           </div>
@@ -458,7 +480,56 @@
                     </div>
                   </div>
 
-                  <!-- 卡片2: 整体笔记 - 使用渐变背景 -->
+                  <!-- 卡片2: AI整体笔记（如果有）- 使用蓝色渐变背景 -->
+                  <div v-if="selectedContent.aiNote?.noteContent" class="bg-gradient-to-br from-blue-50 to-white rounded-xl border-2 border-blue-200 shadow-md hover:shadow-xl transition-all overflow-hidden">
+                    <div class="px-2 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white flex items-center justify-between">
+                      <div
+                        @click="cardStates.aiNote = !cardStates.aiNote"
+                        class="flex items-center gap-1.5 cursor-pointer flex-1"
+                      >
+                        <div class="w-1.5 h-5 bg-gradient-to-b from-blue-300 to-white rounded-full"></div>
+                        <h3 class="font-semibold text-xs">🤖 AI 整体笔记</h3>
+                      </div>
+                      <button
+                        @click.stop="cardStates.aiNote = !cardStates.aiNote"
+                        class="p-1 hover:bg-blue-600 rounded transition-all"
+                      >
+                        <svg
+                          :class="['w-3.5 h-3.5 transition-transform', cardStates.aiNote ? 'rotate-180' : '']"
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div v-show="cardStates.aiNote" class="p-3">
+                      <div
+                        ref="aiNoteContent"
+                        :class="['relative', !cardStates.aiNoteExpanded ? 'max-h-48 overflow-hidden' : '']"
+                      >
+                        <div class="prose prose-sm max-w-none text-xs">
+                          <div v-html="renderMarkdown(selectedContent.aiNote.noteContent)" class="text-gray-700"></div>
+                        </div>
+
+                        <!-- 渐变遮罩 -->
+                        <div v-if="!cardStates.aiNoteExpanded && cardStates.aiNoteOverflow" class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                      </div>
+
+                      <!-- 展开/收起按钮（仅在溢出时显示） -->
+                      <button
+                        v-if="cardStates.aiNoteOverflow"
+                        @click="cardStates.aiNoteExpanded = !cardStates.aiNoteExpanded"
+                        class="w-full mt-2 py-1 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-1"
+                      >
+                        <span>{{ cardStates.aiNoteExpanded ? '收起' : '展开更多' }}</span>
+                        <svg :class="['w-3 h-3 transition-transform', cardStates.aiNoteExpanded ? 'rotate-180' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 卡片3: 用户整体笔记 - 使用绿色渐变背景 -->
                   <div class="bg-gradient-to-br from-green-50 to-white rounded-xl border-2 border-green-200 shadow-md hover:shadow-xl transition-all overflow-hidden">
                     <div class="px-2 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center justify-between">
                       <div
@@ -562,6 +633,60 @@
                       <div v-else class="text-center text-gray-400 py-6">
                         <p class="text-xs">点击上方编辑按钮添加整体笔记</p>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- AI知识点卡片列表 - 使用靛蓝渐变背景 -->
+                  <div
+                    v-for="(point, index) in selectedContent.aiKnowledgePoints"
+                    :key="'ai-kp-' + (point.id || index)"
+                    class="bg-gradient-to-br from-indigo-50 to-white rounded-xl border-2 border-indigo-200 shadow-md hover:shadow-xl transition-all overflow-hidden"
+                  >
+                    <div class="px-2 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white flex items-center justify-between">
+                      <div
+                        @click="toggleAiKnowledgePointCard('ai-' + (point.id || index))"
+                        class="flex items-center gap-1.5 cursor-pointer flex-1 min-w-0"
+                      >
+                        <div class="w-1.5 h-5 bg-gradient-to-b from-indigo-300 to-white rounded-full"></div>
+                        <span class="text-xs">🤖</span>
+                        <h3 class="font-semibold text-xs truncate">{{ index + 1 }}. {{ point.title || '未命名' }}</h3>
+                      </div>
+                      <button
+                        @click.stop="toggleAiKnowledgePointCard('ai-' + (point.id || index))"
+                        class="p-1 hover:bg-indigo-600 rounded transition-all flex-shrink-0"
+                      >
+                        <svg
+                          :class="['w-3.5 h-3.5 transition-transform', cardStates.aiKnowledgePoints['ai-' + (point.id || index)] ? 'rotate-180' : '']"
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div v-show="cardStates.aiKnowledgePoints['ai-' + (point.id || index)]" class="p-3">
+                      <div
+                        :ref="el => { if (el) aiKnowledgePointContents['ai-' + (point.id || index)] = el }"
+                        :class="['relative', !cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)] ? 'max-h-48 overflow-hidden' : '']"
+                      >
+                        <div class="prose prose-sm max-w-none text-xs">
+                          <div v-html="renderMarkdown(point.summary)" class="text-gray-700"></div>
+                        </div>
+
+                        <!-- 渐变遮罩 -->
+                        <div v-if="!cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)] && cardStates.aiKnowledgePointsOverflow['ai-' + (point.id || index)]" class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                      </div>
+
+                      <!-- 展开/收起按钮（仅在溢出时显示） -->
+                      <button
+                        v-if="cardStates.aiKnowledgePointsOverflow['ai-' + (point.id || index)]"
+                        @click="cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)] = !cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)]"
+                        class="w-full mt-2 py-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center justify-center gap-1"
+                      >
+                        <span>{{ cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)] ? '收起' : '展开更多' }}</span>
+                        <svg :class="['w-3 h-3 transition-transform', cardStates.aiKnowledgePointsExpanded['ai-' + (point.id || index)] ? 'rotate-180' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
 
@@ -687,7 +812,7 @@
                 <div class="text-center">
                   <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   加载中...
                 </div>
@@ -713,22 +838,39 @@
                   ]"
                 >
                   <div class="p-4 space-y-2">
+                    <!-- 添加试题按钮 -->
+                    <button
+                      @click="addNewQuestion"
+                      class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 font-medium"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      添加试题
+                    </button>
+
+                    <!-- 试题列表 -->
                     <div
                       v-for="(question, index) in questions"
                       :key="question.id"
                       @click="selectQuestion(question)"
                       :class="[
-                        'p-3 rounded-lg cursor-pointer transition-all border-2',
+                        'p-3 rounded-lg cursor-pointer transition-all duration-200 border-2',
                         selectedQuestion?.id === question.id
-                          ? 'bg-blue-50 border-blue-400 shadow-md'
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow'
+                          ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-lg'
+                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:bg-gradient-to-br hover:from-gray-50 hover:to-blue-50'
                       ]"
                     >
                       <div class="flex items-start gap-2">
-                        <span class="text-xs font-bold text-gray-500 mt-0.5">Q{{ index + 1 }}</span>
+                        <span :class="[
+                          'text-xs font-bold mt-0.5 px-1.5 py-0.5 rounded',
+                          selectedQuestion?.id === question.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                        ]">
+                          Q{{ index + 1 }}
+                        </span>
                         <div class="flex-1 min-w-0">
                           <h4 :class="[
-                            'text-sm font-semibold truncate',
+                            'text-sm font-semibold',
                             selectedQuestion?.id === question.id ? 'text-blue-700' : 'text-gray-900'
                           ]">
                             {{ question.title }}
@@ -736,8 +878,8 @@
                           <p class="text-xs text-gray-500 mt-1">{{ question.questionType }}</p>
                         </div>
                         <div class="flex-shrink-0">
-                          <span v-if="question.note" class="inline-block px-2 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded">
-                            已答
+                          <span v-if="question.note" class="inline-block px-2 py-0.5 text-xs font-semibold bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded shadow-sm">
+                            ✓ 已答
                           </span>
                         </div>
                       </div>
@@ -776,30 +918,49 @@
                   <!-- 已选中试题 -->
                   <div v-else class="h-full flex flex-col">
                     <!-- 模式切换按钮 -->
-                    <div class="p-6 pb-4 flex items-center justify-between flex-shrink-0">
-                      <h3 class="text-lg font-bold text-gray-900">{{ selectedQuestion.title }}</h3>
-                      <div class="flex gap-2">
+                    <div class="px-6 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
+                      <h3 class="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                        {{ selectedQuestion.title || '新建试题' }}
+                      </h3>
+                      <div class="flex gap-1">
                         <button
+                          v-if="selectedQuestion.id"
                           @click="questionViewMode = 'browse'"
                           :class="[
-                            'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
                             questionViewMode === 'browse'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg'
+                              : 'bg-white text-gray-700 hover:bg-gray-50'
                           ]"
+                          title="浏览模式"
                         >
-                          📖 浏览模式
+                          📖 浏览
                         </button>
                         <button
+                          v-if="selectedQuestion.id"
                           @click="questionViewMode = 'answer'"
                           :class="[
-                            'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
                             questionViewMode === 'answer'
-                              ? 'bg-green-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:shadow-lg'
+                              : 'bg-white text-gray-700 hover:bg-gray-50'
                           ]"
+                          title="答题模式"
                         >
-                          ✍️ 答题模式
+                          ✍️ 答题
+                        </button>
+                        <button
+                          v-if="canEditQuestion"
+                          @click="questionViewMode = 'edit'"
+                          :class="[
+                            'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 shadow-md',
+                            questionViewMode === 'edit'
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 hover:shadow-lg'
+                              : 'bg-white text-gray-700 hover:bg-gray-50'
+                          ]"
+                          title="编辑模式"
+                        >
+                          ✏️ 编辑
                         </button>
                       </div>
                     </div>
@@ -828,110 +989,333 @@
                       </div>
 
                       <!-- 右栏：答案 (50%) -->
-                      <div class="w-1/2 space-y-4 overflow-y-auto pl-2 border-l-2 border-gray-200">
-                        <!-- AI笔记（优先显示） -->
-                        <template v-if="selectedQuestion.aiNote?.noteContent">
-                          <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border-2 border-purple-200">
-                            <div class="flex items-center gap-2 mb-3">
-                              <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                      <div class="w-1/2 flex flex-col overflow-hidden pl-2 border-l-2 border-gray-200">
+                        <!-- 答案类型切换 - 始终显示两个按钮 -->
+                        <div class="flex gap-2 mb-3 flex-shrink-0">
+                          <button
+                            @click="browseNoteType = 'ai'"
+                            :class="[
+                              'flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all',
+                              browseNoteType === 'ai'
+                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ]"
+                          >
+                            <span class="flex items-center justify-center gap-2">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M13 7H7v6h6V7z" />
                                 <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
                               </svg>
-                              <h4 class="text-sm font-bold text-purple-900">🤖 AI 参考答案</h4>
-                            </div>
-
-                            <!-- AI核心要点（如果有） -->
-                            <div v-if="selectedQuestion.aiNote?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
-                              <h5 class="text-xs font-semibold text-purple-800 mb-2 flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                                核心要点
-                              </h5>
-                              <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.aiNote.coreStrategy)"></div>
-                            </div>
-
-                            <!-- AI答案主体 -->
-                            <div class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.aiNote.noteContent)"></div>
-                          </div>
-                        </template>
-
-                        <!-- 用户笔记 -->
-                        <template v-if="selectedQuestion.note?.noteContent">
-                          <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200">
-                            <div class="flex items-center gap-2 mb-3">
-                              <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              AI 参考答案
+                            </span>
+                          </button>
+                          <button
+                            @click="browseNoteType = 'user'"
+                            :class="[
+                              'flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all',
+                              browseNoteType === 'user'
+                                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ]"
+                          >
+                            <span class="flex items-center justify-center gap-2">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                               </svg>
-                              <h4 class="text-sm font-bold text-green-900">✍️ 我的答案</h4>
-                            </div>
+                              我的答案
+                            </span>
+                          </button>
+                        </div>
 
-                            <!-- 用户核心要点（如果有） -->
-                            <div v-if="selectedQuestion.note?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
-                              <h5 class="text-xs font-semibold text-green-800 mb-2 flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        <!-- 答案内容区域 -->
+                        <div class="flex-1 overflow-y-auto space-y-4">
+                          <!-- AI笔记 -->
+                          <template v-if="browseNoteType === 'ai' && selectedQuestion.aiNote?.noteContent">
+                            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border-2 border-purple-200">
+                              <div class="flex items-center gap-2 mb-3">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M13 7H7v6h6V7z" />
+                                  <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
                                 </svg>
-                                核心要点
-                              </h5>
-                              <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.note.coreStrategy)"></div>
+                                <h4 class="text-sm font-bold text-purple-900">🤖 AI 参考答案</h4>
+                              </div>
+
+                              <!-- AI核心要点（如果有） -->
+                              <div v-if="selectedQuestion.aiNote?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
+                                <h5 class="text-xs font-semibold text-purple-800 mb-2 flex items-center gap-1">
+                                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                  核心要点
+                                </h5>
+                                <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.aiNote.coreStrategy)"></div>
+                              </div>
+
+                              <!-- AI答案主体 -->
+                              <div class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.aiNote.noteContent)"></div>
+                            </div>
+                          </template>
+
+                          <!-- 用户笔记 -->
+                          <template v-if="browseNoteType === 'user'">
+                            <!-- 有用户笔记 -->
+                            <div v-if="selectedQuestion.userNote?.noteContent || selectedQuestion.userNote?.coreStrategy" class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200">
+                              <div class="flex items-center gap-2 mb-3">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                                <h4 class="text-sm font-bold text-green-900">✍️ 我的答案</h4>
+                              </div>
+
+                              <!-- 用户核心要点（如果有） -->
+                              <div v-if="selectedQuestion.userNote?.coreStrategy" class="mb-4 bg-white/60 rounded-lg p-3">
+                                <h5 class="text-xs font-semibold text-green-800 mb-2 flex items-center gap-1">
+                                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                  核心要点
+                                </h5>
+                                <div class="prose prose-sm max-w-none compact-prose text-gray-700" v-html="renderMarkdown(selectedQuestion.userNote.coreStrategy)"></div>
+                              </div>
+
+                              <!-- 用户答案主体 -->
+                              <div v-if="selectedQuestion.userNote?.noteContent" class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.userNote.noteContent)"></div>
                             </div>
 
-                            <!-- 用户答案主体 -->
-                            <div class="prose prose-sm max-w-none compact-prose text-gray-800" v-html="renderMarkdown(selectedQuestion.note.noteContent)"></div>
-                          </div>
-                        </template>
+                            <!-- 无用户笔记 - 提示去答题 -->
+                            <div v-else class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                              <svg class="w-16 h-16 mb-4 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <p class="text-sm font-medium text-gray-600 mb-2">还没有你的答案</p>
+                              <button
+                                @click="questionViewMode = 'answer'"
+                                class="mt-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                              >
+                                开始答题
+                              </button>
+                            </div>
+                          </template>
 
-                        <!-- 无答案时显示提示 -->
-                        <div v-if="!selectedQuestion.aiNote?.noteContent && !selectedQuestion.note?.noteContent" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-                          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <p class="text-sm font-medium mb-1">暂无答案</p>
-                          <p class="text-xs">切换到"答题模式"开始作答</p>
+                          <!-- AI笔记不存在时的提示 -->
+                          <div v-if="browseNoteType === 'ai' && !selectedQuestion.aiNote?.noteContent" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                            <svg class="w-16 h-16 mb-4 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p class="text-sm font-medium text-gray-600 mb-1">暂无 AI 参考答案</p>
+
+                            <!-- 引导用户到答题模式 -->
+                            <template v-if="canEditAiNote">
+                              <p class="text-xs text-gray-500 mb-4">切换到"✍️ 答题"模式，选择"AI参考答案"身份即可添加</p>
+                              <button
+                                @click="questionViewMode = 'answer'; answerNoteType = 'ai'"
+                                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md flex items-center gap-2"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                前往答题模式添加
+                              </button>
+                            </template>
+                            <template v-else>
+                              <p class="text-xs text-gray-500 mb-4">可以切换到"我的答案"开始作答</p>
+                            </template>
+                          </div>
                         </div>
                       </div>
                     </div>
-
                     <!-- 答题模式 -->
-                    <div v-else class="flex-1 px-6 pb-6 overflow-y-auto space-y-4">
-                      <!-- 有模版：根据模版字段渲染结构化输入 -->
-                      <div v-if="answerTemplate && answerTemplate.templateFields" class="space-y-4">
-                        <div class="bg-blue-50 p-3 rounded-lg mb-4">
-                          <h4 class="text-sm font-semibold text-blue-900 mb-1">{{ answerTemplate.templateName }} 答题框架</h4>
-                          <p class="text-xs text-blue-700">{{ answerTemplate.description }}</p>
-                        </div>
-
-                        <!-- 动态渲染模版字段 -->
-                        <div
-                          v-for="field in parseTemplateFields(answerTemplate.templateFields)"
-                          :key="field.key"
-                          class="space-y-2"
-                        >
-                          <label class="block text-sm font-semibold text-gray-700">
-                            {{ field.label }}
-                          </label>
-                          <textarea
-                            v-model="answerForm[field.key]"
-                            :placeholder="field.placeholder"
-                            rows="4"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          ></textarea>
-                        </div>
-
-                        <!-- 保存按钮 -->
-                        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
-                          <button
-                            @click="saveAnswer"
-                            class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            💾 保存答案
-                          </button>
+                    <div v-else-if="questionViewMode === 'answer'" class="flex-1 flex flex-col overflow-hidden">
+                      <!-- 答题身份切换（所有题型通用） -->
+                      <div class="flex-shrink-0 px-6 pt-3 pb-2 bg-gradient-to-r from-blue-50 to-purple-50 border-b-2 border-blue-200">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-3">
+                            <span class="text-sm font-semibold text-gray-700">编辑身份:</span>
+                            <div class="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                              <button
+                                @click="answerNoteType = 'user'"
+                                :class="[
+                                  'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2',
+                                  answerNoteType === 'user'
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
+                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                                ]"
+                              >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                                我的答案
+                              </button>
+                              <button
+                                v-if="canEditAiNote"
+                                @click="answerNoteType = 'ai'"
+                                :class="[
+                                  'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2',
+                                  answerNoteType === 'ai'
+                                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md'
+                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                                ]"
+                              >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M13 7H7v6h6V7z" />
+                                  <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
+                                </svg>
+                                AI参考答案
+                              </button>
+                            </div>
+                          </div>
+                          <span class="text-xs text-gray-500 italic">
+                            {{ answerNoteType === 'user' ? '作为用户编辑自己的答案' : '编辑AI推荐答案（对所有用户可见）' }}
+                          </span>
                         </div>
                       </div>
 
-                      <!-- 无模版：自由文本输入 -->
-                      <div v-else class="space-y-4">
+                      <!-- Programming题目：左右两栏布局 -->
+                      <template v-if="selectedQuestion.questionType === 'programming'">
+                        <!-- 固定顶部：模式切换按钮（模版/自由） -->
+                        <div v-if="answerTemplate && answerTemplate.templateFields" class="flex-shrink-0 px-6 pt-3 pb-2 bg-white border-b border-gray-200">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                              <span class="text-sm font-medium text-gray-700">答题模式:</span>
+                              <div class="flex bg-gray-100 rounded-lg p-1">
+                                <button
+                                  @click="answerMode = 'template'"
+                                  :class="[
+                                    'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                                    answerMode === 'template'
+                                      ? 'bg-white text-blue-700 shadow-sm'
+                                      : 'text-gray-600 hover:text-gray-800'
+                                  ]"
+                                >
+                                  📋 {{ answerTemplate.templateName }} 模版
+                                </button>
+                                <button
+                                  @click="answerMode = 'free'"
+                                  :class="[
+                                    'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                                    answerMode === 'free'
+                                      ? 'bg-white text-blue-700 shadow-sm'
+                                      : 'text-gray-600 hover:text-gray-800'
+                                  ]"
+                                >
+                                  ✍️ 自由答题
+                                </button>
+                              </div>
+                            </div>
+                            <!-- 模版说明（右侧提示） -->
+                            <span v-if="answerMode === 'template'" class="text-xs text-gray-500 italic">
+                              {{ answerTemplate.description }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <!-- 左右两栏布局 -->
+                        <div class="flex-1 flex overflow-hidden">
+                          <!-- 左栏：题目描述（可滚动） -->
+                          <div class="w-1/2 border-r border-gray-200 overflow-y-auto px-6 py-4">
+                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
+                              <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                            </div>
+                          </div>
+
+                          <!-- 右栏：答题内容（可滚动） -->
+                          <div class="w-1/2 overflow-y-auto px-6 py-4 space-y-4">
+
+                      <!-- 模版模式：根据模版字段渲染结构化输入 -->
+                      <div v-if="answerTemplate && answerTemplate.templateFields && answerMode === 'template'" class="space-y-3">
+
+                        <!-- 动态渲染模版字段 - 两栏卡片布局 -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          <div
+                            v-for="(field, index) in parseTemplateFields(answerTemplate.templateFields)"
+                            :key="field.key"
+                            :class="[
+                              'relative rounded-lg shadow-md overflow-hidden',
+                              index === 0 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-300' :
+                              index === 1 ? 'bg-gradient-to-br from-green-50 to-green-100 border border-green-300' :
+                              index === 2 ? 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-300' :
+                              'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-300'
+                            ]"
+                          >
+                            <!-- 卡片头部 - 更紧凑 -->
+                            <div :class="[
+                              'px-2 py-1 flex items-center space-x-1.5',
+                              index === 0 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                              index === 1 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                              index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                              'bg-gradient-to-r from-purple-500 to-purple-600'
+                            ]">
+                              <div :class="[
+                                'w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs',
+                                'bg-white/20 backdrop-blur-sm text-white'
+                              ]">
+                                {{ index + 1 }}
+                              </div>
+                              <h5 class="text-xs font-semibold text-white">{{ field.label }}</h5>
+                            </div>
+
+                            <!-- 卡片内容 - 增加输入框行数 -->
+                            <div class="p-2">
+                              <textarea
+                                v-model="answerForm[field.key]"
+                                :placeholder="field.placeholder"
+                                :rows="index >= 2 ? 12 : 10"
+                                :class="[
+                                  'w-full px-2 py-2 text-sm bg-white border rounded-lg',
+                                  'focus:outline-none focus:ring-1 focus:ring-offset-1 resize-y',
+                                  'placeholder:text-gray-400',
+                                  index === 0 ? 'border-blue-200 focus:ring-blue-500 focus:border-blue-500' :
+                                  index === 1 ? 'border-green-200 focus:ring-green-500 focus:border-green-500' :
+                                  index === 2 ? 'border-orange-200 focus:ring-orange-500 focus:border-orange-500' :
+                                  'border-purple-200 focus:ring-purple-500 focus:border-purple-500'
+                                ]"
+                              ></textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      <!-- 核心思路（所有题目类型，所有模式共享） -->
+                      <div class="space-y-3 pt-4 border-t-2 border-gray-200">
+                        <div class="flex items-center gap-2 mb-2">
+                          <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <label class="text-sm font-bold text-gray-800">
+                            💡 核心思路
+                          </label>
+                          <span class="text-xs text-gray-500">
+                            {{ selectedQuestion?.questionType === 'programming' ? '(算法要点、时间空间复杂度)' : '(关键思路、要点总结)' }}
+                          </span>
+                        </div>
+                        <textarea
+                          v-model="answerForm.coreStrategy"
+                          :placeholder="coreStrategyPlaceholder"
+                          rows="6"
+                          class="w-full px-4 py-3 text-sm border-2 border-yellow-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-yellow-50/30 resize-none"
+                        ></textarea>
+                        <p class="text-xs text-gray-500">
+                          {{ selectedQuestion?.questionType === 'programming'
+                            ? '记录算法思路、时间/空间复杂度、关键要点'
+                            : '记录答题核心思路、关键要点、注意事项'
+                          }}
+                        </p>
+                      </div>
+
+                      <!-- 保存按钮（模版模式） -->
+                      <div v-if="answerTemplate && answerTemplate.templateFields && answerMode === 'template'" class="flex justify-end gap-2 pt-4">
+                        <button
+                          @click="saveAnswer"
+                          class="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          💾 保存答案
+                        </button>
+                      </div>
+
+                      <!-- 自由模式：自由文本输入 (无模版或用户选择自由模式) -->
+                      <div v-if="!answerTemplate || answerMode === 'free'" class="space-y-4">
                         <div class="bg-gray-50 p-3 rounded-lg mb-4">
                           <h4 class="text-sm font-semibold text-gray-700">自由答题</h4>
                           <p class="text-xs text-gray-500 mt-1">请根据题目要求,自由发挥作答</p>
@@ -944,7 +1328,7 @@
                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         ></textarea>
 
-                        <!-- 保存按钮 -->
+                        <!-- 保存按钮（自由模式） -->
                         <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
                           <button
                             @click="saveAnswer"
@@ -954,6 +1338,189 @@
                           </button>
                         </div>
                       </div>
+                          </div>
+                        </div>
+                      </template>
+
+                      <!-- 非Programming题目：单栏布局（题目描述固定） -->
+                      <template v-else>
+                        <!-- 固定顶部：题目描述 + 模式切换 -->
+                        <div class="flex-shrink-0 px-6 pt-4 border-b border-gray-200">
+                          <!-- 题目描述 -->
+                          <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-3">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-2">📝 题目描述</h4>
+                            <div class="prose prose-sm max-w-none compact-prose" v-html="renderMarkdown(selectedQuestion.questionDescription)"></div>
+                          </div>
+
+                          <!-- 模式切换按钮 -->
+                          <div v-if="answerTemplate && answerTemplate.templateFields" class="pb-2">
+                            <div class="flex items-center justify-between">
+                              <div class="flex items-center gap-3">
+                                <span class="text-sm font-medium text-gray-700">答题模式:</span>
+                                <div class="flex bg-gray-100 rounded-lg p-1">
+                                  <button
+                                    @click="answerMode = 'template'"
+                                    :class="[
+                                      'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                                      answerMode === 'template'
+                                        ? 'bg-white text-blue-700 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-800'
+                                    ]"
+                                  >
+                                    📋 {{ answerTemplate.templateName }} 模版
+                                  </button>
+                                  <button
+                                    @click="answerMode = 'free'"
+                                    :class="[
+                                      'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                                      answerMode === 'free'
+                                        ? 'bg-white text-blue-700 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-800'
+                                    ]"
+                                  >
+                                    ✍️ 自由答题
+                                  </button>
+                                </div>
+                              </div>
+                              <!-- 模版说明（右侧提示） -->
+                              <span v-if="answerMode === 'template'" class="text-xs text-gray-500 italic">
+                                {{ answerTemplate.description }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 答题内容（可滚动） -->
+                        <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                          <!-- 模版模式：根据模版字段渲染结构化输入 -->
+                          <div v-if="answerTemplate && answerTemplate.templateFields && answerMode === 'template'" class="space-y-3">
+                            <!-- 动态渲染模版字段 - 两栏卡片布局 -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                              <div
+                                v-for="(field, index) in parseTemplateFields(answerTemplate.templateFields)"
+                                :key="field.key"
+                                :class="[
+                                  'relative rounded-lg shadow-md overflow-hidden',
+                                  index === 0 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-300' :
+                                  index === 1 ? 'bg-gradient-to-br from-green-50 to-green-100 border border-green-300' :
+                                  index === 2 ? 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-300' :
+                                  'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-300'
+                                ]"
+                              >
+                                <!-- 卡片头部 - 更紧凑 -->
+                                <div :class="[
+                                  'px-2 py-1 flex items-center space-x-1.5',
+                                  index === 0 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                                  index === 1 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                  index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                  'bg-gradient-to-r from-purple-500 to-purple-600'
+                                ]">
+                                  <div :class="[
+                                    'w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs',
+                                    'bg-white/20 backdrop-blur-sm text-white'
+                                  ]">
+                                    {{ index + 1 }}
+                                  </div>
+                                  <h5 class="text-xs font-semibold text-white">{{ field.label }}</h5>
+                                </div>
+
+                                <!-- 卡片内容 - 增加输入框行数 -->
+                                <div class="p-2">
+                                  <textarea
+                                    v-model="answerForm[field.key]"
+                                    :placeholder="field.placeholder"
+                                    :rows="index >= 2 ? 12 : 10"
+                                    :class="[
+                                      'w-full px-2 py-2 text-sm bg-white border rounded-lg',
+                                      'focus:outline-none focus:ring-1 focus:ring-offset-1 resize-y',
+                                      'placeholder:text-gray-400',
+                                      index === 0 ? 'border-blue-200 focus:ring-blue-500 focus:border-blue-500' :
+                                      index === 1 ? 'border-green-200 focus:ring-green-500 focus:border-green-500' :
+                                      index === 2 ? 'border-orange-200 focus:ring-orange-500 focus:border-orange-500' :
+                                      'border-purple-200 focus:ring-purple-500 focus:border-purple-500'
+                                    ]"
+                                  ></textarea>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- 核心思路（所有题目类型，所有模式共享） -->
+                          <div class="space-y-3 pt-4 border-t-2 border-gray-200">
+                            <div class="flex items-center gap-2 mb-2">
+                              <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              <label class="text-sm font-bold text-gray-800">
+                                💡 核心思路
+                              </label>
+                              <span class="text-xs text-gray-500">
+                                {{ selectedQuestion?.questionType === 'programming' ? '(算法要点、时间空间复杂度)' : '(关键思路、要点总结)' }}
+                              </span>
+                            </div>
+                            <textarea
+                              v-model="answerForm.coreStrategy"
+                              :placeholder="coreStrategyPlaceholder"
+                              rows="6"
+                              class="w-full px-4 py-3 text-sm border-2 border-yellow-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-yellow-50/30 resize-none"
+                            ></textarea>
+                            <p class="text-xs text-gray-500">
+                              {{ selectedQuestion?.questionType === 'programming'
+                                ? '记录算法思路、时间/空间复杂度、关键要点'
+                                : '记录答题核心思路、关键要点、注意事项'
+                              }}
+                            </p>
+                          </div>
+
+                          <!-- 保存按钮（模版模式） -->
+                          <div v-if="answerTemplate && answerTemplate.templateFields && answerMode === 'template'" class="flex justify-end gap-2 pt-4">
+                            <button
+                              @click="saveAnswer"
+                              class="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                            >
+                              💾 保存答案
+                            </button>
+                          </div>
+
+                          <!-- 自由模式：自由文本输入 (无模版或用户选择自由模式) -->
+                          <div v-if="!answerTemplate || answerMode === 'free'" class="space-y-4">
+                            <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                              <h4 class="text-sm font-semibold text-gray-700">自由答题</h4>
+                              <p class="text-xs text-gray-500 mt-1">请根据题目要求,自由发挥作答</p>
+                            </div>
+
+                            <textarea
+                              v-model="answerForm.freeText"
+                              placeholder="请输入你的答案..."
+                              rows="12"
+                              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            ></textarea>
+
+                            <!-- 保存按钮（自由模式） -->
+                            <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                              <button
+                                @click="saveAnswer"
+                                class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                              >
+                                💾 保存答案
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                    <!-- 编辑模式 -->
+                    <div v-else-if="questionViewMode === 'edit'" class="flex-1 px-6 pb-6 overflow-y-auto">
+                      <QuestionEditModal
+                        :is-open="true"
+                        :inline="true"
+                        :question="editingQuestion"
+                        :focus-areas="focusAreas"
+                        :current-focus-area-id="selectedFocusAreaId"
+                        :current-skill-id="selectedSkillId"
+                        @save="saveQuestion"
+                        @cancel="cancelEdit"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1028,21 +1595,24 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import careerPathApi from '@/api/careerPathApi'
 import skillApi from '@/api/skillApi'
 import majorCategoryApi from '@/api/majorCategoryApi'
 import focusAreaApi from '@/api/focusAreaApi'
 import learningContentApi from '@/api/learningContentApi'
-import { questionApi } from '@/api/questionApi'
+import { questionApi, adminQuestionApi } from '@/api/questionApi'
 import skillTemplateApi from '@/api/skillTemplateApi'
 import { marked } from 'marked'
 import VideoPlayer from '@/components/VideoPlayer.vue'
+import QuestionEditModal from '@/components/questions/QuestionEditModal.vue'
 
 // ⚠️ baseURL is '/api', do NOT add '/api' prefix!
 // ❌ WRONG: apiClient.get('/api/learning-contents')
 // ✅ CORRECT: apiClient.get('/learning-contents')
 
 const route = useRoute()
+const { currentUser, isAdmin } = useAuth()
 
 // State
 const loadingCareerPaths = ref(false)
@@ -1066,21 +1636,56 @@ const learningContents = ref([])
 const selectedContent = ref(null) // 当前选中的学习资料
 const questions = ref([])
 const selectedQuestion = ref(null) // 当前选中的试题
-const questionViewMode = ref('browse') // 'browse' or 'answer'
+const questionViewMode = ref('browse') // 'browse', 'answer', or 'edit'
+const browseNoteType = ref('ai') // 'ai' or 'user' - 浏览模式下显示的笔记类型
+const answerNoteType = ref('user') // 'ai' or 'user' - 答题模式下编辑的笔记类型
 const answerTemplate = ref(null) // 当前技能的答题模版
+
+// 判断当前试题是否可以编辑
+const canEditQuestion = computed(() => {
+  if (!selectedQuestion.value) return false
+
+  // 管理员可以编辑所有试题
+  if (isAdmin.value) return true
+
+  // 公共试题（isOfficial = true）普通用户不能编辑
+  if (selectedQuestion.value.isOfficial) return false
+
+  // 私有试题只能由创建者编辑
+  return selectedQuestion.value.createdByUserId === currentUser.value?.id
+})
+
+// 判断当前用户是否可以添加/编辑AI笔记
+const canEditAiNote = computed(() => {
+  if (!selectedQuestion.value) return false
+
+  // 管理员可以编辑所有试题的AI笔记
+  if (isAdmin.value) return true
+
+  // 普通用户只能为自己创建的试题添加AI笔记
+  return selectedQuestion.value.createdByUserId === currentUser.value?.id
+})
 const answerForm = ref({}) // 答题表单数据
+const answerMode = ref('template') // 'template' or 'free' - 答题模式
+const editingQuestion = ref(null) // 正在编辑的试题
 
 // 卡片折叠状态
 const cardStates = ref({
   resourceInfo: true,  // 学习资料卡片默认展开
-  overallNote: true,   // 整体笔记卡片默认展开
-  knowledgePoints: {},  // 知识点卡片折叠状态 {id: boolean}
+  aiNote: true,        // AI整体笔记卡片默认展开
+  overallNote: true,   // 用户整体笔记卡片默认展开
+  aiKnowledgePoints: {},  // AI知识点卡片折叠状态 {id: boolean}
+  knowledgePoints: {},  // 用户知识点卡片折叠状态 {id: boolean}
   // 卡片内容展开状态
-  overallNoteExpanded: false,   // 整体笔记内容是否展开
-  knowledgePointsExpanded: {},   // 知识点内容展开状态 {id: boolean}
+  aiNoteExpanded: false,        // AI整体笔记内容是否展开
+  overallNoteExpanded: false,   // 用户整体笔记内容是否展开
+  aiKnowledgePointsExpanded: {},   // AI知识点内容展开状态 {id: boolean}
+  knowledgePointsExpanded: {},   // 用户知识点内容展开状态 {id: boolean}
   // 卡片内容是否溢出（需要展开按钮）
-  overallNoteOverflow: false,   // 整体笔记内容是否溢出
-  knowledgePointsOverflow: {}   // 知识点内容溢出状态 {id: boolean}
+  aiNoteOverflow: false,        // AI整体笔记内容是否溢出
+  overallNoteOverflow: false,   // 用户整体笔记内容是否溢出
+  aiKnowledgePointsOverflow: {},   // AI知识点内容溢出状态 {id: boolean}
+  knowledgePointsOverflow: {}   // 用户知识点内容溢出状态 {id: boolean}
 })
 
 // 知识点模态框
@@ -1108,6 +1713,7 @@ const isSidebarCollapsed = ref(false)
 const isQuestionListCollapsed = ref(false)
 
 // DOM引用
+const aiNoteContent = ref(null)
 const overallNoteContent = ref(null)
 const knowledgePointContents = ref({})
 
@@ -1122,6 +1728,15 @@ const isSecondTypeSkill = computed(() => {
 
 const selectedFocusArea = computed(() => {
   return focusAreas.value.find(fa => fa.id === selectedFocusAreaId.value)
+})
+
+// Placeholder for core strategy textarea
+const coreStrategyPlaceholder = computed(() => {
+  if (selectedQuestion.value?.questionType === 'programming') {
+    return '记录解题的核心思路和算法要点...\n\n例如：\n1. 使用双指针从两端向中间移动\n2. 时间复杂度 O(n)，空间复杂度 O(1)\n3. 注意边界条件...\n\n支持 Markdown 格式'
+  } else {
+    return '记录答题的核心思路和关键要点...\n\n例如：\n1. 明确问题核心诉求\n2. 关键解决步骤\n3. 注意事项...\n\n支持 Markdown 格式'
+  }
 })
 
 // Methods
@@ -1238,12 +1853,9 @@ const getFocusAreasByCategory = (categoryId) => {
 // 选择Focus Area
 const selectFocusArea = (focusAreaId) => {
   selectedFocusAreaId.value = focusAreaId
-  // 触发加载学习资料或试题
-  if (activeTab.value === 'learning') {
-    loadLearningContents()
-  } else {
-    loadQuestions()
-  }
+  // 同时加载学习资料和试题，确保Tab徽章立即显示数量
+  loadLearningContents()
+  loadQuestions()
 }
 
 const loadLearningContents = async () => {
@@ -1267,15 +1879,24 @@ const loadLearningContents = async () => {
 
     // 为每个学习资料加载AI笔记和用户笔记
     for (const content of allContents) {
-      // 获取AI笔记 + 用户笔记
-      const notes = await learningContentApi.getNotes(content.id)
-      content.aiNote = notes.aiNote || null
-      content.userNote = notes.userNote || { noteContent: '' }
+      try {
+        // 获取AI笔记 + 用户笔记
+        const notes = await learningContentApi.getNotes(content.id)
+        content.aiNote = notes.aiNote || null
+        content.userNote = notes.userNote || { noteContent: '' }
 
-      // 获取AI知识点 + 用户知识点
-      const kps = await learningContentApi.getKnowledgePoints(content.id)
-      content.aiKnowledgePoints = kps.aiKnowledgePoints || []
-      content.userKnowledgePoints = kps.userKnowledgePoints || []
+        // 获取AI知识点 + 用户知识点
+        const kps = await learningContentApi.getKnowledgePoints(content.id)
+        content.aiKnowledgePoints = kps.aiKnowledgePoints || []
+        content.userKnowledgePoints = kps.userKnowledgePoints || []
+      } catch (error) {
+        console.error('Failed to load notes/knowledge points for content', content.id, error)
+        // 即使获取失败也要初始化为空，避免渲染错误
+        content.aiNote = null
+        content.userNote = { noteContent: '' }
+        content.aiKnowledgePoints = []
+        content.userKnowledgePoints = []
+      }
     }
 
     learningContents.value = allContents
@@ -1328,6 +1949,8 @@ const onContentSelectChange = async (event) => {
 
     // 检测内容溢出
     await nextTick()
+    // 检测AI笔记溢出
+    cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
     // 检测整体笔记溢出
     cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
     // 检测知识点溢出
@@ -1361,6 +1984,16 @@ const loadQuestions = async () => {
     if (data && data.length > 0) {
       selectedQuestion.value = data[0]
       questionViewMode.value = 'browse'
+
+      // 设置浏览笔记类型（优先AI笔记）
+      if (data[0].aiNote?.noteContent) {
+        browseNoteType.value = 'ai'
+      } else if (data[0].userNote?.noteContent || data[0].userNote?.coreStrategy) {
+        browseNoteType.value = 'user'
+      }
+
+      // 初始化答题表单
+      initAnswerForm(data[0])
     } else {
       selectedQuestion.value = null
     }
@@ -1378,12 +2011,19 @@ const selectQuestion = (question) => {
   selectedQuestion.value = question
   questionViewMode.value = 'browse'
 
+  // 设置浏览笔记类型（优先AI笔记）
+  if (question.aiNote?.noteContent) {
+    browseNoteType.value = 'ai'
+  } else if (question.userNote?.noteContent || question.userNote?.coreStrategy) {
+    browseNoteType.value = 'user'
+  }
+
   // 初始化答题表单
   initAnswerForm(question)
 }
 
 // 初始化答题表单
-const initAnswerForm = (question) => {
+const initAnswerForm = (question, noteSource = null) => {
   // 如果有模版,根据模版字段初始化表单
   if (answerTemplate.value && answerTemplate.value.templateFields) {
     const fields = {}
@@ -1398,20 +2038,61 @@ const initAnswerForm = (question) => {
     } catch (error) {
       console.error('Failed to parse template fields:', error)
     }
-    answerForm.value = fields
+    answerForm.value = { ...fields, coreStrategy: '' }
   } else {
     // 没有模版,使用自由文本
-    answerForm.value = { freeText: '' }
+    answerForm.value = { freeText: '', coreStrategy: '' }
+  }
+
+  // 确定要加载的笔记来源
+  // 如果显式传入noteSource，使用它；否则根据当前模式决定
+  let noteToLoad = noteSource
+  if (!noteToLoad) {
+    noteToLoad = answerNoteType.value === 'ai' ? question.aiNote : question.note
   }
 
   // 如果已有答题笔记,加载到表单中
-  if (question.note && question.note.noteContent) {
-    try {
-      const savedAnswer = JSON.parse(question.note.noteContent)
-      answerForm.value = { ...answerForm.value, ...savedAnswer }
-    } catch (error) {
-      // 如果不是JSON格式,可能是旧版自由文本
-      answerForm.value.freeText = question.note.noteContent
+  if (noteToLoad) {
+    const noteContent = noteToLoad.noteContent || ''
+    const coreStrategy = noteToLoad.coreStrategy || ''
+
+    // 先加载核心思路
+    answerForm.value.coreStrategy = coreStrategy
+
+    // 再解析笔记内容
+    if (noteContent) {
+      // 尝试解析模版格式（Markdown 格式：## 标题\n内容）
+      if (answerTemplate.value && answerTemplate.value.templateFields) {
+        const templateFields = parseTemplateFields(answerTemplate.value.templateFields)
+        let isTemplateFormat = true
+        const parsedValues = {}
+
+        // 尝试解析模版格式
+        for (const field of templateFields) {
+          const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+          const match = noteContent.match(pattern)
+
+          if (match) {
+            parsedValues[field.key] = match[1].trim()
+          } else {
+            isTemplateFormat = false
+            break
+          }
+        }
+
+        if (isTemplateFormat) {
+          // 是模版格式，填充到模版字段
+          answerForm.value = { ...answerForm.value, ...parsedValues, coreStrategy }
+          answerMode.value = 'template'
+        } else {
+          // 不是模版格式，作为自由文本
+          answerForm.value.freeText = noteContent
+          answerMode.value = 'free'
+        }
+      } else {
+        // 没有模版，直接作为自由文本
+        answerForm.value.freeText = noteContent
+      }
     }
   }
 }
@@ -1421,30 +2102,134 @@ const saveAnswer = async () => {
   if (!selectedQuestion.value) return
 
   try {
-    // 将答题表单转换为JSON字符串保存
-    const noteContent = JSON.stringify(answerForm.value)
+    let noteContent = ''
+    const coreStrategy = answerForm.value.coreStrategy || ''
 
-    // 调用API保存
-    const savedNote = await questionApi.saveOrUpdateNote(selectedQuestion.value.id, noteContent)
+    // 模版模式：将模版字段合并为 Markdown 格式
+    if (answerMode.value === 'template' && answerTemplate.value && answerTemplate.value.templateFields) {
+      const templateFields = parseTemplateFields(answerTemplate.value.templateFields)
+      const hasAnyValue = templateFields.some(field => answerForm.value[field.key] && answerForm.value[field.key].trim())
 
-    // 更新本地数据
-    if (selectedQuestion.value.note) {
-      selectedQuestion.value.note.noteContent = noteContent
+      if (!hasAnyValue && !coreStrategy.trim()) {
+        alert('请至少填写一项内容')
+        return
+      }
+
+      const parts = templateFields.map(field => {
+        const value = answerForm.value[field.key] || ''
+        return `## ${field.label}\n${value}`
+      })
+      noteContent = parts.join('\n\n')
     } else {
-      selectedQuestion.value.note = { noteContent }
+      // 自由模式：保存自由文本
+      noteContent = answerForm.value.freeText || ''
+
+      if (!noteContent.trim() && !coreStrategy.trim()) {
+        alert('请输入答案内容或核心思路')
+        return
+      }
     }
 
-    // 更新questions列表中的note标记
-    const questionIndex = questions.value.findIndex(q => q.id === selectedQuestion.value.id)
-    if (questionIndex !== -1) {
-      questions.value[questionIndex].note = selectedQuestion.value.note
-    }
+    // 根据答题身份选择API
+    if (answerNoteType.value === 'ai') {
+      // 保存AI笔记（需要管理员权限或创建者权限）
+      await adminQuestionApi.saveOrUpdateAINote(selectedQuestion.value.id, {
+        noteContent,
+        coreStrategy
+      })
 
-    alert('答题笔记保存成功！')
+      // 更新本地AI笔记数据
+      if (selectedQuestion.value.aiNote) {
+        selectedQuestion.value.aiNote.noteContent = noteContent
+        selectedQuestion.value.aiNote.coreStrategy = coreStrategy
+      } else {
+        selectedQuestion.value.aiNote = { noteContent, coreStrategy }
+      }
+
+      alert('AI参考答案保存成功！')
+    } else {
+      // 保存用户笔记
+      await questionApi.saveOrUpdateNote(selectedQuestion.value.id, {
+        noteContent,
+        coreStrategy
+      })
+
+      // 更新本地用户笔记数据
+      if (selectedQuestion.value.note) {
+        selectedQuestion.value.note.noteContent = noteContent
+        selectedQuestion.value.note.coreStrategy = coreStrategy
+      } else {
+        selectedQuestion.value.note = { noteContent, coreStrategy }
+      }
+
+      // 更新questions列表中的note标记
+      const questionIndex = questions.value.findIndex(q => q.id === selectedQuestion.value.id)
+      if (questionIndex !== -1) {
+        questions.value[questionIndex].note = selectedQuestion.value.note
+      }
+
+      alert('答题笔记保存成功！')
+    }
   } catch (error) {
     console.error('Failed to save answer:', error)
     alert('保存失败: ' + (error.message || '未知错误'))
   }
+}
+
+// 添加新试题
+const addNewQuestion = () => {
+  editingQuestion.value = {
+    id: null,
+    title: '',
+    questionType: 'behavioral',
+    questionDescription: '',
+    answerRequirement: '',
+    focusAreaId: selectedFocusAreaId.value || '',  // 预填当前选中的Focus Area
+    difficulty: 'EASY',
+    isPublic: false
+  }
+  selectedQuestion.value = editingQuestion.value
+  questionViewMode.value = 'edit'
+}
+
+// 保存试题
+const saveQuestion = async (questionData) => {
+  try {
+    // 调用API保存
+    const savedQuestion = await questionApi.saveOrUpdateQuestion(questionData)
+
+    // 更新本地列表
+    if (questionData.id) {
+      // 编辑现有试题
+      const index = questions.value.findIndex(q => q.id === questionData.id)
+      if (index !== -1) {
+        questions.value[index] = savedQuestion
+      }
+    } else {
+      // 新建试题
+      questions.value.unshift(savedQuestion)
+    }
+
+    // 选中新保存的试题并切换到浏览模式
+    selectedQuestion.value = savedQuestion
+    editingQuestion.value = null
+    questionViewMode.value = 'browse'
+
+    alert('试题保存成功！')
+  } catch (error) {
+    console.error('Failed to save question:', error)
+    alert('保存失败: ' + (error.message || '未知错误'))
+  }
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  if (!editingQuestion.value?.id) {
+    // 如果是新建试题，返回空状态
+    selectedQuestion.value = null
+  }
+  editingQuestion.value = null
+  questionViewMode.value = 'browse'
 }
 
 const saveUserNote = async (contentId) => {
@@ -1675,6 +2460,8 @@ const minimizeDocument = async () => {
 
   // 切换到卡片视图后，重新检测内容溢出
   await nextTick()
+  // 检测AI笔记溢出
+  cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
   // 检测整体笔记溢出
   cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
   // 检测知识点溢出
@@ -1694,6 +2481,8 @@ const handleIframeError = async () => {
 
   // 切换到卡片视图后，重新检测内容溢出
   await nextTick()
+  // 检测AI笔记溢出
+  cardStates.value.aiNoteOverflow = checkOverflow(aiNoteContent.value)
   // 检测整体笔记溢出
   cardStates.value.overallNoteOverflow = checkOverflow(overallNoteContent.value)
   // 检测知识点溢出
@@ -1734,6 +2523,26 @@ const init = async () => {
     await loadCategoriesAndFocusAreas()
   }
 }
+
+// Watch questionViewMode - 当切换模式时执行相应初始化
+watch(questionViewMode, (newMode) => {
+  if (newMode === 'answer' && selectedQuestion.value) {
+    // 切换到答题模式：重新初始化表单以加载现有答案
+    initAnswerForm(selectedQuestion.value)
+  } else if (newMode === 'edit' && selectedQuestion.value) {
+    // 切换到编辑模式：复制selectedQuestion到editingQuestion
+    editingQuestion.value = { ...selectedQuestion.value }
+  }
+})
+
+// Watch answerNoteType - 当切换答题身份时重新加载对应笔记
+watch(answerNoteType, (newType) => {
+  if (!selectedQuestion.value || questionViewMode.value !== 'answer') return
+
+  // 根据新的答题身份，加载对应的笔记数据
+  const noteToLoad = newType === 'ai' ? selectedQuestion.value.aiNote : selectedQuestion.value.note
+  initAnswerForm(selectedQuestion.value, noteToLoad)
+})
 
 init()
 </script>

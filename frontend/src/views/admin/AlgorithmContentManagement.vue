@@ -507,16 +507,12 @@ const loadData = async () => {
 const loadSkillStages = async () => {
   loadingStages.value = true
   try {
-    console.log('开始加载学习阶段，Skill ID:', PROGRAMMING_SKILL_ID)
     const stages = await getStagesBySkill(PROGRAMMING_SKILL_ID)
-    console.log('学习阶段API返回:', stages)
     skillStages.value = stages || []
-    console.log('skillStages.value 设置为:', skillStages.value)
 
     // 默认选中第一个学习阶段
     if (skillStages.value.length > 0) {
       activeStageId.value = skillStages.value[0].id
-      console.log('默认选中学习阶段 ID:', activeStageId.value)
     } else {
       console.warn('没有获取到学习阶段数据')
     }
@@ -532,28 +528,21 @@ const loadSkillStages = async () => {
 const loadFocusAreaContents = async () => {
   if (!selectedFocusAreaId.value) {
     focusAreaContents.value = {}
-    console.log('未选择Focus Area，清空内容')
     return
   }
 
   loadingContents.value = true
   try {
-    console.log('开始加载Focus Area学习内容，ID:', selectedFocusAreaId.value)
     const data = await learningContentApi.getContentsByFocusArea(selectedFocusAreaId.value)
-    console.log('学习内容API返回:', data)
 
     // 将内容按阶段 ID 分组存储，方便查找
     const contentsByStage = {}
     if (data && data.stages) {
       data.stages.forEach(stage => {
         contentsByStage[stage.id] = stage.contents || []
-        console.log(`阶段 ${stage.id} (${stage.stageName}) 有 ${stage.contents?.length || 0} 个内容`)
       })
     }
     focusAreaContents.value = contentsByStage
-    console.log('focusAreaContents 设置为:', focusAreaContents.value)
-    console.log('当前选中阶段ID:', activeStageId.value)
-    console.log('当前阶段内容:', currentStageContents.value)
   } catch (error) {
     console.error('加载学习内容失败:', error)
     focusAreaContents.value = {}

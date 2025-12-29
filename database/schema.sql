@@ -1,6 +1,6 @@
 -- Growing App Database Schema
 -- 不使用Flyway，通过mysql-exec执行SQL迁移
--- 最后更新: 2025-12-26 (Phase 5 完成)
+-- 最后更新: 2025-12-28 (Phase 6 完成)
 
 -- 用户表
 CREATE TABLE `users` (
@@ -46,6 +46,7 @@ CREATE TABLE `skills` (
   `is_important` tinyint(1) DEFAULT '0' COMMENT '是否重要技能（⭐标记）',
   `icon` varchar(50) DEFAULT NULL COMMENT '图标名称（保留字段，暂不使用）',
   `display_order` int DEFAULT '0' COMMENT '显示顺序',
+  `is_general_only` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为通用分类（无大分类，直接管理Focus Area）',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -427,3 +428,29 @@ CREATE TABLE `user_case_notes` (
   CONSTRAINT `user_case_notes_ibfk_1` FOREIGN KEY (`case_id`) REFERENCES `system_design_cases` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_case_notes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户答题记录表';
+
+-- 答题模版表（Phase 6）
+CREATE TABLE `answer_templates` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `template_name` varchar(100) NOT NULL COMMENT '模版名称',
+  `description` text COMMENT '模版说明',
+  `template_fields` json NOT NULL COMMENT '模版字段定义 JSON数组，格式: [{"key":"situation","label":"Situation","placeholder":"描述当时的情境..."}]',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `template_name` (`template_name`),
+  KEY `idx_template_name` (`template_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='答题模版表';
+
+-- 技能-模版关联表（Phase 6）
+CREATE TABLE `skill_templates` (
+  `skill_id` bigint NOT NULL COMMENT '技能ID',
+  `template_id` bigint NOT NULL COMMENT '模版ID',
+  `is_default` tinyint(1) DEFAULT '0' COMMENT '是否为默认模版',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`skill_id`,`template_id`),
+  KEY `idx_skill_id` (`skill_id`),
+  KEY `idx_template_id` (`template_id`),
+  CONSTRAINT `skill_templates_ibfk_1` FOREIGN KEY (`skill_id`) REFERENCES `skills` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `skill_templates_ibfk_2` FOREIGN KEY (`template_id`) REFERENCES `answer_templates` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技能-模版关联表';

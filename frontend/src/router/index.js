@@ -71,12 +71,6 @@ const routes = [
     name: 'Profile',
     component: () => import('../views/settings/Profile.vue')
   },
-  // 试题库模块
-  {
-    path: '/my-questions',
-    name: 'MyQuestionBank',
-    component: () => import('../views/questions/MyQuestionBank.vue')
-  },
   // 管理员 - 算法内容管理（Phase 4）
   {
     path: '/admin/algorithm-content',
@@ -109,19 +103,6 @@ const routes = [
     component: () => import('../views/admin/AlgorithmTemplateManagement.vue'),
     meta: { requiresAdmin: true }
   },
-  // 管理员 - 系统设计基础知识管理（Phase 5）
-  {
-    path: '/admin/system-design-basics',
-    name: 'SystemDesignBasicsManagement',
-    component: () => import('../views/admin/SystemDesignBasicsManagement.vue'),
-    meta: { requiresAdmin: true }
-  },
-  // 用户端 - 系统设计基础知识学习（Phase 5）
-  {
-    path: '/system-design/basics',
-    name: 'SystemDesignBasics',
-    component: () => import('../views/SystemDesignBasics.vue')
-  },
   // 管理员 - 系统设计案例管理（Phase 5.2）
   {
     path: '/admin/system-design-cases',
@@ -153,6 +134,13 @@ const routes = [
     path: '/admin/answer-templates',
     name: 'AnswerTemplateManagement',
     component: () => import('../views/admin/AnswerTemplateManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
+  // 管理员 - 技能模版库管理（Phase 6）
+  {
+    path: '/admin/skill-templates',
+    name: 'SkillTemplateManagement',
+    component: () => import('../views/admin/SkillTemplateManagement.vue'),
     meta: { requiresAdmin: true }
   },
 ]

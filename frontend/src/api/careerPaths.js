@@ -5,17 +5,13 @@ import request from './index'
 // Backend returns {data: [...]} → after interceptor → {data: [...]}
 
 // 获取所有职业路径
-export const getAllCareerPaths = async () => {
-  const response = await request.get('/career-paths')
-  // Backend wraps in {data: [...]}, need to access .data
-  return response.data || response || []
+export const getAllCareerPaths = () => {
+  return request.get('/career-paths')
 }
 
 // 获取当前用户的职业路径
-export const getMyCareerPaths = async () => {
-  const response = await request.get('/career-paths/my')
-  // Backend wraps in {data: [...]}, need to access .data
-  return response.data || response || []
+export const getMyCareerPaths = () => {
+  return request.get('/career-paths/my')
 }
 
 // 获取单个职业路径详情

@@ -132,24 +132,16 @@
 
       <!-- 学习类菜单 -->
       <template v-if="activeTopTab === 'learning'">
-        <!-- 职业路径 -->
+        <!-- 职业技能 -->
         <div class="space-y-1">
-          <div class="nav-section-title">职业路径</div>
+          <div class="nav-section-title">职业技能</div>
           <router-link
             to="/general-skills/learning"
             class="nav-item"
             :class="isActive('/general-skills/learning')"
           >
             <Briefcase class="w-5 h-5" />
-            <span>职业技能</span>
-          </router-link>
-          <router-link
-            to="/my-questions"
-            class="nav-item"
-            :class="isActive('/my-questions')"
-          >
-            <BookOpen class="w-5 h-5" />
-            <span>我的试题库</span>
+            <span>技能学习</span>
           </router-link>
         </div>
 
@@ -185,14 +177,6 @@
         <!-- 系统设计 -->
         <div class="space-y-1">
           <div class="nav-section-title">系统设计</div>
-          <router-link
-            to="/system-design/basics"
-            class="nav-item"
-            :class="isActive('/system-design/basics')"
-          >
-            <Network class="w-5 h-5" />
-            <span>基础知识</span>
-          </router-link>
           <router-link
             to="/system-design/cases"
             class="nav-item"
@@ -241,6 +225,14 @@
             <span>技能内容库</span>
           </router-link>
           <router-link
+            to="/admin/skill-templates"
+            class="nav-item"
+            :class="isActive('/admin/skill-templates')"
+          >
+            <FileCode class="w-5 h-5" />
+            <span>技能模版库</span>
+          </router-link>
+          <router-link
             to="/admin/algorithm-content"
             class="nav-item"
             :class="isActive('/admin/algorithm-content')"
@@ -255,14 +247,6 @@
           >
             <FileCode class="w-5 h-5" />
             <span>算法模版库</span>
-          </router-link>
-          <router-link
-            to="/admin/system-design-basics"
-            class="nav-item"
-            :class="isActive('/admin/system-design-basics')"
-          >
-            <Network class="w-5 h-5" />
-            <span>系统设计基础</span>
           </router-link>
           <router-link
             to="/admin/system-design-cases"
@@ -319,17 +303,9 @@
           to="/general-skills/learning"
           class="flex items-center justify-center p-2 rounded-md transition-colors"
           :class="isActive('/general-skills/learning')"
-          title="职业技能"
+          title="技能学习"
         >
           <Briefcase class="w-5 h-5" />
-        </router-link>
-        <router-link
-          to="/my-questions"
-          class="flex items-center justify-center p-2 rounded-md transition-colors"
-          :class="isActive('/my-questions')"
-          title="我的试题库"
-        >
-          <BookOpen class="w-5 h-5" />
         </router-link>
         <router-link
           to="/algorithm-learning"
@@ -354,14 +330,6 @@
           title="学习总结"
         >
           <BookCheck class="w-5 h-5" />
-        </router-link>
-        <router-link
-          to="/system-design/basics"
-          class="flex items-center justify-center p-2 rounded-md transition-colors"
-          :class="isActive('/system-design/basics')"
-          title="基础知识"
-        >
-          <Network class="w-5 h-5" />
         </router-link>
         <router-link
           to="/system-design/cases"
@@ -479,7 +447,7 @@ watch(() => route.path, (newPath) => {
   if (newPath.startsWith('/settings') || newPath.startsWith('/admin')) {
     activeTopTab.value = 'settings';
   } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard') ||
-             newPath.startsWith('/my-questions') || newPath.startsWith('/algorithm-learning') ||
+             newPath.startsWith('/algorithm-learning') ||
              newPath.startsWith('/algorithm-templates') || newPath.startsWith('/system-design') ||
              newPath.startsWith('/learning-review')) {
     activeTopTab.value = 'learning';

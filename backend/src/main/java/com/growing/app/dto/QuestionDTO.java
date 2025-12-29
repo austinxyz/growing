@@ -35,6 +35,9 @@ public class QuestionDTO {
     // 编程题详情（仅在编程题时包含）
     private ProgrammingQuestionDetailsDTO programmingDetails;
 
+    // 答题模版（Skill的默认模版，仅在获取详情时包含）
+    private AnswerTemplateDTO answerTemplate;
+
     // note字段作为userNote的别名，方便前端使用
     public void setNote(UserQuestionNoteDTO note) {
         this.userNote = note;

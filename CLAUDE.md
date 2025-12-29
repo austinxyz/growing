@@ -137,67 +137,81 @@
 
 ---
 
-**🎯 Category 5: Phase 5 Best Practices - What Finally Worked**
+**🎯 Category 5: Phase 6 New Error Patterns**
 
-**Context**: Phase 5 had ZERO axios bugs and ZERO DTO bugs - first clean phase!
+**Mistake #8 (Phase 6)**: Backend API路径包含重复的`/api`前缀
+- **Problem**: Controller无`@RequestMapping("/api")`注解，但路径写成`@GetMapping("/api/skills/...")`
+- **What Happened**: 实际URL变成`/api/api/skills/...`导致404（commit 8e04ecb）
+- **Root Cause**: 复制粘贴其他Controller代码，没注意路径配置差异
+- **Fix**: Controller路径只写业务路径，不含`/api`（Spring Boot自动添加）
+- **🛡️ Prevention Checklist**:
+  1. [ ] 新Controller检查是否有`@RequestMapping`类级注解？
+  2. [ ] 如果有：方法路径只写业务路径（如`/skills/{id}`）
+  3. [ ] 如果无：方法路径写完整路径（如`/api/skills/{id}`）
+  4. [ ] 参考同项目其他Controller的路径配置模式
 
-**Success Factor #1: Clear Requirements Upfront**
-- **What User Did**: Provided reference design (HelloInterview) at start
-- **What User Did**: Explicitly stated architecture decisions ("reuse Skill-FocusArea for basics, separate tables for cases")
-- **Result**: No architectural rework needed
-- **🛡️ Lesson**: Reference designs save 10x time vs describing from scratch
+**Mistake #9 (Phase 6)**: 前后端字段名不一致
+- **Problem**: 前端用`questionText`，后端DTO是`questionDescription`（commit 9243698）
+- **What Happened**: 数据无法正确渲染，显示undefined
+- **Root Cause**: 没有查看后端DTO定义就写前端代码
+- **Fix**: 使用后端DTO的精确字段名`questionDescription`
+- **🛡️ Prevention Checklist**:
+  1. [ ] 写前端代码前，先读后端DTO文件（如`QuestionDTO.java`）
+  2. [ ] 复制后端字段名到前端，避免手打导致typo
+  3. [ ] 测试时检查浏览器Network tab的实际响应JSON
+  4. [ ] 添加注释标注字段来源：`// From QuestionDTO.questionDescription`
 
-**Success Factor #2: Iterative Review Process**
-- **What User Did**: "Give me requirements outline first, I'll review, then we do UI design"
-- **What User Did**: Reviewed outline before implementation started
-- **Result**: Caught issues early, no mid-implementation pivots
-- **🛡️ Lesson**: Review in 2 stages (requirements → UI) catches more issues than single review
-
-**Success Factor #3: Prevention Checklists Actually Work**
-- **What Changed**: After Phase 3/4, added MANDATORY axios checklist (Guardrails #8-9)
-- **What Happened**: Phase 5 had zero `response.data` bugs, zero `/api/api` bugs
-- **Result**: First clean phase without rework
-- **🛡️ Lesson**: Checklists MUST be mandatory (block development until checked)
-
-**Success Factor #4: Accepting Design Evolution**
-- **What Happened**: V16 数据库更新添加了 kp_* 字段（开发中途）
-- **Why It Worked**: User said "add these fields" without asking "why didn't we plan this?"
-- **Result**: Quick iteration, no blame, feature improved
-- **🛡️ Lesson**: Some features emerge during development - this is OK, not a failure
-
-**🚨 NEW MANDATORY Pre-Development Checklist (Based on Phase 5)**:
-```
-Before starting ANY new phase:
-[ ] User provided reference design? (website, app, example)
-[ ] User explicitly stated architecture decisions? (reuse vs new tables)
-[ ] Requirements outline created and reviewed by user?
-[ ] UI design reviewed by user before coding?
-[ ] Axios prevention checklist reviewed? (Guardrails #8-9)
-[ ] DTO completeness checklist reviewed? (Guardrail #10)
-```
-
-**Comparison: Phase 3 → Phase 4 → Phase 5**:
-| Metric | Phase 3 | Phase 4 | Phase 5 |
-|--------|---------|---------|---------|
-| Axios bugs | 2 | 1 | **0** ✅ |
-| DTO bugs | 1 | 1 | **0** ✅ |
-| Reference design | ❌ | ❌ | ✅ HelloInterview |
-| Requirements review | ❌ | ❌ | ✅ 2-stage |
-| Design evolution | ❌ Seen as failure | ❌ Seen as failure | ✅ Accepted V16 |
+**Mistake #10 (Phase 6)**: 业务逻辑判断不完整
+- **Problem**: General分类保护逻辑无条件阻止删除，忽略`isGeneralOnly`标志（commit ad804fc）
+- **What Happened**: `isGeneralOnly=false`技能无法删除错误创建的General分类
+- **Root Cause**: 业务规则只考虑了"保护General"，没考虑"哪些技能需要保护"
+- **Fix**: 检查`skill.isGeneralOnly`，只保护需要General的技能
+- **🛡️ Prevention Checklist**:
+  1. [ ] 写if判断前，先列出所有应该检查的条件
+  2. [ ] 业务规则添加反向测试：不该保护的场景能正常操作？
+  3. [ ] 添加注释说明判断逻辑：`// Only protect General for isGeneralOnly=true`
+  4. [ ] 查看相关实体的所有布尔字段，是否影响判断？
 
 ---
 
-**📊 Meta-Analysis: Why Axios Mistakes Repeat**
+**📊 Quality Metrics (Updated)**:
+| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
+|--------|---------|---------|---------|---------|
+| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ |
+| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ |
+| **Backend API bugs** | 0 | 0 | 0 | **1** ⚠️ |
+| **Field name bugs** | 0 | 0 | 0 | **1** ⚠️ |
+| **Logic bugs** | 0 | 0 | 0 | **1** ⚠️ |
+| Code reuse | 30% | 50% | 70% | **80%** |
 
-**Pattern**: Axios config mistakes in Phase 3 AND Phase 4
-**Why**: Guardrails #8 and #9 are REACTIVE (written AFTER bugs), not PROACTIVE
+**Phase 6 Lessons**:
+- ✅ Axios/DTO bugs成功避免（预防性检查清单有效）
+- ⚠️ 出现3个新类型错误（后端API路径、字段名、业务逻辑）
+- **教训**: 检查清单需要扩展到后端API和业务逻辑
 
-**Breaking the Pattern**:
-- ✅ Add prevention checklists (done above)
-- ✅ Create `/frontend/src/api/README.md` with axios config summary (TODO)
-- ✅ Update CLAUDE.md after EVERY bug fix with "How to Avoid" section
-- ⚠️ Consider ESLint rule to detect `/api/api` paths (investigate feasibility)
-- **✅ Phase 5 Result: Zero axios bugs - checklists work!**
+**🚨 UPDATED Pre-Development Checklist**:
+```
+Frontend:
+[ ] Read /frontend/src/api/index.js (lines 4, 27-29)?
+[ ] Review existing API file as pattern?
+[ ] Endpoints start with "/" WITHOUT "/api" prefix?
+[ ] Response: "const data = await api.method()" pattern?
+
+Backend:
+[ ] Check Controller @RequestMapping annotation exists?
+[ ] Method paths match annotation style (relative or absolute)?
+[ ] Read target DTO file before using field names?
+[ ] Copy field names from DTO, don't hand-type?
+
+DTOs:
+[ ] Grep all Service methods returning this DTO?
+[ ] Verify ALL fields populated (primitives, nested, computed)?
+
+Business Logic:
+[ ] List ALL conditions that should affect this logic?
+[ ] Test reverse case: what SHOULDN'T trigger this logic?
+[ ] Check related entity boolean fields that may affect logic?
+```
 
 ## Quick Start
 
@@ -284,59 +298,17 @@ Role: admin
 
 ## Current Status
 
-**Phase 1 完成** (2025-12-20):
-- ✅ JWT auth + Google OAuth
-- ✅ User management (admin CRUD)
-- ✅ Login/register pages
-- ✅ Route guards + JWT interceptor
+**已完成Phases**: 1-6 (用户管理 → 技能学习 → 试题库 → 算法学习 → 系统设计 → 通用技能)
 
-**Phase 2 完成** (2025-12-20):
-- ✅ Skills management (admin CRUD)
-- ✅ Focus areas management
-- ✅ Learning resources with visibility control
-- ✅ User skill browsing
-- ✅ Personal resource management
+**详细信息**: 查看各Phase设计文档 (`/docs/Phase{N}-设计文档.md`)
 
-**Phase 3 完成** (2025-12-21):
-- ✅ 试题库基础功能
-  - questions表 + user_question_notes表
-  - 基于Focus Area的试题管理（公共试题 + 用户私有试题）
-  - 用户笔记功能（UPSERT逻辑 - 一个用户对一个试题只能有一条笔记）
-  - 管理员页面：两栏布局 (QuestionManagement.vue)
-  - 用户页面：三栏布局 (MyQuestionBank.vue) - 职业路径Tab + 技能树 + 试题列表 + 详情+笔记
-  - Markdown渲染支持（问题描述、答案要求、笔记）
-  - Red Flags JSON序列化存储
-  - 8道初始试题导入（Python脚本）
-  - 4个bug修复（axios响应处理 × 2、DTO不完整、UX优化）
-
-**Phase 4 完成** (2025-12-23 至 2025-12-24):
-- ✅ 算法与数据结构学习模块
-  - major_categories + focus_area_categories多对多关系
-  - learning_stages（基础、进阶、强化）三阶段学习体系
-  - programming_question_details表（LeetCode链接、代码片段、复杂度）
-  - user_template_notes表（算法模版笔记）
-  - 管理员页面：三栏布局（大分类Tab + Focus Area + 学习资料）
-  - 用户学习页面：单页显示（理论 → 代码 → 练习连续阅读）
-  - 算法模版库：模版管理 + 题目关联
-  - 学习总结页面：272道题的核心策略批量展示
-  - 225篇labuladong文章导入 + 272道编程题导入
-  - 1个axios bug修复（/api前缀重复）+ 1个DTO bug修复（focusAreas未填充）
-
-**Phase 5 完成** (2025-12-25 至 2025-12-26):
-- ✅ 系统设计学习模块（参考HelloInterview）
-  - **基础知识模块**：复用Skill + Focus Area + Learning Content架构（3大分类：核心概念、关键技术、设计模式）
-  - **典型案例模块**：5张独立表
-    - system_design_cases（案例主表：标题、难度、公司标签、关联知识）
-    - case_resources（学习资源：视频、文章）
-    - case_solutions（参考答案：支持多方案，6步骤框架）
-    - solution_diagrams（配图：架构图、数据流图、实体图）
-    - user_case_notes（用户答题：双轨制 - 6步骤 + 7个结构化关键点）
-  - 管理员页面：三栏布局（案例列表 + 详情+资源 + 参考答案）
-  - 用户案例页面：双模式（查看模式 + 左右对比编辑模式，14个Tab）
-  - 学习总结页面：横向对比所有案例的关键要点
-  - 答案可见性控制：编辑时可隐藏参考答案，鼓励独立思考
-  - Focus Area关联和导航：从案例跳转到基础知识学习
-  - **零axios bug，零DTO bug** - 成功应用Phase 3/4的教训
+**Phase 6 Quality Metrics** (最新):
+| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
+|--------|---------|---------|---------|---------|
+| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ |
+| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ |
+| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ |
+| Code reuse | 30% | 50% | 70% | **80%** |
 
 ## Documentation
 
@@ -348,12 +320,14 @@ Role: admin
 - `/docs/Phase3-设计文档.md` - Question bank + User notes
 - `/docs/Phase4-设计文档.md` - Algorithm learning + Templates + Learning stages
 - `/docs/Phase5-设计文档.md` - System design learning (basics + cases)
+- `/docs/Phase6-设计文档.md` - General skills (cloud, behavioral) + Answer templates
 **Requirements**:
 - `/requirement/Phase1-详细需求.md`
 - `/requirement/Phase2-详细需求.md`
 - `/requirement/Phase3-详细需求.md`
 - `/requirement/Phase4-详细需求.md`
 - `/requirement/Phase5-详细需求.md`
+- `/requirement/Phase6-详细需求.md`
 
 ## Prompt Writing Tips for User
 

@@ -1,11 +1,11 @@
 <template>
-  <div v-if="isOpen && question" class="fixed inset-0 z-50 overflow-y-auto">
-    <!-- 背景遮罩 -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$emit('close')"></div>
+  <div v-if="isOpen && question" :class="inline ? '' : 'fixed inset-0 z-50 overflow-y-auto'">
+    <!-- 背景遮罩 (仅modal模式) -->
+    <div v-if="!inline" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$emit('close')"></div>
 
     <!-- 弹窗内容 -->
-    <div class="flex min-h-screen items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div :class="inline ? 'h-full' : 'flex min-h-screen items-center justify-center p-4'">
+      <div :class="inline ? 'h-full flex flex-col bg-white' : 'relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto'">
         <!-- 头部 -->
         <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div class="flex items-center space-x-3">
@@ -29,7 +29,7 @@
         </div>
 
         <!-- 内容 -->
-        <div class="p-6 space-y-6">
+        <div :class="inline ? 'flex-1 overflow-y-auto p-6 space-y-6' : 'p-6 space-y-6'">
           <!-- 外部链接 -->
           <div v-if="question.programmingDetails?.leetcodeUrl || question.programmingDetails?.labuladongUrl || question.programmingDetails?.hellointerviewUrl" class="flex flex-wrap gap-3">
             <a
@@ -200,10 +200,18 @@ defineProps({
   question: {
     type: Object,
     default: null
+  },
+  inline: {
+    type: Boolean,
+    default: false
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 })
 
-defineEmits(['close', 'edit'])
+defineEmits(['close', 'edit', 'edit-ai-note'])
 
 const renderMarkdown = (text) => {
   if (!text) return ''

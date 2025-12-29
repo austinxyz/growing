@@ -2,6 +2,7 @@ package com.growing.app.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.growing.app.dto.AnswerTemplateDTO;
 import com.growing.app.dto.ProgrammingQuestionDetailsDTO;
 import com.growing.app.dto.QuestionDTO;
 import com.growing.app.dto.UserQuestionNoteDTO;
@@ -47,8 +48,14 @@ public class QuestionService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private SkillTemplateService skillTemplateService;
+
+    @Autowired
+    private AnswerTemplateService answerTemplateService;
+
     /**
-     * 获取Focus Area下的试题（用户可见，含编程题详情和用户笔记）
+     * 获取Focus Area下的试题（用户可见，含编程题详情、用户笔记和AI笔记）
      */
     public List<QuestionDTO> getQuestionsByFocusAreaId(Long focusAreaId, Long userId) {
         return questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId)
@@ -58,8 +65,12 @@ public class QuestionService {
                     QuestionDTO dto = convertToDTOWithDetails(question);
 
                     // 加载用户笔记
-                    Optional<UserQuestionNote> note = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
-                    note.ifPresent(n -> dto.setNote(convertNoteToDTO(n)));
+                    Optional<UserQuestionNote> userNote = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
+                    userNote.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
+
+                    // 加载AI笔记（user_id = -1）
+                    Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(question.getId(), -1L);
+                    aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
 
                     return dto;
                 })
@@ -172,9 +183,17 @@ public class QuestionService {
         Question question = questionRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
 
-        // 权限检查：管理员可修改所有，用户只能修改自己的
-        if (!isAdmin && !question.getCreatedByUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此试题");
+        // 权限检查：
+        // 1. 管理员可以修改所有试题
+        // 2. 普通用户不能修改公共试题（isOfficial = true）
+        // 3. 普通用户只能修改自己创建的私有试题
+        if (!isAdmin) {
+            if (question.getIsOfficial()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改公共试题");
+            }
+            if (question.getCreatedByUser() == null || !question.getCreatedByUser().getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此试题");
+            }
         }
 
         question.setTitle(dto.getTitle());
@@ -228,9 +247,17 @@ public class QuestionService {
         Question question = questionRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
 
-        // 权限检查：管理员可删除所有，用户只能删除自己的
-        if (!isAdmin && (question.getCreatedByUser() == null || !question.getCreatedByUser().getId().equals(userId))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除此试题");
+        // 权限检查：
+        // 1. 管理员可以删除所有试题
+        // 2. 普通用户不能删除公共试题（isOfficial = true）
+        // 3. 普通用户只能删除自己创建的私有试题
+        if (!isAdmin) {
+            if (question.getIsOfficial()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除公共试题");
+            }
+            if (question.getCreatedByUser() == null || !question.getCreatedByUser().getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除此试题");
+            }
         }
 
         questionRepository.delete(question);
@@ -269,6 +296,21 @@ public class QuestionService {
         // 加载编程题详情（如果存在）
         programmingDetailsService.getDetailsByQuestionId(question.getId())
                 .ifPresent(dto::setProgrammingDetails);
+
+        // 加载Skill的默认答题模版（如果存在）
+        if (question.getFocusArea() != null && question.getFocusArea().getSkill() != null) {
+            Long skillId = question.getFocusArea().getSkill().getId();
+            var skillTemplateDTO = skillTemplateService.getDefaultTemplate(skillId);
+
+            if (skillTemplateDTO != null && skillTemplateDTO.getTemplateId() != null) {
+                try {
+                    AnswerTemplateDTO template = answerTemplateService.getTemplate(skillTemplateDTO.getTemplateId());
+                    dto.setAnswerTemplate(template);
+                } catch (Exception e) {
+                    // 模版不存在或加载失败，忽略
+                }
+            }
+        }
 
         return dto;
     }
@@ -354,7 +396,13 @@ public class QuestionService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
 
-        return convertToDTOWithDetails(question);
+        QuestionDTO dto = convertToDTOWithDetails(question);
+
+        // 加载AI笔记（user_id = -1）
+        Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(questionId, -1L);
+        aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
+
+        return dto;
     }
 
     /**

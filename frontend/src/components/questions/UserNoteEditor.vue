@@ -24,18 +24,101 @@
 
         <!-- 表单 -->
         <div class="p-6 space-y-4">
-          <!-- 核心思路（仅编程题） -->
-          <div v-if="questionType === 'programming'" class="border-b border-gray-200 pb-4">
+          <!-- 答题模式切换 (如果有模版) -->
+          <div v-if="answerTemplate" class="border-b border-gray-200 pb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">答题模式</label>
+            <div class="flex space-x-4">
+              <button
+                @click="answerMode = 'template'"
+                :class="[
+                  'px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                  answerMode === 'template'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                {{ answerTemplate.templateName }} 模版
+              </button>
+              <button
+                @click="answerMode = 'free'"
+                :class="[
+                  'px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                  answerMode === 'free'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                自由答题
+              </button>
+            </div>
+          </div>
+
+          <!-- 动态模版结构 -->
+          <div v-if="answerTemplate && answerMode === 'template'" class="space-y-4">
+            <!-- 模版说明 -->
+            <div v-if="answerTemplate.description" class="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <h3 class="text-sm font-semibold text-blue-900 mb-2">💡 {{ answerTemplate.templateName }}</h3>
+              <p class="text-xs text-blue-800">{{ answerTemplate.description }}</p>
+            </div>
+
+            <!-- 动态渲染模版字段 -->
+            <div
+              v-for="(field, index) in answerTemplate.templateFields"
+              :key="field.key"
+            >
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <span :class="[
+                  'inline-flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full mr-2',
+                  index === 0 ? 'bg-blue-600' :
+                  index === 1 ? 'bg-green-600' :
+                  index === 2 ? 'bg-orange-600' :
+                  'bg-purple-600'
+                ]">
+                  {{ index + 1 }}
+                </span>
+                {{ field.label }}
+              </label>
+              <textarea
+                v-model="templateValues[field.key]"
+                :placeholder="field.placeholder || `请输入${field.label}...`"
+                :rows="index === 2 ? 6 : 4"
+                :class="[
+                  'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 font-mono text-sm',
+                  index === 0 ? 'focus:ring-blue-500' :
+                  index === 1 ? 'focus:ring-green-500' :
+                  index === 2 ? 'focus:ring-orange-500' :
+                  'focus:ring-purple-500'
+                ]"
+              ></textarea>
+            </div>
+
+            <!-- 完整预览 -->
+            <div v-if="Object.values(templateValues).some(v => v && v.trim())" class="border-t border-gray-200 pt-4">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">完整答案预览</h3>
+              <div class="prose prose-sm max-w-none bg-gray-50 rounded-md p-4" v-html="renderedTemplateAnswer"></div>
+            </div>
+          </div>
+
+          <!-- 核心思路（所有题目类型） -->
+          <div class="border-b border-gray-200 pb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              核心思路 <span class="text-xs text-gray-500">(编程题专用)</span>
+              核心思路
+              <span class="text-xs text-gray-500">
+                {{ questionType === 'programming' ? '(算法要点、时间空间复杂度)' : '(关键思路、要点总结)' }}
+              </span>
             </label>
             <textarea
               v-model="coreStrategy"
-              placeholder="记录解题的核心思路和算法要点...&#10;&#10;例如：&#10;1. 使用双指针从两端向中间移动&#10;2. 时间复杂度 O(n)，空间复杂度 O(1)&#10;3. 注意边界条件...&#10;&#10;支持 Markdown 格式"
+              :placeholder="coreStrategyPlaceholder"
               rows="8"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             ></textarea>
-            <p class="mt-1 text-xs text-gray-500">记录算法思路、时间/空间复杂度、关键要点</p>
+            <p class="mt-1 text-xs text-gray-500">
+              {{ questionType === 'programming'
+                ? '记录算法思路、时间/空间复杂度、关键要点'
+                : '记录答题核心思路、关键要点、注意事项'
+              }}
+            </p>
 
             <!-- 核心思路预览 -->
             <div v-if="coreStrategy" class="mt-3 border-t border-gray-200 pt-3">
@@ -47,14 +130,14 @@
             </div>
           </div>
 
-          <!-- 笔记内容 -->
-          <div>
+          <!-- 自由笔记内容（无模版或自由模式） -->
+          <div v-if="!answerTemplate || answerMode === 'free'">
             <label class="block text-sm font-medium text-gray-700 mb-2">
               笔记内容
             </label>
             <textarea
               v-model="noteContent"
-              placeholder="记录你的答案思路、补充说明、心得...&#10;&#10;支持 Markdown 格式"
+              :placeholder="noteContentPlaceholder"
               :rows="questionType === 'programming' ? 10 : 15"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             ></textarea>
@@ -82,7 +165,7 @@
             <button
               @click="handleSave"
               type="button"
-              :disabled="!noteContent.trim() && !coreStrategy.trim()"
+              :disabled="isSaveDisabled"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               保存
@@ -114,6 +197,10 @@ const props = defineProps({
   questionType: {
     type: String,
     default: 'behavioral'
+  },
+  answerTemplate: {
+    type: Object,
+    default: null
   }
 })
 
@@ -122,10 +209,69 @@ const emit = defineEmits(['save', 'cancel'])
 const noteContent = ref('')
 const coreStrategy = ref('')
 
+// 答题模式：template（使用模版） 或 free（自由答题）
+const answerMode = ref('template')
+
+// 动态模版字段值（key-value 对象）
+const templateValues = ref({})
+
+// Placeholder for note content textarea
+const noteContentPlaceholder = computed(() => {
+  return '记录你的答案思路、补充说明、心得...\n\n支持 Markdown 格式'
+})
+
+// Placeholder for core strategy textarea
+const coreStrategyPlaceholder = computed(() => {
+  if (props.questionType === 'programming') {
+    return '记录解题的核心思路和算法要点...\n\n例如：\n1. 使用双指针从两端向中间移动\n2. 时间复杂度 O(n)，空间复杂度 O(1)\n3. 注意边界条件...\n\n支持 Markdown 格式'
+  } else {
+    return '记录答题的核心思路和关键要点...\n\n例如：\n1. 明确问题核心诉求\n2. 关键解决步骤\n3. 注意事项...\n\n支持 Markdown 格式'
+  }
+})
+
+// 初始化模版字段
+watch(() => props.answerTemplate, (template) => {
+  if (template && template.templateFields) {
+    // 初始化所有字段为空字符串
+    const values = {}
+    template.templateFields.forEach(field => {
+      values[field.key] = ''
+    })
+    templateValues.value = values
+  }
+}, { immediate: true })
+
 // 监听 initialNote 变化
 watch(() => props.initialNote, (newNote) => {
   noteContent.value = newNote?.noteContent || ''
   coreStrategy.value = newNote?.coreStrategy || ''
+
+  // 解析模版格式（如果存在）
+  if (newNote?.noteContent && props.answerTemplate) {
+    const fields = props.answerTemplate.templateFields || []
+    let isTemplateFormat = true
+    const values = {}
+
+    // 尝试解析模版格式
+    for (const field of fields) {
+      const pattern = new RegExp(`## ${field.label}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
+      const match = newNote.noteContent.match(pattern)
+
+      if (match) {
+        values[field.key] = match[1].trim()
+      } else {
+        isTemplateFormat = false
+        break
+      }
+    }
+
+    if (isTemplateFormat) {
+      answerMode.value = 'template'
+      templateValues.value = values
+    } else {
+      answerMode.value = 'free'
+    }
+  }
 }, { immediate: true })
 
 // Markdown 渲染
@@ -156,8 +302,70 @@ const renderedStrategy = computed(() => {
   }
 })
 
+// 模版完整答案渲染
+const renderedTemplateAnswer = computed(() => {
+  if (!props.answerTemplate || !props.answerTemplate.templateFields) return ''
+
+  const parts = props.answerTemplate.templateFields.map(field => {
+    const value = templateValues.value[field.key] || ''
+    return `## ${field.label}\n${value}`
+  })
+
+  const templateMarkdown = parts.join('\n\n')
+
+  try {
+    return marked(templateMarkdown, {
+      breaks: true,
+      gfm: true
+    })
+  } catch (error) {
+    console.error('Markdown parsing error:', error)
+    return templateMarkdown
+  }
+})
+
+// 保存按钮禁用状态
+const isSaveDisabled = computed(() => {
+  // 模版模式：至少填写一个模版字段或核心思路
+  if (answerMode.value === 'template' && props.answerTemplate) {
+    const hasTemplateValue = Object.values(templateValues.value).some(v => v && v.trim())
+    const hasStrategy = coreStrategy.value && coreStrategy.value.trim()
+    return !hasTemplateValue && !hasStrategy
+  }
+
+  // 自由模式：至少填写笔记内容或核心思路
+  return !noteContent.value.trim() && !coreStrategy.value.trim()
+})
+
 const handleSave = () => {
-  // 至少填写一个字段
+  // 模版模式下，至少填写一个模版字段或核心思路
+  if (answerMode.value === 'template' && props.answerTemplate) {
+    const hasTemplateValue = Object.values(templateValues.value).some(v => v && v.trim())
+    const hasStrategy = coreStrategy.value && coreStrategy.value.trim()
+
+    if (!hasTemplateValue && !hasStrategy) {
+      alert('请至少填写一项内容')
+      return
+    }
+
+    // 将模版字段合并为 Markdown 格式存入 noteContent
+    const parts = props.answerTemplate.templateFields.map(field => {
+      const value = templateValues.value[field.key] || ''
+      return `## ${field.label}\n${value}`
+    })
+    const templateMarkdown = parts.join('\n\n')
+
+    const data = {
+      questionId: props.questionId,
+      noteContent: templateMarkdown,
+      coreStrategy: coreStrategy.value
+    }
+
+    emit('save', data)
+    return
+  }
+
+  // 自由模式：至少填写笔记内容或核心思路
   if (!noteContent.value.trim() && !coreStrategy.value.trim()) {
     alert('笔记内容或核心思路至少填写一项')
     return

@@ -101,7 +101,7 @@
     <div v-else-if="filteredQuestions.length === 0" class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg p-8 text-center no-print border-2 border-blue-100">
       <div class="text-blue-400 text-4xl mb-2">📝</div>
       <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-1">暂无学习笔记</h3>
-      <p class="text-sm text-gray-600">去「我的试题库」添加试题笔记吧！</p>
+      <p class="text-sm text-gray-600">去「职业技能」页面添加试题笔记吧！</p>
     </div>
 
     <!-- 紧凑的试题列表 - 双列布局(屏幕显示) - 紧凑样式 -->
