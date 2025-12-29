@@ -1,0 +1,20 @@
+{
+  "name": "generate-ai-answer",
+  "description": "Generate AI reference answer for a question based on its skill's answer template. Use this skill when the user asks to generate AI answer for a specific question ID.",
+  "tags": ["database", "ai", "questions"],
+  "arguments": [
+    {
+      "name": "question_id",
+      "description": "The question ID to generate AI answer for",
+      "required": true,
+      "type": "number"
+    },
+    {
+      "name": "max_words",
+      "description": "Maximum words for the answer (default: 500 for 5-minute answer)",
+      "required": false,
+      "type": "number",
+      "default": 500
+    }
+  ]
+}
