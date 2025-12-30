@@ -118,6 +118,38 @@ public class UserQuestionNoteService {
     }
 
     /**
+     * 切换试题重点标记状态（标记为重点或取消重点）
+     * 如果用户还没有笔记，会自动创建一条空笔记
+     */
+    @Transactional
+    public UserQuestionNoteDTO togglePriority(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "试题不存在"));
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
+
+        Optional<UserQuestionNote> existingNote =
+            noteRepository.findByQuestionIdAndUserId(questionId, userId);
+
+        UserQuestionNote note;
+        if (existingNote.isPresent()) {
+            // 已有笔记，切换重点状态
+            note = existingNote.get();
+            note.setIsPriority(!note.getIsPriority());
+        } else {
+            // 没有笔记，创建一条空笔记并标记为重点
+            note = new UserQuestionNote();
+            note.setQuestion(question);
+            note.setUser(user);
+            note.setNoteContent(""); // 空笔记
+            note.setIsPriority(true);
+        }
+
+        return convertToDTO(noteRepository.save(note));
+    }
+
+    /**
      * 转换为DTO
      * ⚠️ Guardrail #10: DTO完整性检查 - 确保所有字段都被填充
      */
@@ -128,6 +160,7 @@ public class UserQuestionNoteService {
         dto.setUserId(note.getUser().getId());
         dto.setNoteContent(note.getNoteContent());
         dto.setCoreStrategy(note.getCoreStrategy());
+        dto.setIsPriority(note.getIsPriority());
 
         // Phase 6: 反序列化relatedKnowledgePointIds为List
         if (note.getRelatedKnowledgePointIds() != null && !note.getRelatedKnowledgePointIds().isEmpty()) {

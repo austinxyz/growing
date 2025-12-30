@@ -5,6 +5,29 @@ const api = axios.create({
   timeout: 30000, // 增加到30秒，适应大数据量返回
   headers: {
     'Content-Type': 'application/json'
+  },
+  // 配置参数序列化器，让数组参数不带[]后缀
+  // 例如: questionTypes=behavioral 而不是 questionTypes[]=behavioral
+  paramsSerializer: {
+    serialize: (params) => {
+      const parts = []
+      Object.keys(params).forEach(key => {
+        const value = params[key]
+        if (value === null || value === undefined) {
+          return
+        }
+        if (Array.isArray(value)) {
+          // 数组参数：重复参数名（Spring Boot标准格式）
+          value.forEach(item => {
+            parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+          })
+        } else {
+          // 普通参数
+          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        }
+      })
+      return parts.join('&')
+    }
   }
 })
 

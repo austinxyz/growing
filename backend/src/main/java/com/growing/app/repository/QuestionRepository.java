@@ -1,6 +1,8 @@
 package com.growing.app.repository;
 
 import com.growing.app.model.Question;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +26,21 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByFocusAreaIdAndVisibleToUser(
         @Param("focusAreaId") Long focusAreaId,
         @Param("userId") Long userId);
+
+    /**
+     * 获取Focus Area下用户可见的试题（分页版本）
+     * ✅ 优化：支持分页，减少数据传输量
+     */
+    @Query("SELECT q FROM Question q " +
+           "LEFT JOIN ProgrammingQuestionDetails pqd ON pqd.question.id = q.id " +
+           "WHERE q.focusArea.id = :focusAreaId " +
+           "AND (q.isOfficial = true OR q.createdByUser.id = :userId) " +
+           "ORDER BY CASE WHEN pqd.leetcodeNumber IS NULL THEN 1 ELSE 0 END, " +
+           "pqd.leetcodeNumber ASC, q.difficulty ASC, q.displayOrder ASC, q.createdAt DESC")
+    Page<Question> findByFocusAreaIdAndVisibleToUserPaged(
+        @Param("focusAreaId") Long focusAreaId,
+        @Param("userId") Long userId,
+        Pageable pageable);
 
     /**
      * 获取Focus Area下的所有试题（管理员视角）
@@ -90,4 +107,45 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
            "ORDER BY CASE WHEN pqd.leetcodeNumber IS NULL THEN 1 ELSE 0 END, " +
            "pqd.leetcodeNumber ASC, q.difficulty ASC, q.displayOrder ASC, q.createdAt DESC")
     List<Question> findAllVisibleToUser(@Param("userId") Long userId);
+
+    /**
+     * 高性能搜索试题（支持分页 + 多条件过滤）
+     *
+     * 性能优化：
+     * 1. 单次数据库查询（避免N+1问题）
+     * 2. 数据库层面过滤（避免内存过滤）
+     * 3. 支持分页（减少数据传输）
+     * 4. LEFT JOIN 编程题详情（用于排序）
+     *
+     * 参数说明：
+     * - focusAreaIds: Focus Area ID列表（为空则不过滤）
+     * - keyword: 关键字（搜索标题和描述，为空则不过滤）
+     * - questionType: 试题类型（为空则不过滤）
+     * - difficulty: 难度（为空则不过滤）
+     * - isPriorityOnly: 是否只显示重点题（true=只显示重点，false/null=显示所有）
+     * - userId: 用户ID（用于权限过滤和重点题过滤）
+     * - pageable: 分页参数
+     */
+    @Query("SELECT q FROM Question q " +
+           "LEFT JOIN ProgrammingQuestionDetails pqd ON pqd.question.id = q.id " +
+           "LEFT JOIN UserQuestionNote uqn ON uqn.question.id = q.id AND uqn.user.id = :userId " +
+           "WHERE (q.isOfficial = true OR q.createdByUser.id = :userId) " +
+           "AND (:#{#focusAreaIds == null} = true OR q.focusArea.id IN :focusAreaIds) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "     LOWER(q.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "     LOWER(q.questionDescription) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:#{#questionTypes == null || #questionTypes.isEmpty()} = true OR q.questionType IN :questionTypes) " +
+           "AND (:#{#difficulties == null || #difficulties.isEmpty()} = true OR q.difficulty IN :difficulties) " +
+           "AND (:isPriorityOnly IS NULL OR :isPriorityOnly = false OR (uqn.isPriority = true)) " +
+           "ORDER BY CASE WHEN pqd.leetcodeNumber IS NULL THEN 1 ELSE 0 END, " +
+           "pqd.leetcodeNumber ASC, q.difficulty ASC, q.displayOrder ASC, q.createdAt DESC")
+    Page<Question> searchQuestionsOptimized(
+        @Param("focusAreaIds") List<Long> focusAreaIds,
+        @Param("keyword") String keyword,
+        @Param("questionTypes") List<Question.QuestionType> questionTypes,
+        @Param("difficulties") List<Question.Difficulty> difficulties,
+        @Param("isPriorityOnly") Boolean isPriorityOnly,
+        @Param("userId") Long userId,
+        Pageable pageable
+    );
 }

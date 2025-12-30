@@ -1,4 +1,8 @@
-import apiClient from './index'
+import api from './index'
+
+// ⚠️ baseURL is '/api', do NOT add '/api' prefix!
+// ❌ WRONG: api.get('/api/major-categories')
+// ✅ CORRECT: api.get('/major-categories')
 
 /**
  * 大分类API
@@ -10,11 +14,11 @@ export default {
    */
   getAllMajorCategories(skillId = null) {
     if (skillId) {
-      return apiClient.get('/major-categories', {
+      return api.get('/major-categories', {
         params: { skillId }
       })
     }
-    return apiClient.get('/major-categories')
+    return api.get('/major-categories')
   },
 
   /**
@@ -22,7 +26,7 @@ export default {
    * @param {number} skillId - 技能ID
    */
   getFocusAreasWithCategories(skillId) {
-    return apiClient.get('/focus-areas-with-categories', {
+    return api.get('/focus-areas-with-categories', {
       params: { skillId }
     })
   },
@@ -32,7 +36,7 @@ export default {
    * @param {number} skillId - 技能ID
    */
   getUncategorizedFocusAreas(skillId) {
-    return apiClient.get(`/admin/skills/${skillId}/focus-areas/uncategorized`)
+    return api.get(`/admin/skills/${skillId}/focus-areas/uncategorized`)
   },
 
   /**
@@ -41,7 +45,7 @@ export default {
    * @param {object} categoryData - 分类数据
    */
   createMajorCategory(skillId, categoryData) {
-    return apiClient.post('/major-categories', {
+    return api.post('/major-categories', {
       ...categoryData,
       skillId
     })
@@ -53,7 +57,7 @@ export default {
    * @param {object} categoryData - 分类数据
    */
   updateMajorCategory(id, categoryData) {
-    return apiClient.put(`/major-categories/${id}`, categoryData)
+    return api.put(`/major-categories/${id}`, categoryData)
   },
 
   /**
@@ -61,7 +65,7 @@ export default {
    * @param {number} id - 分类ID
    */
   deleteMajorCategory(id) {
-    return apiClient.delete(`/major-categories/${id}`)
+    return api.delete(`/major-categories/${id}`)
   },
 
   /**
@@ -71,7 +75,7 @@ export default {
    * @param {object} focusAreaData - Focus Area数据
    */
   createFocusArea(skillId, categoryId, focusAreaData) {
-    return apiClient.post('/focus-areas', {
+    return api.post('/focus-areas', {
       ...focusAreaData,
       skillId,
       categoryIds: categoryId ? [categoryId] : []
@@ -84,7 +88,7 @@ export default {
    * @param {object} focusAreaData - Focus Area数据
    */
   updateFocusArea(id, focusAreaData) {
-    return apiClient.put(`/focus-areas/${id}`, focusAreaData)
+    return api.put(`/focus-areas/${id}`, focusAreaData)
   },
 
   /**
@@ -92,6 +96,6 @@ export default {
    * @param {number} id - Focus Area ID
    */
   deleteFocusArea(id) {
-    return apiClient.delete(`/focus-areas/${id}`)
+    return api.delete(`/focus-areas/${id}`)
   }
 }

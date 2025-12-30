@@ -1051,40 +1051,116 @@
                       添加试题
                     </button>
 
-                    <!-- 试题列表 -->
-                    <div
-                      v-for="(question, index) in questions"
-                      :key="question.id"
-                      @click="selectQuestion(question)"
-                      :class="[
-                        'p-3 rounded-lg cursor-pointer transition-all duration-200 border-2',
-                        selectedQuestion?.id === question.id
-                          ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-lg'
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:bg-gradient-to-br hover:from-gray-50 hover:to-blue-50'
-                      ]"
-                    >
-                      <div class="flex items-start gap-2">
-                        <span :class="[
-                          'text-xs font-bold mt-0.5 px-1.5 py-0.5 rounded',
-                          selectedQuestion?.id === question.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-                        ]">
-                          Q{{ index + 1 }}
-                        </span>
-                        <div class="flex-1 min-w-0">
-                          <h4 :class="[
-                            'text-sm font-semibold',
-                            selectedQuestion?.id === question.id ? 'text-blue-700' : 'text-gray-900'
-                          ]">
-                            {{ question.title }}
-                          </h4>
-                          <p class="text-xs text-gray-500 mt-1">{{ question.questionType }}</p>
-                        </div>
-                        <div class="flex-shrink-0">
-                          <span v-if="question.note" class="inline-block px-2 py-0.5 text-xs font-semibold bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded shadow-sm">
-                            ✓ 已答
-                          </span>
-                        </div>
+                    <!-- 分页信息和控件 -->
+                    <div v-if="questionPagination.totalElements > 0" class="flex items-center justify-between px-2 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                      <span class="text-xs text-gray-600">
+                        共 <span class="font-semibold text-blue-600">{{ questionPagination.totalElements }}</span> 道题
+                        (第 {{ questionPagination.currentPage + 1 }}/{{ questionPagination.totalPages }} 页)
+                      </span>
+                      <div class="flex gap-1">
+                        <button
+                          @click="loadQuestions(questionPagination.currentPage - 1)"
+                          :disabled="!questionPagination.hasPrevious"
+                          :class="[
+                            'px-2 py-1 text-xs font-medium rounded transition-colors',
+                            questionPagination.hasPrevious
+                              ? 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-300'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                          ]"
+                        >
+                          上一页
+                        </button>
+                        <button
+                          @click="loadQuestions(questionPagination.currentPage + 1)"
+                          :disabled="!questionPagination.hasNext"
+                          :class="[
+                            'px-2 py-1 text-xs font-medium rounded transition-colors',
+                            questionPagination.hasNext
+                              ? 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-300'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                          ]"
+                        >
+                          下一页
+                        </button>
                       </div>
+                    </div>
+
+                    <!-- 试题列表 (表格) -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <table class="w-full text-xs">
+                        <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                          <tr>
+                            <th class="px-2 py-1.5 text-left font-semibold text-gray-700 w-12">#</th>
+                            <th class="px-2 py-1.5 text-left font-semibold text-gray-700">题目</th>
+                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-16">类型</th>
+                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-16">难度</th>
+                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-12">状态</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="(question, index) in questions"
+                            :key="question.id"
+                            @click="selectQuestion(question)"
+                            :class="[
+                              'cursor-pointer transition-colors border-b border-gray-100 last:border-0',
+                              selectedQuestion?.id === question.id
+                                ? 'bg-blue-50 hover:bg-blue-100'
+                                : 'hover:bg-gray-50'
+                            ]"
+                          >
+                            <!-- 序号 -->
+                            <td class="px-2 py-1.5">
+                              <span :class="[
+                                'inline-block px-1.5 py-0.5 rounded text-xs font-bold',
+                                selectedQuestion?.id === question.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                              ]">
+                                {{ questionPagination.currentPage * questionPagination.pageSize + index + 1 }}
+                              </span>
+                            </td>
+                            <!-- 题目标题 -->
+                            <td :class="[
+                              'px-2 py-1.5 font-medium truncate max-w-0',
+                              selectedQuestion?.id === question.id ? 'text-blue-700' : 'text-gray-900'
+                            ]" :title="question.title">
+                              {{ question.title }}
+                            </td>
+                            <!-- 类型 -->
+                            <td class="px-2 py-1.5 text-center">
+                              <span :class="[
+                                'inline-block px-1.5 py-0.5 rounded text-xs',
+                                question.questionType === 'programming' ? 'bg-purple-100 text-purple-700' :
+                                question.questionType === 'technical' ? 'bg-blue-100 text-blue-700' :
+                                question.questionType === 'behavioral' ? 'bg-green-100 text-green-700' :
+                                'bg-orange-100 text-orange-700'
+                              ]">
+                                {{ question.questionType === 'programming' ? '编程' :
+                                   question.questionType === 'technical' ? '技术' :
+                                   question.questionType === 'behavioral' ? '行为' : '设计' }}
+                              </span>
+                            </td>
+                            <!-- 难度 -->
+                            <td class="px-2 py-1.5 text-center">
+                              <span :class="[
+                                'inline-block px-1.5 py-0.5 rounded text-xs font-medium',
+                                question.difficulty === 'EASY' ? 'bg-green-100 text-green-700' :
+                                question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              ]">
+                                {{ question.difficulty === 'EASY' ? '简单' :
+                                   question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
+                              </span>
+                            </td>
+                            <!-- 状态 -->
+                            <td class="px-2 py-1.5 text-center">
+                              <span v-if="question.hasUserNote" class="inline-block w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center" title="已答题">
+                                ✓
+                              </span>
+                              <span v-else class="text-gray-300">-</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
@@ -1836,6 +1912,10 @@ const expandedCategories = ref(new Set())
 const focusAreas = ref([])
 const selectedFocusAreaId = ref(null)
 
+// 🚀 前端缓存：避免重复API调用
+const categoriesCache = new Map()  // skillId -> categories
+const focusAreasCache = new Map()  // skillId -> focusAreas
+
 // 右侧Tab状态
 const activeTab = ref('learning') // 'learning' or 'questions'
 const learningContents = ref([])
@@ -1846,6 +1926,16 @@ const questionViewMode = ref('browse') // 'browse', 'answer', or 'edit'
 const browseNoteType = ref('ai') // 'ai' or 'user' - 浏览模式下显示的笔记类型
 const answerNoteType = ref('user') // 'ai' or 'user' - 答题模式下编辑的笔记类型
 const answerTemplate = ref(null) // 当前技能的答题模版
+
+// 分页相关
+const questionPagination = ref({
+  currentPage: 0,
+  pageSize: 10,  // 每页10题
+  totalElements: 0,
+  totalPages: 0,
+  hasNext: false,
+  hasPrevious: false
+})
 
 // 判断当前试题是否可以编辑
 const canEditQuestion = computed(() => {
@@ -2023,13 +2113,35 @@ const loadCategoriesAndFocusAreas = async () => {
 
   try {
     loadingCategories.value = true
-    // 加载大分类 - 使用正确的API方法
-    const categoriesData = await majorCategoryApi.getAllMajorCategories(selectedSkillId.value)
-    categories.value = categoriesData || []
 
-    // 加载Focus Area（包含大分类信息）- 使用公开API
-    const focusAreasData = await majorCategoryApi.getFocusAreasWithCategories(selectedSkillId.value)
+    // 🚀 关键优化1：检查缓存
+    const skillId = selectedSkillId.value
+    if (categoriesCache.has(skillId) && focusAreasCache.has(skillId)) {
+      // 从缓存读取（瞬间完成）
+      categories.value = categoriesCache.get(skillId)
+      focusAreas.value = focusAreasCache.get(skillId)
+
+      // 如果是第一类技能，自动展开第一个大分类
+      if (!isSecondTypeSkill.value && categories.value.length > 0) {
+        expandedCategories.value.add(categories.value[0].id)
+      }
+
+      loadingCategories.value = false
+      return
+    }
+
+    // 🚀 关键优化2：并行加载大分类和Focus Area（不再串行等待）
+    const [categoriesData, focusAreasData] = await Promise.all([
+      majorCategoryApi.getAllMajorCategories(skillId),
+      majorCategoryApi.getFocusAreasWithCategories(skillId)
+    ])
+
+    categories.value = categoriesData || []
     focusAreas.value = focusAreasData || []
+
+    // 存入缓存
+    categoriesCache.set(skillId, categories.value)
+    focusAreasCache.set(skillId, focusAreas.value)
 
     // 如果是第一类技能，自动展开第一个大分类
     if (!isSecondTypeSkill.value && categories.value.length > 0) {
@@ -2063,9 +2175,45 @@ const getFocusAreasByCategory = (categoryId) => {
 // 选择Focus Area
 const selectFocusArea = (focusAreaId) => {
   selectedFocusAreaId.value = focusAreaId
-  // 同时加载学习资料和试题，确保Tab徽章立即显示数量
-  loadLearningContents()
-  loadQuestions()
+  // ✅ 优化: 只加载当前活跃tab的数据（懒加载）
+  if (activeTab.value === 'learning') {
+    loadLearningContents()
+  } else if (activeTab.value === 'questions') {
+    loadQuestions()
+  }
+}
+
+/**
+ * 加载单个学习资料的详细信息（笔记和知识点）
+ * ✅ 优化: 只在用户选择查看某个资料时才加载，避免列表加载时的N+1查询
+ */
+const loadContentDetails = async (content) => {
+  if (!content || content._detailsLoaded) {
+    // 如果已经加载过详情，跳过
+    return
+  }
+
+  try {
+    // 获取AI笔记 + 用户笔记
+    const notes = await learningContentApi.getNotes(content.id)
+    content.aiNote = notes.aiNote || null
+    content.userNote = notes.userNote || { noteContent: '' }
+
+    // 获取AI知识点 + 用户知识点
+    const kps = await learningContentApi.getKnowledgePoints(content.id)
+    content.aiKnowledgePoints = kps.aiKnowledgePoints || []
+    content.userKnowledgePoints = kps.userKnowledgePoints || []
+
+    // 标记已加载详情
+    content._detailsLoaded = true
+  } catch (error) {
+    console.error('Failed to load details for content', content.id, error)
+    // 即使获取失败也要初始化为空，避免渲染错误
+    content.aiNote = null
+    content.userNote = { noteContent: '' }
+    content.aiKnowledgePoints = []
+    content.userKnowledgePoints = []
+  }
 }
 
 const loadLearningContents = async () => {
@@ -2087,33 +2235,16 @@ const loadLearningContents = async () => {
       }
     }
 
-    // 为每个学习资料加载AI笔记和用户笔记
-    for (const content of allContents) {
-      try {
-        // 获取AI笔记 + 用户笔记
-        const notes = await learningContentApi.getNotes(content.id)
-        content.aiNote = notes.aiNote || null
-        content.userNote = notes.userNote || { noteContent: '' }
-
-        // 获取AI知识点 + 用户知识点
-        const kps = await learningContentApi.getKnowledgePoints(content.id)
-        content.aiKnowledgePoints = kps.aiKnowledgePoints || []
-        content.userKnowledgePoints = kps.userKnowledgePoints || []
-      } catch (error) {
-        console.error('Failed to load notes/knowledge points for content', content.id, error)
-        // 即使获取失败也要初始化为空，避免渲染错误
-        content.aiNote = null
-        content.userNote = { noteContent: '' }
-        content.aiKnowledgePoints = []
-        content.userKnowledgePoints = []
-      }
-    }
+    // ✅ 优化: 列表加载时不再预加载所有笔记和知识点
+    // 只在用户选择单个学习资料时才加载（详情懒加载）
 
     learningContents.value = allContents
-    // 自动选中第一个学习资料
+    // 自动选中第一个学习资料（会触发loadContentDetails）
     if (allContents.length > 0) {
       const firstContent = allContents[0]
       selectedContent.value = firstContent
+      // 加载第一个资料的笔记和知识点
+      await loadContentDetails(firstContent)
 
       // 初始化AI知识点卡片折叠状态（默认展开卡片，内容折叠显示max-h-48）
       if (firstContent.aiKnowledgePoints) {
@@ -2182,6 +2313,9 @@ const onContentSelectChange = async (event) => {
   const content = learningContents.value.find(c => c.id === contentId)
   if (content) {
     selectedContent.value = content
+    // ✅ 优化: 懒加载笔记和知识点
+    await loadContentDetails(content)
+
     // 重置卡片状态
     cardStates.value.knowledgePoints = {}
     cardStates.value.overallNoteExpanded = false
@@ -2257,28 +2391,28 @@ const toggleKnowledgePointCard = (pointKey) => {
   }
 }
 
-const loadQuestions = async () => {
+const loadQuestions = async (page = 0) => {
   if (!selectedFocusAreaId.value) return
 
   try {
     loadingQuestions.value = true
-    // Note: interceptor returns response.data already
-    const data = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
-    questions.value = data || []
-    // 自动选中第一道试题
-    if (data && data.length > 0) {
-      selectedQuestion.value = data[0]
-      questionViewMode.value = 'browse'
+    // ✅ 优化: 使用分页API，只加载QuestionListDTO（不包含description、笔记、编程题详情）
+    const response = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value, { page, size: 10 })
+    questions.value = response.content || []
 
-      // 设置浏览笔记类型（优先AI笔记）
-      if (data[0].aiNote?.noteContent) {
-        browseNoteType.value = 'ai'
-      } else if (data[0].userNote?.noteContent || data[0].userNote?.coreStrategy) {
-        browseNoteType.value = 'user'
-      }
+    // 保存分页信息
+    questionPagination.value = {
+      currentPage: response.currentPage || 0,
+      pageSize: response.pageSize || 10,
+      totalElements: response.totalElements || 0,
+      totalPages: response.totalPages || 0,
+      hasNext: response.hasNext || false,
+      hasPrevious: response.hasPrevious || false
+    }
 
-      // 初始化答题表单
-      initAnswerForm(data[0])
+    // 自动选中第一道试题（需要加载详情）
+    if (questions.value.length > 0) {
+      await selectQuestion(questions.value[0])
     } else {
       selectedQuestion.value = null
     }
@@ -2292,7 +2426,25 @@ const loadQuestions = async () => {
 }
 
 // 选择试题
-const selectQuestion = (question) => {
+const selectQuestion = async (question) => {
+  // ✅ 优化: 懒加载试题详情（只在用户点击试题时才加载description、笔记、编程题详情）
+  if (!question._detailsLoaded) {
+    try {
+      // 从列表项（QuestionListDTO）加载完整详情（QuestionDTO）
+      const fullQuestion = await questionApi.getQuestionById(question.id)
+
+      // 将详情合并到列表项中
+      Object.assign(question, fullQuestion)
+      question._detailsLoaded = true
+    } catch (error) {
+      console.error('Failed to load question details:', error)
+      // 即使失败也要设置默认值，避免渲染错误
+      question.questionDescription = question.questionDescription || ''
+      question.aiNote = null
+      question.userNote = { noteContent: '', coreStrategy: '' }
+    }
+  }
+
   selectedQuestion.value = question
   questionViewMode.value = 'browse'
 

@@ -34,6 +34,9 @@ public class FocusAreaService {
     @Autowired
     private MajorCategoryRepository majorCategoryRepository;
 
+    @Autowired
+    private HierarchyCacheService hierarchyCacheService;
+
     // 获取技能下的所有Focus Areas
     public List<FocusAreaDTO> getFocusAreasBySkillId(Long skillId) {
         return focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skillId).stream()
@@ -72,6 +75,10 @@ public class FocusAreaService {
         focusArea.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
 
         focusArea = focusAreaRepository.save(focusArea);
+
+        // 清除Focus Area缓存
+        hierarchyCacheService.evictFocusAreasCache();
+
         return convertToDTO(focusArea);
     }
 
@@ -93,6 +100,10 @@ public class FocusAreaService {
         }
 
         focusArea = focusAreaRepository.save(focusArea);
+
+        // 清除Focus Area缓存
+        hierarchyCacheService.evictFocusAreasCache();
+
         return convertToDTO(focusArea);
     }
 
@@ -103,6 +114,9 @@ public class FocusAreaService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "专注领域不存在");
         }
         focusAreaRepository.deleteById(id);
+
+        // 清除Focus Area缓存
+        hierarchyCacheService.evictFocusAreasCache();
     }
 
     // 创建Focus Area（包含分类信息）

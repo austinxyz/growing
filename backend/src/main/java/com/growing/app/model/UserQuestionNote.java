@@ -41,6 +41,9 @@ public class UserQuestionNote {
     @Column(name = "core_strategy", columnDefinition = "TEXT")
     private String coreStrategy;
 
+    @Column(name = "is_priority", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean isPriority = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

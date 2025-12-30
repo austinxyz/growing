@@ -39,4 +39,13 @@ public interface UserQuestionNoteRepository extends JpaRepository<UserQuestionNo
      * 统计用户笔记数量
      */
     long countByUserId(Long userId);
+
+    /**
+     * 批量获取指定试题的用户笔记（解决N+1问题）
+     */
+    @Query("SELECT n FROM UserQuestionNote n " +
+           "WHERE n.question.id IN :questionIds AND n.user.id = :userId")
+    List<UserQuestionNote> findByQuestionIdsAndUserId(
+        @Param("questionIds") List<Long> questionIds,
+        @Param("userId") Long userId);
 }

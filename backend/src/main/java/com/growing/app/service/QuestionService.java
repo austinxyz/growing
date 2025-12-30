@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.AnswerTemplateDTO;
 import com.growing.app.dto.ProgrammingQuestionDetailsDTO;
 import com.growing.app.dto.QuestionDTO;
+import com.growing.app.dto.QuestionListDTO;
 import com.growing.app.dto.UserQuestionNoteDTO;
 import com.growing.app.model.FocusArea;
 import com.growing.app.model.Question;
@@ -12,7 +13,12 @@ import com.growing.app.model.User;
 import com.growing.app.model.UserQuestionNote;
 import com.growing.app.repository.*;
 import com.growing.app.model.MajorCategory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +29,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class QuestionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -54,23 +62,104 @@ public class QuestionService {
     @Autowired
     private AnswerTemplateService answerTemplateService;
 
+    @Autowired
+    private HierarchyCacheService hierarchyCacheService;
+
+    /**
+     * 获取Focus Area下的试题列表（轻量级，支持分页）
+     * ✅ 优化：只返回QuestionListDTO，不包含description、笔记、编程题详情
+     */
+    public Map<String, Object> getQuestionListByFocusArea(Long focusAreaId, Integer page, Integer size, Long userId) {
+        // 1. 创建分页参数（默认第0页，每页20条）
+        Pageable pageable = PageRequest.of(
+            page != null ? page : 0,
+            size != null && size > 0 && size <= 100 ? size : 20
+        );
+
+        // 2. 查询试题列表（不加载详情）
+        Page<Question> questionPage = questionRepository.findByFocusAreaIdAndVisibleToUserPaged(focusAreaId, userId, pageable);
+
+        // 3. 批量加载用户笔记状态（只需要isPriority和hasUserNote标志）
+        List<Long> questionIds = questionPage.getContent().stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, UserQuestionNote> userNotesMap = new HashMap<>();
+        if (!questionIds.isEmpty() && userId != null) {
+            List<UserQuestionNote> userNotes = noteRepository.findByQuestionIdsAndUserId(questionIds, userId);
+            userNotesMap = userNotes.stream()
+                    .collect(Collectors.toMap(n -> n.getQuestion().getId(), n -> n));
+        }
+
+        // 4. 转换为轻量级ListDTO
+        final Map<Long, UserQuestionNote> finalUserNotesMap = userNotesMap;
+        List<QuestionListDTO> questionListDTOs = questionPage.getContent().stream()
+                .map(question -> convertToListDTO(question, finalUserNotesMap.get(question.getId())))
+                .collect(Collectors.toList());
+
+        // 5. 构造分页响应
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", questionListDTOs);
+        response.put("totalElements", questionPage.getTotalElements());
+        response.put("totalPages", questionPage.getTotalPages());
+        response.put("currentPage", questionPage.getNumber());
+        response.put("pageSize", questionPage.getSize());
+        response.put("hasNext", questionPage.hasNext());
+        response.put("hasPrevious", questionPage.hasPrevious());
+
+        return response;
+    }
+
     /**
      * 获取Focus Area下的试题（用户可见，含编程题详情、用户笔记和AI笔记）
+     * @deprecated 使用getQuestionListByFocusArea替代（支持分页，性能更好）
      */
+    @Deprecated
     public List<QuestionDTO> getQuestionsByFocusAreaId(Long focusAreaId, Long userId) {
-        return questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId)
-                .stream()
+        // 1. 获取试题列表
+        List<Question> questions = questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId);
+
+        if (questions.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. 批量加载笔记（避免N+1查询）
+        List<Long> questionIds = questions.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+
+        // 批量查询用户笔记
+        Map<Long, UserQuestionNote> userNotesMap = new HashMap<>();
+        if (userId != null) {
+            List<UserQuestionNote> userNotes = noteRepository.findByQuestionIdsAndUserId(questionIds, userId);
+            userNotesMap = userNotes.stream()
+                    .collect(Collectors.toMap(n -> n.getQuestion().getId(), n -> n));
+        }
+
+        // 批量查询AI笔记（user_id = -1）
+        List<UserQuestionNote> aiNotes = noteRepository.findByQuestionIdsAndUserId(questionIds, -1L);
+        Map<Long, UserQuestionNote> aiNotesMap = aiNotes.stream()
+                .collect(Collectors.toMap(n -> n.getQuestion().getId(), n -> n));
+
+        // 3. 转换为DTO（使用已加载的笔记数据）
+        final Map<Long, UserQuestionNote> finalUserNotesMap = userNotesMap;
+        final Map<Long, UserQuestionNote> finalAiNotesMap = aiNotesMap;
+
+        return questions.stream()
                 .map(question -> {
                     // 转换为DTO并加载编程题详情
                     QuestionDTO dto = convertToDTOWithDetails(question);
 
-                    // 加载用户笔记
-                    Optional<UserQuestionNote> userNote = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
-                    userNote.ifPresent(n -> dto.setUserNote(convertNoteToDTO(n)));
+                    // 从Map中获取笔记（避免额外查询）
+                    UserQuestionNote userNote = finalUserNotesMap.get(question.getId());
+                    if (userNote != null) {
+                        dto.setUserNote(convertNoteToDTO(userNote));
+                    }
 
-                    // 加载AI笔记（user_id = -1）
-                    Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(question.getId(), -1L);
-                    aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
+                    UserQuestionNote aiNote = finalAiNotesMap.get(question.getId());
+                    if (aiNote != null) {
+                        dto.setAiNote(convertNoteToDTO(aiNote));
+                    }
 
                     return dto;
                 })
@@ -78,112 +167,158 @@ public class QuestionService {
     }
 
     /**
-     * 搜索试题（支持多条件过滤）
+     * 搜索试题（支持多条件过滤 + 分页）- 性能优化版本
+     *
+     * 性能优化：
+     * 1. 统一转换为focusAreaIds，减少数据库查询次数
+     * 2. 使用单次数据库查询，在SQL层面进行所有过滤
+     * 3. 批量加载笔记，解决N+1问题
+     * 4. 支持分页，减少数据传输量
      *
      * 支持的查询条件:
      * - keyword: 关键字搜索（标题、描述）
      * - careerPathId, skillId, majorCategoryId, focusAreaId: 级联筛选
      * - questionType: 试题类型
      * - difficulty: 难度
+     * - isPriorityOnly: 是否只显示重点题
+     * - page, size: 分页参数
      * - userId: 用户ID（用于过滤可见性和加载笔记）
      */
-    public List<QuestionDTO> searchQuestions(
+    public Map<String, Object> searchQuestions(
             String keyword,
             Long careerPathId,
             Long skillId,
             Long majorCategoryId,
             Long focusAreaId,
-            String questionType,
-            String difficulty,
+            List<String> questionTypes,
+            List<String> difficulties,
+            Boolean isPriorityOnly,
+            Integer page,
+            Integer size,
             Long userId) {
 
-        // 1. 先获取符合Focus Area筛选条件的所有试题
-        List<Question> questions;
+        long startTime = System.currentTimeMillis();
+        logger.info("🔍 开始查询试题 - skillId: {}, majorCategoryId: {}, focusAreaId: {}", skillId, majorCategoryId, focusAreaId);
 
-        if (focusAreaId != null) {
-            // 直接按Focus Area过滤
-            questions = questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId);
-        } else if (majorCategoryId != null) {
-            // 获取该大分类下所有Focus Area的试题
-            List<FocusArea> focusAreas = focusAreaRepository.findByMajorCategoryId(majorCategoryId);
-            List<Long> focusAreaIds = focusAreas.stream()
-                    .map(FocusArea::getId)
+        // 1. 统一转换为 focusAreaIds（减少数据库查询）
+        long step1Start = System.currentTimeMillis();
+        List<Long> focusAreaIds = resolveFocusAreaIds(careerPathId, skillId, majorCategoryId, focusAreaId);
+        long step1Time = System.currentTimeMillis() - step1Start;
+        logger.info("  ⏱️ Step1 解析focusAreaIds: {}ms, 结果: {} 个Focus Areas", step1Time, focusAreaIds != null ? focusAreaIds.size() : 0);
+
+        // 2. 转换枚举类型（多选）
+        List<Question.QuestionType> typeEnums = null;
+        if (questionTypes != null && !questionTypes.isEmpty()) {
+            typeEnums = questionTypes.stream()
+                    .map(type -> {
+                        try {
+                            return Question.QuestionType.valueOf(type);
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
+                    })
+                    .filter(type -> type != null)
                     .collect(Collectors.toList());
-
-            questions = focusAreaIds.isEmpty() ? new ArrayList<>() :
-                    questionRepository.findByFocusAreaIdInAndVisibleToUser(focusAreaIds, userId);
-        } else if (skillId != null) {
-            // 获取该技能下所有Focus Area的试题（通过大分类关联）
-            List<MajorCategory> categories = majorCategoryRepository.findBySkillId(skillId);
-            List<Long> categoryIds = categories.stream()
-                    .map(MajorCategory::getId)
-                    .collect(Collectors.toList());
-
-            List<FocusArea> focusAreas = categoryIds.isEmpty() ? new ArrayList<>() :
-                    focusAreaRepository.findByMajorCategoryIdIn(categoryIds);
-
-            List<Long> focusAreaIds = focusAreas.stream()
-                    .map(FocusArea::getId)
-                    .collect(Collectors.toList());
-
-            questions = focusAreaIds.isEmpty() ? new ArrayList<>() :
-                    questionRepository.findByFocusAreaIdInAndVisibleToUser(focusAreaIds, userId);
-        } else if (careerPathId != null) {
-            // 获取该职业路径下所有试题（通过技能 -> 大分类 -> Focus Area）
-            // 这个查询比较复杂，暂时不实现，可以要求用户至少选择技能
-            questions = new ArrayList<>();
-        } else {
-            // 如果没有任何分类过滤，返回所有用户可见的试题
-            questions = questionRepository.findAllVisibleToUser(userId);
         }
 
-        // 2. 应用其他过滤条件
-        return questions.stream()
-                .filter(q -> {
-                    // 关键字过滤
-                    if (keyword != null && !keyword.trim().isEmpty()) {
-                        String lowerKeyword = keyword.toLowerCase();
-                        boolean titleMatch = q.getTitle() != null && q.getTitle().toLowerCase().contains(lowerKeyword);
-                        boolean descMatch = q.getQuestionDescription() != null && q.getQuestionDescription().toLowerCase().contains(lowerKeyword);
-                        if (!titleMatch && !descMatch) {
-                            return false;
+        List<Question.Difficulty> difficultyEnums = null;
+        if (difficulties != null && !difficulties.isEmpty()) {
+            difficultyEnums = difficulties.stream()
+                    .map(diff -> {
+                        try {
+                            return Question.Difficulty.valueOf(diff);
+                        } catch (IllegalArgumentException e) {
+                            return null;
                         }
-                    }
+                    })
+                    .filter(diff -> diff != null)
+                    .collect(Collectors.toList());
+        }
 
-                    // 试题类型过滤
-                    if (questionType != null && !questionType.isEmpty()) {
-                        if (!questionType.equalsIgnoreCase(q.getQuestionType())) {
-                            return false;
-                        }
-                    }
+        // 3. 创建分页参数（默认第0页，每页20条）
+        Pageable pageable = PageRequest.of(
+            page != null ? page : 0,
+            size != null && size > 0 && size <= 100 ? size : 20
+        );
 
-                    // 难度过滤
-                    if (difficulty != null && !difficulty.isEmpty()) {
-                        if (q.getDifficulty() == null || !difficulty.equalsIgnoreCase(q.getDifficulty().name())) {
-                            return false;
-                        }
-                    }
+        // 4. 单次数据库查询（所有过滤条件在SQL层面完成）
+        long step4Start = System.currentTimeMillis();
+        Page<Question> questionPage = questionRepository.searchQuestionsOptimized(
+            focusAreaIds,
+            keyword,
+            typeEnums,       // 传递List
+            difficultyEnums, // 传递List
+            isPriorityOnly,  // 是否只显示重点题
+            userId,
+            pageable
+        );
+        long step4Time = System.currentTimeMillis() - step4Start;
+        logger.info("  ⏱️ Step4 数据库查询: {}ms, 结果: {} 条试题", step4Time, questionPage.getTotalElements());
 
-                    return true;
-                })
-                .map(question -> {
-                    // 转换为DTO并加载笔记
-                    QuestionDTO dto = convertToDTOWithDetails(question);
-
-                    // 加载用户笔记
-                    Optional<UserQuestionNote> userNote = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
-                    if (userNote.isPresent()) {
-                        dto.setUserNote(convertNoteToDTO(userNote.get()));
-                        dto.setHasUserNote(true);
-                    }
-
-                    // 加载AI笔记（user_id = -1）
-                    Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(question.getId(), -1L);
-                    aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
-
-                    return dto;
-                })
+        // 5. 批量加载用户笔记状态（只需要isPriority和hasUserNote标志）
+        List<Long> questionIds = questionPage.getContent().stream()
+                .map(Question::getId)
                 .collect(Collectors.toList());
+
+        // 只加载用户笔记（不加载AI笔记，节省查询时间）
+        Map<Long, UserQuestionNote> userNotesMap = new HashMap<>();
+
+        if (!questionIds.isEmpty() && userId != null) {
+            // 只查询用户笔记的isPriority状态
+            List<UserQuestionNote> userNotes = noteRepository.findByQuestionIdsAndUserId(questionIds, userId);
+            userNotesMap = userNotes.stream()
+                    .collect(Collectors.toMap(n -> n.getQuestion().getId(), n -> n));
+        }
+
+        // 6. 转换为轻量级ListDTO（不包含description、AI笔记、编程题详情）
+        final Map<Long, UserQuestionNote> finalUserNotesMap = userNotesMap;
+
+        List<QuestionListDTO> questionListDTOs = questionPage.getContent().stream()
+                .map(question -> convertToListDTO(question, finalUserNotesMap.get(question.getId())))
+                .collect(Collectors.toList());
+
+        // 7. 构造分页响应
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", questionListDTOs);
+        response.put("totalElements", questionPage.getTotalElements());
+        response.put("totalPages", questionPage.getTotalPages());
+        response.put("currentPage", questionPage.getNumber());
+        response.put("pageSize", questionPage.getSize());
+        response.put("hasNext", questionPage.hasNext());
+        response.put("hasPrevious", questionPage.hasPrevious());
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        logger.info("✅ 查询完成 - 总耗时: {}ms (缓存: {}ms, SQL: {}ms, DTO转换: {}ms)",
+            totalTime, step1Time, step4Time, totalTime - step1Time - step4Time);
+
+        return response;
+    }
+
+    /**
+     * 统一解析focusAreaIds（性能优化：使用缓存，避免数据库查询和多表JOIN）
+     *
+     * 性能优化原理：
+     * 1. 使用HierarchyCacheService在内存中计算focus_area_id列表
+     * 2. 避免多表JOIN（career_paths → skills → major_categories → focus_areas）
+     * 3. 缓存数据量小（几百条），查询极快（<1ms）
+     * 4. 对比旧实现：减少3-4次数据库查询
+     */
+    private List<Long> resolveFocusAreaIds(Long careerPathId, Long skillId, Long majorCategoryId, Long focusAreaId) {
+        // 使用缓存服务统一计算Focus Area IDs
+        Set<Long> focusAreaIds = hierarchyCacheService.getFocusAreaIdsByFilters(
+                careerPathId, skillId, majorCategoryId, focusAreaId
+        );
+
+        if (focusAreaIds.isEmpty()) {
+            // 如果没有任何过滤条件，返回null（表示不过滤focusArea）
+            if (careerPathId == null && skillId == null && majorCategoryId == null && focusAreaId == null) {
+                return null;
+            }
+            // 有过滤条件但没有结果，返回空列表（会导致查询返回0条）
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(focusAreaIds);
     }
 
     /**
@@ -436,6 +571,40 @@ public class QuestionService {
         dto.setCoreStrategy(note.getCoreStrategy());
         dto.setCreatedAt(note.getCreatedAt());
         dto.setUpdatedAt(note.getUpdatedAt());
+        return dto;
+    }
+
+    /**
+     * 转换为轻量级列表DTO（性能优化）
+     *
+     * 不包含:
+     * - questionDescription (节省带宽)
+     * - 用户笔记内容 (只包含isPriority和hasUserNote标志)
+     * - AI笔记
+     * - 编程题详情
+     */
+    private QuestionListDTO convertToListDTO(Question question, UserQuestionNote userNote) {
+        QuestionListDTO dto = new QuestionListDTO();
+        dto.setId(question.getId());
+        dto.setTitle(question.getTitle());
+        dto.setQuestionType(question.getQuestionType() != null ? question.getQuestionType().name() : null);
+        dto.setDifficulty(question.getDifficulty() != null ? question.getDifficulty().name() : null);
+
+        // 只设置笔记状态标志
+        if (userNote != null) {
+            dto.setHasUserNote(true);
+            dto.setIsPriority(userNote.getIsPriority() != null && userNote.getIsPriority().equals(1));
+        } else {
+            dto.setHasUserNote(false);
+            dto.setIsPriority(false);
+        }
+
+        // 关联信息
+        if (question.getFocusArea() != null) {
+            dto.setFocusAreaId(question.getFocusArea().getId());
+            dto.setFocusAreaName(question.getFocusArea().getName());
+        }
+
         return dto;
     }
 

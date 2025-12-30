@@ -13,6 +13,13 @@ public interface FocusAreaRepository extends JpaRepository<FocusArea, Long> {
 
     List<FocusArea> findBySkillIdOrderByDisplayOrderAsc(Long skillId);
 
+    /**
+     * 查询所有Focus Area并预加载Skill关联（避免N+1查询）
+     * 用于缓存预热，一次性加载所有数据
+     */
+    @Query("SELECT fa FROM FocusArea fa JOIN FETCH fa.skill")
+    List<FocusArea> findAllWithSkill();
+
     Long countBySkillId(Long skillId);
 
     void deleteBySkillId(Long skillId);

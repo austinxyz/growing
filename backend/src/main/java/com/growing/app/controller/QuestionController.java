@@ -8,6 +8,8 @@ import com.growing.app.service.AuthService;
 import com.growing.app.service.QuestionService;
 import com.growing.app.service.UserQuestionNoteService;
 import com.growing.app.util.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RequestMapping("/api/questions")
 @CrossOrigin(origins = "http://localhost:3000")
 public class QuestionController {
+
+    private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
 
     @Autowired
     private QuestionService questionService;
@@ -38,7 +42,7 @@ public class QuestionController {
     private AuthService authService;
 
     /**
-     * 搜索试题（支持关键字、技能分类、试题类型等过滤）
+     * 搜索试题（支持关键字、技能分类、试题类型等过滤 + 分页）
      *
      * 支持的查询参数:
      * - keyword: 关键字搜索（标题、描述）
@@ -48,29 +52,57 @@ public class QuestionController {
      * - focusAreaId: Focus Area ID
      * - questionType: 试题类型 (behavioral, technical, design, programming)
      * - difficulty: 难度 (EASY, MEDIUM, HARD)
+     * - isPriorityOnly: 只显示重点题（true/false）
+     * - page: 页码（从0开始，默认0）
+     * - size: 每页大小（默认20，最大100）
+     *
+     * 返回格式:
+     * {
+     *   "content": [...],        // 试题列表
+     *   "totalElements": 100,    // 总记录数
+     *   "totalPages": 5,         // 总页数
+     *   "currentPage": 0,        // 当前页码
+     *   "pageSize": 20,          // 每页大小
+     *   "hasNext": true,         // 是否有下一页
+     *   "hasPrevious": false     // 是否有上一页
+     * }
      *
      * IMPORTANT: 这个路由必须放在 /{id} 之前，避免被路径参数匹配
      */
     @GetMapping("/search")
-    public ResponseEntity<List<QuestionDTO>> searchQuestions(
+    public ResponseEntity<Map<String, Object>> searchQuestions(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long careerPathId,
             @RequestParam(required = false) Long skillId,
             @RequestParam(required = false) Long majorCategoryId,
             @RequestParam(required = false) Long focusAreaId,
-            @RequestParam(required = false) String questionType,
-            @RequestParam(required = false) String difficulty,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestParam(required = false) List<String> questionTypes,  // 改为List<String>
+            @RequestParam(required = false) List<String> difficulties,   // 改为List<String>
+            @RequestParam(required = false) Boolean isPriorityOnly,      // 是否只显示重点题
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
-        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+        // 支持匿名访问：如果没有token或token无效，userId为null
+        Long userId = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.replace("Bearer ", "");
+                String username = jwtUtil.getUsernameFromToken(token);
+                User user = userRepository.findByUsername(username).orElse(null);
+                if (user != null) {
+                    userId = user.getId();
+                }
+            } catch (Exception e) {
+                // Token无效，继续作为匿名用户（userId = null）
+            }
+        }
 
-        List<QuestionDTO> questions = questionService.searchQuestions(
+        Map<String, Object> result = questionService.searchQuestions(
             keyword, careerPathId, skillId, majorCategoryId, focusAreaId,
-            questionType, difficulty, user.getId()
+            questionTypes, difficulties, isPriorityOnly, page, size, userId
         );
-        return ResponseEntity.ok(questions);
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -92,19 +124,36 @@ public class QuestionController {
     }
 
     /**
-     * 获取Focus Area下的试题列表（公共 + 用户自己的）
+     * 获取Focus Area下的试题列表（轻量级，支持分页）
+     * ✅ 优化：只返回QuestionListDTO，不包含description、笔记、编程题详情
+     *
+     * Query参数:
+     * - page: 页码（默认0）
+     * - size: 每页数量（默认20，最大100）
+     *
+     * Response: {
+     *   "content": QuestionListDTO[],
+     *   "totalElements": number,
+     *   "totalPages": number,
+     *   "currentPage": number,
+     *   "pageSize": number,
+     *   "hasNext": boolean,
+     *   "hasPrevious": boolean
+     * }
      */
     @GetMapping("/focus-areas/{focusAreaId}")
-    public ResponseEntity<List<QuestionDTO>> getQuestionsByFocusArea(
+    public ResponseEntity<Map<String, Object>> getQuestionsByFocusArea(
             @PathVariable Long focusAreaId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
             @RequestHeader("Authorization") String authHeader) {
 
         String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
 
-        List<QuestionDTO> questions = questionService.getQuestionsByFocusAreaId(focusAreaId, user.getId());
-        return ResponseEntity.ok(questions);
+        Map<String, Object> response = questionService.getQuestionListByFocusArea(focusAreaId, page, size, user.getId());
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -245,5 +294,22 @@ public class QuestionController {
 
         noteService.deleteNote(id, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 切换试题重点标记（标记为重点或取消重点）
+     * 如果用户还没有笔记，会自动创建一条空笔记并标记为重点
+     */
+    @PostMapping("/{id}/toggle-priority")
+    public ResponseEntity<UserQuestionNoteDTO> togglePriority(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        UserQuestionNoteDTO note = noteService.togglePriority(id, user.getId());
+        return ResponseEntity.ok(note);
     }
 }

@@ -49,6 +49,11 @@ export const questionApi = {
   // 删除用户对某试题的笔记
   deleteUserNote(questionId) {
     return api.delete(`/questions/${questionId}/note`)
+  },
+
+  // 切换试题重点标记（标记为重点或取消重点）
+  togglePriority(questionId) {
+    return api.post(`/questions/${questionId}/toggle-priority`)
   }
 }
 

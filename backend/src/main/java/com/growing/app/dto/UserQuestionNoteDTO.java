@@ -13,6 +13,7 @@ public class UserQuestionNoteDTO {
     private Long userId;
     private String noteContent;
     private String coreStrategy;
+    private Boolean isPriority;
 
     /**
      * 关联的知识点ID列表（已解析为List）

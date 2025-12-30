@@ -1,9 +1,9 @@
 # Phase 6 设计文档 - 通用技能学习模块
 
-> **架构版本**: v1.1
-> **状态**: 🚧 部分完成 - Phase 6.1-6.2 已实现
+> **架构版本**: v1.3
+> **状态**: 🚧 大部分完成 - Phase 6.1-6.5 已实现
 > **创建时间**: 2025-12-27
-> **最后更新**: 2025-12-28 (v1.1 - 根据实际实现更新)
+> **最后更新**: 2025-12-30 (v1.3 - 根据Austin comments更新删除规则和QuestionBank设计)
 > **需求文档**: [Phase6-详细需求.md](../requirement/Phase6-详细需求.md)
 > **参考模块**: Phase 4 算法学习模块、Phase 5 系统设计模块
 
@@ -201,8 +201,10 @@ Phase 6 实现**双轨制学习系统**:
     │ user_id (FK)                         │
     │ note_content (TEXT)                  │ [用于STAR答题笔记]
     │ core_strategy (TEXT)                 │ [技术类核心思路]
-    │ related_knowledge_point_ids (JSON)   │ [新增]
+    │ is_priority (TINYINT)                │ [重点题标记] ✅
+    │ related_knowledge_point_ids (JSON)   │ [知识点关联]
     │ UNIQUE(question_id, user_id)         │
+    │ INDEX idx_user_priority              │
     └──────────────────────────────────────┘
 ```
 
@@ -295,16 +297,25 @@ COMMENT='Skill与答题模版关联表 (多对多)';
 
 **用途**: 存储用户的答题笔记 (支持模版渲染和知识点关联)
 
-**扩展DDL** (V17 migration):
+**扩展DDL** (V17 migration + 重点题标记):
 ```sql
--- 已有表结构,新增字段
+-- Phase 6.1: 已有表结构,新增字段
 ALTER TABLE user_question_notes
     ADD COLUMN related_knowledge_point_ids JSON COMMENT '关联的知识点ID列表 (JSON数组)' AFTER core_strategy;
+
+-- Phase 6.5: 重点题标记功能 (2025-12-30完成)
+ALTER TABLE user_question_notes
+    ADD COLUMN is_priority TINYINT(1) DEFAULT 0 COMMENT '是否标记为重点题 (用户个人标记)' AFTER core_strategy;
+
+-- 添加索引以优化重点题筛选
+ALTER TABLE user_question_notes
+    ADD INDEX idx_user_priority (user_id, is_priority);
 ```
 
 **字段说明**:
 - `note_content`: 用于存储STAR答题笔记或技术类详细回答
 - `core_strategy`: 用于技术类核心思路 (Behavioral类也可使用)
+- `is_priority`: 是否标记为重点题 (用户个人标记,默认0=非重点) ✅ 新增
 - `related_knowledge_point_ids`: 关联的知识点ID列表 (可以是AI生成的或用户自己的)
 
 **示例数据**:
@@ -423,10 +434,13 @@ answer_templates
 - 每个Skill可以关联多个答题模版 (通过skill_templates表)
 - 用户答题笔记可以关联AI知识点或用户自己的知识点 (related_knowledge_point_ids)
 
-**级联删除规则**:
-- 删除Skill → 级联删除Major Categories → 级联删除Focus Areas → 级联删除Learning Contents、Questions
-- 删除AnswerTemplate → 级联删除skill_templates关联
-
+**删除规则** (2025-12-30更新):
+- ❌ **不使用数据库级联删除** - 避免误删导致数据丢失
+- ✅ **在设置-内容管理-技能架构管理中实施删除逻辑检验**:
+  - 删除前检查是否有子资源 (Major Categories、Focus Areas、Learning Contents、Questions)
+  - 如果存在子资源,提示管理员并禁止删除
+  - 只允许删除"叶子节点"资源 (无子资源的项)
+- ✅ **AnswerTemplate删除**: 检查是否有Skill关联 (skill_templates表),有关联则禁止删除
 ---
 
 ## 3. API设计
@@ -579,7 +593,27 @@ answer_templates
 **GET /api/questions/{questionId}/my-note**
 - 功能: 获取用户答题笔记
 - 权限: 已登录用户
-- 返回: UserQuestionNoteDTO (包含relatedKnowledgePointIds)
+- 返回: UserQuestionNoteDTO (包含relatedKnowledgePointIds和isPriority)
+
+#### 3.2.4 重点题标记 (QuestionController扩展) ✅ 新增
+
+**POST /api/questions/{questionId}/toggle-priority**
+- 功能: 切换试题的重点标记状态
+- 权限: 已登录用户
+- 说明: 如果用户尚未答题(没有笔记记录),会自动创建空笔记并标记为重点
+- 返回: UserQuestionNoteDTO
+  ```json
+  {
+    "id": 123,
+    "questionId": 456,
+    "userId": 789,
+    "isPriority": true,
+    "noteContent": "",
+    "coreStrategy": "",
+    "createdAt": "2025-12-30T10:00:00",
+    "updatedAt": "2025-12-30T10:00:00"
+  }
+  ```
 
 ---
 
@@ -587,14 +621,14 @@ answer_templates
 
 ### 4.1 管理端页面
 
-#### 4.1.1 职业技能库管理页面 (扩展)
+#### 4.1.1 职业技能库管理页面 (扩展) ✅ 已实现
 
-**页面**: `/admin/skill-management`
-**组件**: SkillManagement.vue (扩展)
+**页面**: `/admin/general-skill-content-management`
+**组件**: GeneralSkillContentManagement.vue
 
 **组件结构**:
 ```vue
-SkillManagement.vue
+GeneralSkillContentManagement.vue
 ├─ 左侧 (上下两栏树形结构)
 │   ├─ 上栏树: 职业路径 → 技能
 │   └─ 下栏树:
@@ -914,153 +948,179 @@ GeneralSkillLearning.vue
   });
   ```
 
-#### 4.2.2 独立答题页面 ⏭️ 已删除，功能已整合
+#### 4.2.2 试题库专项页面 ✅ 已重新设计并实现 (2025-12-30)
 
-**注**: `MyQuestionBank.vue`已删除，答题功能已整合到`GeneralSkillLearning.vue`的试题库Tab中
+**路径**: `/question-bank`
+**组件**: `QuestionBank.vue`
 
-**原设计 (已过时)**:
+**设计理念**:
+- 独立的试题库页面,专注于试题刷题和练习
+- 左右两栏布局: 试题列表 + 答题区域
+- 丰富的筛选条件 + 重点题标记功能
+- 两种模式切换: 答题模式 / 批改模式
 
-**新增筛选条件**:
+**组件结构**:
 ```vue
-<template>
-  <div class="filter-bar">
-    <select v-model="filters.skillId">
-      <option value="">全部技能</option>
-      <option v-for="skill in skills" :value="skill.id">{{ skill.name }}</option>
-    </select>
-
-    <!-- 仅第一类技能显示大分类筛选 -->
-    <select v-if="isFirstClassSkill" v-model="filters.majorCategoryId">
-      <option value="">全部大分类</option>
-      <option v-for="cat in majorCategories" :value="cat.id">{{ cat.name }}</option>
-    </select>
-
-    <select v-model="filters.focusAreaId">
-      <option value="">全部Focus Area</option>
-      <option v-for="fa in focusAreas" :value="fa.id">{{ fa.name }}</option>
-    </select>
-
-    <select v-model="filters.questionType">
-      <option value="">全部题目类型</option>
-      <option value="behavioral">Behavioral</option>
-      <option value="technical">技术</option>
-      <option value="design">设计</option>
-      <option value="programming">编程</option>
-    </select>
-
-    <select v-model="filters.answerStatus">
-      <option value="">全部答题状态</option>
-      <option value="answered">已答</option>
-      <option value="unanswered">未答</option>
-    </select>
-  </div>
-</template>
+QuestionBank.vue (三层布局)
+├─ 顶部导航栏 (标题 + 面包屑)
+│   └─ 📚 试题库 - 职业技能试题练习
+│
+├─ 查询过滤器面板 (可折叠)
+│   ├─ 关键字搜索 (支持Enter搜索)
+│   ├─ 职业路径选择 (级联下拉)
+│   ├─ 技能选择 (级联下拉)
+│   ├─ 大分类选择 (级联下拉)
+│   ├─ Focus Area选择 (级联下拉)
+│   ├─ 试题类型多选 (behavioral/technical/design/programming)
+│   ├─ 难度多选 (EASY/MEDIUM/HARD)
+│   ├─ 重点题筛选 (checkbox: 只显示重点)
+│   └─ 操作按钮 (🔍 搜索 / 🔄 重置)
+│
+└─ 主体两栏布局 (flex,可隐藏左侧)
+    ├─ 左侧: 试题列表 (w-96,可隐藏)
+    │   ├─ 列表头部 (试题总数)
+    │   ├─ 试题卡片列表 (滚动)
+    │   │   ├─ 类型标签 (彩色)
+    │   │   ├─ 难度标签 (绿/黄/红)
+    │   │   ├─ 标题 (line-clamp-2)
+    │   │   ├─ 描述 (line-clamp-1)
+    │   │   ├─ 重点题星标按钮 (⭐)
+    │   │   └─ 答题状态 (✅ 已答题)
+    │   └─ 分页控件 (上一页/下一页)
+    │
+    └─ 右侧: 答题/批改区域 (flex-1)
+        ├─ 左侧面板切换按钮 (悬浮)
+        ├─ 未选择提示 (空状态)
+        └─ 试题详情区 (选中试题后)
+            ├─ 试题信息头部
+            │   ├─ 类型标签 + 难度标签
+            │   ├─ 试题标题
+            │   ├─ 试题描述 (非编程题)
+            │   └─ 模式切换按钮组
+            │       ├─ 📝 答题模式 (Answer Mode)
+            │       └─ 📊 批改模式 (Review Mode)
+            │
+            ├─ 答题模式 (AnswerMode.vue组件)
+            │   ├─ 编程题特殊布局 (左右两栏)
+            │   │   ├─ 左栏: 题目描述 + 示例 + 约束
+            │   │   └─ 右栏: 代码编辑器 (Monaco Editor)
+            │   └─ 非编程题布局 (单栏)
+            │       ├─ 答案要求 (Markdown渲染)
+            │       ├─ 🤖 AI参考答案卡片 (折叠)
+            │       ├─ STAR模版答题框架 (动态渲染)
+            │       │   ├─ Situation (蓝色卡片)
+            │       │   ├─ Task (绿色卡片)
+            │       │   ├─ Action (橙色卡片)
+            │       │   └─ Result (紫色卡片)
+            │       ├─ 核心思路输入
+            │       └─ [保存笔记] 按钮
+            │
+            └─ 批改模式 (ReviewMode.vue组件)
+                ├─ 我的答案 (只读,Markdown渲染)
+                ├─ AI参考答案 (只读,Markdown渲染)
+                └─ 对比显示 (并排或纵向)
 ```
 
-**答题界面 (根据Skill模版动态渲染)**:
+**核心功能**:
 
-**Behavioral类 (STAR模版)**:
-```vue
-<template>
-  <div class="answer-editor">
-    <h3>我的回答</h3>
+**1. 级联筛选** (QuestionBank.vue:28-87):
+```javascript
+// 职业路径 → 技能 → 大分类 → Focus Area 四级联动
+async onCareerPathChange() {
+  this.filters.skillId = null
+  this.skills = await skillApi.getSkillsByCareerPath(careerPathId)
+}
 
-    <!-- 根据模版字段动态渲染 -->
-    <div v-for="field in template.templateFields" :key="field.key" class="field-group">
-      <label>{{ field.label }}</label>
-      <textarea
-        v-model="answer[field.key]"
-        :placeholder="field.placeholder"
-        rows="4"
-      ></textarea>
-    </div>
+async onSkillChange() {
+  this.filters.majorCategoryId = null
+  this.majorCategories = await majorCategoryApi.getBySkillId(skillId)
+}
 
-    <!-- 核心思路 (可选) -->
-    <div class="field-group">
-      <label>核心思路 (可选)</label>
-      <textarea v-model="answer.coreStrategy" rows="2"></textarea>
-    </div>
+async onMajorCategoryChange() {
+  this.filters.focusAreaId = null
+  this.focusAreas = await focusAreaApi.getByMajorCategoryId(majorCategoryId)
+}
+```
 
-    <!-- 关联知识点 -->
-    <div class="field-group">
-      <label>关联知识点</label>
-      <KnowledgePointSelector
-        v-model="answer.relatedKnowledgePointIds"
-        :ai-knowledge-points="aiKnowledgePoints"
-        :user-knowledge-points="userKnowledgePoints"
-      />
-    </div>
-
-    <button @click="saveAnswer">保存笔记</button>
-  </div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      answer: {
-        situation: '',
-        task: '',
-        action: '',
-        result: '',
-        coreStrategy: '',
-        relatedKnowledgePointIds: []
-      },
-      template: null // STAR模版
-    }
-  },
-  methods: {
-    async saveAnswer() {
-      // 将answer对象转换为Markdown格式
-      const noteContent = this.template.templateFields.map(field => {
-        return `**${field.label}**\n${this.answer[field.key] || ''}\n`;
-      }).join('\n');
-
-      // 调用API保存
-      await questionApi.saveMyNote(this.questionId, {
-        noteContent,
-        coreStrategy: this.answer.coreStrategy,
-        relatedKnowledgePointIds: this.answer.relatedKnowledgePointIds
-      });
-    }
+**2. 重点题标记** (QuestionBank.vue:224-236):
+```javascript
+async togglePriority(question) {
+  const result = await questionApi.togglePriority(question.id)
+  // 更新本地状态
+  question.userNote = result
+  // 如果当前开启"只显示重点",则从列表中移除
+  if (!result.isPriority && this.filters.isPriorityOnly) {
+    this.questions = this.questions.filter(q => q.id !== question.id)
   }
 }
-</script>
 ```
 
-**技术类**:
+**3. 两种模式切换** (QuestionBank.vue:367-391):
 ```vue
-<template>
-  <div class="answer-editor">
-    <h3>我的回答</h3>
-
-    <!-- 核心思路 -->
-    <div class="field-group">
-      <label>核心思路</label>
-      <textarea v-model="answer.coreStrategy" rows="3"></textarea>
-    </div>
-
-    <!-- 详细回答 -->
-    <div class="field-group">
-      <label>详细回答</label>
-      <MarkdownEditor v-model="answer.noteContent" />
-    </div>
-
-    <!-- 关联知识点 -->
-    <div class="field-group">
-      <label>关联知识点</label>
-      <KnowledgePointSelector
-        v-model="answer.relatedKnowledgePointIds"
-        :ai-knowledge-points="aiKnowledgePoints"
-        :user-knowledge-points="userKnowledgePoints"
-      />
-    </div>
-
-    <button @click="saveAnswer">保存笔记</button>
-  </div>
-</template>
+<div class="flex gap-2">
+  <button
+    @click="currentMode = 'answer'"
+    :class="[
+      'px-4 py-2 rounded-lg transition-colors',
+      currentMode === 'answer'
+        ? 'bg-blue-600 text-white'
+        : 'bg-gray-200 text-gray-700'
+    ]"
+  >
+    📝 答题模式
+  </button>
+  <button
+    @click="currentMode = 'review'"
+    :class="[
+      'px-4 py-2 rounded-lg transition-colors',
+      currentMode === 'review'
+        ? 'bg-green-600 text-white'
+        : 'bg-gray-200 text-gray-700'
+    ]"
+  >
+    📊 批改模式
+  </button>
+</div>
 ```
+
+**4. 子组件集成**:
+- ✅ `AnswerMode.vue` - 答题模式组件 (支持STAR框架、编程题)
+- ✅ `ReviewMode.vue` - 批改模式组件 (答案对比)
+- ✅ 复用 `UserNoteEditor.vue` - STAR动态答题界面
+
+**API调用**:
+```javascript
+// 获取试题列表 (支持多种筛选)
+GET /api/questions/search?keyword=X&skillId=Y&isPriorityOnly=true&page=0&size=20
+
+// 切换重点题标记
+POST /api/questions/{id}/toggle-priority
+→ Returns: UserQuestionNoteDTO (含isPriority字段)
+
+// 保存答题笔记
+POST /api/questions/{id}/my-note
+Body: { noteContent, coreStrategy, relatedKnowledgePointIds }
+```
+
+**关键特性**:
+- ✅ **重点题标记** - 星标按钮 + 只显示重点筛选
+- ✅ **级联筛选** - 职业路径 → 技能 → 大分类 → Focus Area
+- ✅ **多选筛选** - 试题类型、难度支持多选
+- ✅ **关键字搜索** - 支持Enter键快速搜索
+- ✅ **左侧面板隐藏** - 答题时可隐藏试题列表,专注答题
+- ✅ **分页加载** - 支持大量试题的分页浏览
+- ✅ **答题状态标记** - 已答题显示绿色勾标
+- ✅ **STAR框架答题** - 动态加载技能默认模版
+
+**与GeneralSkillLearning.vue的区别**:
+| 特性 | QuestionBank.vue | GeneralSkillLearning.vue |
+|------|------------------|--------------------------|
+| 定位 | 独立刷题页面 | 学习页面 (双Tab) |
+| 筛选 | 丰富筛选条件 (8种) | 按Focus Area浏览 |
+| 布局 | 左右两栏 (试题列表+答题区) | 左右两栏 (树形结构+双Tab) |
+| 重点题 | ✅ 支持标记+筛选 | ❌ 不支持 |
+| 编程题 | ✅ 支持 (代码编辑器) | ✅ 支持 |
+| 批改模式 | ✅ 答案对比 | ❌ 仅答题 |
 
 ---
 
@@ -1657,6 +1717,25 @@ const preview = marked(templateMarkdown)
 
 ## 11. 版本历史
 
+### v1.3 (2025-12-30)
+**更新内容** (基于Austin的comments):
+- ✅ 更新删除规则说明: 不使用级联删除,改用删除逻辑检验 (2.3节)
+- ✅ 完整重写QuestionBank.vue设计文档 (4.2.2节)
+  - 三层布局详细说明 (顶部导航+筛选面板+两栏主体)
+  - 8种筛选条件完整文档
+  - 答题模式/批改模式切换
+  - 重点题标记功能集成
+  - 与GeneralSkillLearning.vue的差异对比表
+- ✅ 删除过时的MyQuestionBank.vue旧设计
+
+### v1.2 (2025-12-30)
+**更新内容**:
+- ✅ 新增重点题标记功能文档 (数据模型、API、前端)
+- ✅ 更新表3 user_question_notes: 新增is_priority字段和索引
+- ✅ 新增API文档: POST /api/questions/{questionId}/toggle-priority
+- ✅ 更新实施进度: QuestionBank.vue重点题功能完成
+- ✅ 替换SkillManagement.vue → GeneralSkillContentManagement.vue
+
 ### v1.1 (2025-12-28)
 **更新内容**:
 - ✅ 更新实施进度: Phase 6.1-6.4已完成
@@ -1671,26 +1750,40 @@ const preview = marked(templateMarkdown)
 
 ---
 
-**文档版本**: v1.1
+**文档版本**: v1.3
 **创建时间**: 2025-12-27
-**最后更新**: 2025-12-28 (v1.1 - 根据实际实现更新)
-**状态**: 🚧 部分完成 - Phase 6.1-6.4 已实现，Phase 6.5 待实施
+**最后更新**: 2025-12-30 (v1.3 - 根据Austin comments更新删除规则和QuestionBank设计)
+**状态**: ✅ 已完成 - Phase 6.1-6.5 已完成
 
 **实施进度**:
 - ✅ Phase 6.1: 数据模型和基础架构 (100%)
 - ✅ Phase 6.2: 管理员页面 (100% - 含AI答题模式)
 - ✅ Phase 6.3: 技能模版管理 (100% - 完整实现三组件系统)
 - ✅ Phase 6.4: 问题浏览模式重新设计 (100% - 含STAR动态答题界面)
-- ⏭️ Phase 6.5: 数据导入和测试 (待实施)
+- ✅ Phase 6.5: 试题库功能完整实现 (100% - QuestionBank.vue全功能)
+- ⏭️ Phase 6.6: 数据导入和测试 (待实施)
 
 **核心成果**:
 1. ✅ STAR框架动态答题界面完整实现 (UserNoteEditor.vue)
 2. ✅ 三模式系统 (view/edit/ai-answer) 完整实现
 3. ✅ 技能模版库管理系统完整实现 (SkillTemplateManagement.vue + 2个Modal组件)
 4. ✅ 公开API支持用户端答题 (SkillTemplateController)
+5. ✅ QuestionBank.vue独立刷题页面 (8种筛选条件 + 重点题标记 + 答题/批改模式)
 
-**待完成功能**:
+**已完成功能 (Phase 6.5)** - 2025-12-30:
+1. ✅ QuestionBank.vue完整实现
+   - 三层布局 (顶部导航 + 筛选面板 + 两栏主体)
+   - 8种筛选条件 (关键字、职业路径、技能、大分类、Focus Area、试题类型、难度、重点题)
+   - 级联筛选 (职业路径 → 技能 → 大分类 → Focus Area)
+   - 重点题标记和筛选 (星标按钮 + 只显示重点)
+   - 答题模式 / 批改模式切换
+   - 左侧面板隐藏功能 (专注答题)
+2. ✅ 数据库扩展: user_question_notes.is_priority字段 + 索引
+3. ✅ API实现: POST /api/questions/{id}/toggle-priority
+4. ✅ SQL级别筛选优化: LEFT JOIN + fieldSelector
+5. ✅ 删除规则优化: 不使用级联删除,改用删除逻辑检验
+
+**待完成功能 (Phase 6.6)**:
 1. ⏭️ 知识点关联功能 (related_knowledge_point_ids字段在答题笔记中的应用)
-2. ⏭️ 独立题库刷题页面 (如需要，重新实现MyQuestionBank.vue)
-3. ⏭️ 数据导入 (云计算、DevOps、Behavioral题库)
-4. ⏭️ AI笔记批量导入工具
+2. ⏭️ 数据导入 (云计算、DevOps、Behavioral题库)
+3. ⏭️ AI笔记批量导入工具

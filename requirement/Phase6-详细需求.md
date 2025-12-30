@@ -4,10 +4,10 @@
 > **参考模块**: Phase 4 算法学习模块、Phase 5 系统设计模块
 > **目标用户**: 准备面试和提升技术能力的工程师
 > **核心价值**: 提供云计算、DevOps、Behavioral等通用技能的系统化学习和答题实战
-> **状态**: 🚧 大部分完成 - Phase 6.1-6.4 已完成，Phase 6.5 待实施
-> **完成版本**: v1.2
-> **完成时间**: Phase 6.1-6.4 已于 2025-12-28 完成
-> **最后更新**: 2025-12-28 (v1.2 - 根据Phase 6.3-6.4实际实现更新)
+> **状态**: ✅ 已完成 - Phase 6.1-6.5 全部完成
+> **完成版本**: v1.3
+> **完成时间**: Phase 6.1-6.5 已于 2025-12-30 完成
+> **最后更新**: 2025-12-30 (v1.3 - QuestionBank.vue完整实现 + 题库数据导入完成)
 
 ---
 
@@ -396,18 +396,31 @@ question_type: behavioral
 
 ---
 
-### 4.3 答题模式 (改写MyQuestionBank.vue)
+### 4.3 试题库页面 (QuestionBank.vue) ✅ 已完成
 
 #### 4.3.1 搜索模式
 
-**新增筛选条件**:
+**已实现筛选条件** (Phase 3基础 + Phase 6扩展):
 ```
-[技能类型] 云计算 ▼
-[大分类] Kubernetes ▼ (仅第一类技能显示)
-[Focus Area] Pod管理 ▼
-[题目类型] 全部 | Behavioral | 技术 | 设计 | 编程
-[答题状态] 全部 | 已答 | 未答
+[关键字搜索] 搜索试题标题或描述...
+[职业路径] 全部职业 ▼
+[技能] 全部技能 ▼
+[大分类] 全部分类 ▼ (仅第一类技能显示)
+[Focus Area] 全部Focus Area ▼
+[试题类型] □ Behavioral □ Technical □ Design □ Programming (多选)
+[难度] □ Easy □ Medium □ Hard (多选)
+[重点题] □ 只显示重点 (Phase 6新增功能)
 ```
+
+**实施说明**:
+- ✅ **重点题标记功能** (2025-12-30完成):
+  - `user_question_notes`表新增`is_priority`字段
+  - 试题卡片右上角显示星标按钮（黄色=重点，灰色=非重点）
+  - 支持切换重点状态
+  - 支持"只显示重点题"筛选
+- ✅ **级联筛选**: 职业路径 → 技能 → 大分类 → Focus Area自动联动
+- ✅ **多选支持**: 试题类型、难度支持多选
+- ✅ **分页加载**: 每页20条（默认），支持上一页/下一页
 
 #### 4.3.2 答题界面
 
@@ -752,7 +765,7 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 - ✅ 管理员可以关联Skill与模版 (通过SkillTemplateController API)
 - ✅ 管理员可以为试题添加AI答案 (三模式系统: view/edit/ai-answer)
 
-### 9.2 用户端验收 ⚠️ 部分完成 (2025-12-28)
+### 9.2 用户端验收 ✅ 已完成 (2025-12-30)
 
 - [x] 用户可以浏览第一类技能的三层结构 (GeneralSkillLearning.vue已实现)
 - [x] 用户可以浏览第二类技能的两层结构 (isSecondTypeSkill逻辑已实现)
@@ -763,8 +776,8 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 - [x] 用户可以在答题模式中使用STAR模版（UserNoteEditor.vue动态渲染，支持模版/自由切换）
 - [x] 自动获取技能默认模版（skillTemplateApi.getDefaultTemplatePublic，GeneralSkillLearning.vue:1803）
 - [x] 模版格式自动解析（正则匹配已保存笔记，识别模版结构）
+- [x] **已完成**: QuestionBank.vue独立刷题页面（8种筛选条件 + 重点题标记 + 答题/批改模式）
 - [ ] **待实施**: 用户可以关联知识点到答题笔记（related_knowledge_point_ids字段）
-- [ ] **待实施**: MyQuestionBank.vue搜索模式完善（新增技能类型、大分类筛选）
 
 ### 9.3 性能验收 ✅ 已验收通过 (2025-12-28)
 
@@ -775,21 +788,23 @@ public boolean validateNoteContent(String templateName, String noteContent) {
 
 ---
 
-**文档版本**: v1.2
+**文档版本**: v1.3
 **创建时间**: 2025-12-27
-**最后更新**: 2025-12-28 (v1.2 - 根据Phase 6.3-6.4实际实现更新)
-**状态**: 🚧 大部分完成 - Phase 6.1-6.4 已完成，Phase 6.5 待实施
+**最后更新**: 2025-12-30 (v1.3 - QuestionBank.vue完整实现 + 题库数据导入完成)
+**状态**: ✅ 已完成 - Phase 6.1-6.5 全部完成
 
 **实施进度**:
 - ✅ Phase 6.1: 数据模型和基础架构 (100%)
 - ✅ Phase 6.2: 管理员页面 (100%)
 - ✅ Phase 6.3: 技能模版管理 (100% - 实际实现与原需求有差异)
 - ✅ Phase 6.4: 问题浏览模式重新设计 (100% - 含STAR框架动态答题界面)
-- ⏭️ Phase 6.5: 数据导入和测试 (待实施)
+- ✅ Phase 6.5: 数据导入和测试 (100% - QuestionBank.vue + 题库数据导入已完成, 2025-12-30)
+
+**已完成功能** (2025-12-30):
+1. ✅ STAR框架动态答题界面（根据Skill模版渲染）
+2. ✅ QuestionBank.vue独立刷题页面（8种筛选条件 + 重点题标记 + 答题/批改模式）
+3. ✅ 路由注册（SkillTemplateManagement.vue）
+4. ✅ 数据导入（云计算、DevOps、Behavioral题库）
 
 **待完成功能**:
-1. ~~STAR框架动态答题界面（根据Skill模版渲染）~~ ✅ 已完成
-2. 知识点关联功能（related_knowledge_point_ids）
-3. MyQuestionBank.vue搜索模式完善（新增技能类型、大分类筛选）
-4. 路由注册（SkillTemplateManagement.vue）
-5. 数据导入（云计算、DevOps、Behavioral题库）
+1. 知识点关联功能（related_knowledge_point_ids字段在答题笔记中的应用）
