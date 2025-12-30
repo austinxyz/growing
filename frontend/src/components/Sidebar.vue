@@ -143,6 +143,14 @@
             <Briefcase class="w-5 h-5" />
             <span>技能学习</span>
           </router-link>
+          <router-link
+            to="/question-bank"
+            class="nav-item"
+            :class="isActive('/question-bank')"
+          >
+            <FileQuestion class="w-5 h-5" />
+            <span>试题库</span>
+          </router-link>
         </div>
 
         <!-- 算法与数据结构 -->
@@ -308,6 +316,14 @@
           <Briefcase class="w-5 h-5" />
         </router-link>
         <router-link
+          to="/question-bank"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/question-bank')"
+          title="试题库"
+        >
+          <FileQuestion class="w-5 h-5" />
+        </router-link>
+        <router-link
           to="/algorithm-learning"
           class="flex items-center justify-center p-2 rounded-md transition-colors"
           :class="isActive('/algorithm-learning')"
@@ -449,7 +465,8 @@ watch(() => route.path, (newPath) => {
   } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard') ||
              newPath.startsWith('/algorithm-learning') ||
              newPath.startsWith('/algorithm-templates') || newPath.startsWith('/system-design') ||
-             newPath.startsWith('/learning-review')) {
+             newPath.startsWith('/learning-review') || newPath.startsWith('/question-bank') ||
+             newPath.startsWith('/general-skills')) {
     activeTopTab.value = 'learning';
   } else if (newPath.startsWith('/career') || newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
     activeTopTab.value = 'career';
