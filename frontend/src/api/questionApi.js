@@ -2,6 +2,12 @@ import api from './index'
 
 // 用户端API
 export const questionApi = {
+  // 搜索试题（支持关键字、技能分类、试题类型等过滤）
+  // params: { keyword, careerPathId, skillId, majorCategoryId, focusAreaId, questionType, difficulty, page, size }
+  searchQuestions(params = {}) {
+    return api.get('/questions/search', { params })
+  },
+
   // 获取Focus Area下的试题列表（公共 + 用户自己的）
   getQuestionsByFocusArea(focusAreaId, params = {}) {
     return api.get(`/questions/focus-areas/${focusAreaId}`, { params })

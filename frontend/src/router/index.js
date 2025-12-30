@@ -143,6 +143,12 @@ const routes = [
     component: () => import('../views/admin/SkillTemplateManagement.vue'),
     meta: { requiresAdmin: true }
   },
+  // 用户端 - 试题库（职业技能试题练习）
+  {
+    path: '/question-bank',
+    name: 'QuestionBank',
+    component: () => import('../views/QuestionBank.vue')
+  },
 ]
 
 const router = createRouter({

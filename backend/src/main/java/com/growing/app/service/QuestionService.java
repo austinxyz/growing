@@ -78,6 +78,115 @@ public class QuestionService {
     }
 
     /**
+     * 搜索试题（支持多条件过滤）
+     *
+     * 支持的查询条件:
+     * - keyword: 关键字搜索（标题、描述）
+     * - careerPathId, skillId, majorCategoryId, focusAreaId: 级联筛选
+     * - questionType: 试题类型
+     * - difficulty: 难度
+     * - userId: 用户ID（用于过滤可见性和加载笔记）
+     */
+    public List<QuestionDTO> searchQuestions(
+            String keyword,
+            Long careerPathId,
+            Long skillId,
+            Long majorCategoryId,
+            Long focusAreaId,
+            String questionType,
+            String difficulty,
+            Long userId) {
+
+        // 1. 先获取符合Focus Area筛选条件的所有试题
+        List<Question> questions;
+
+        if (focusAreaId != null) {
+            // 直接按Focus Area过滤
+            questions = questionRepository.findByFocusAreaIdAndVisibleToUser(focusAreaId, userId);
+        } else if (majorCategoryId != null) {
+            // 获取该大分类下所有Focus Area的试题
+            List<FocusArea> focusAreas = focusAreaRepository.findByMajorCategoryId(majorCategoryId);
+            List<Long> focusAreaIds = focusAreas.stream()
+                    .map(FocusArea::getId)
+                    .collect(Collectors.toList());
+
+            questions = focusAreaIds.isEmpty() ? new ArrayList<>() :
+                    questionRepository.findByFocusAreaIdInAndVisibleToUser(focusAreaIds, userId);
+        } else if (skillId != null) {
+            // 获取该技能下所有Focus Area的试题（通过大分类关联）
+            List<MajorCategory> categories = majorCategoryRepository.findBySkillId(skillId);
+            List<Long> categoryIds = categories.stream()
+                    .map(MajorCategory::getId)
+                    .collect(Collectors.toList());
+
+            List<FocusArea> focusAreas = categoryIds.isEmpty() ? new ArrayList<>() :
+                    focusAreaRepository.findByMajorCategoryIdIn(categoryIds);
+
+            List<Long> focusAreaIds = focusAreas.stream()
+                    .map(FocusArea::getId)
+                    .collect(Collectors.toList());
+
+            questions = focusAreaIds.isEmpty() ? new ArrayList<>() :
+                    questionRepository.findByFocusAreaIdInAndVisibleToUser(focusAreaIds, userId);
+        } else if (careerPathId != null) {
+            // 获取该职业路径下所有试题（通过技能 -> 大分类 -> Focus Area）
+            // 这个查询比较复杂，暂时不实现，可以要求用户至少选择技能
+            questions = new ArrayList<>();
+        } else {
+            // 如果没有任何分类过滤，返回所有用户可见的试题
+            questions = questionRepository.findAllVisibleToUser(userId);
+        }
+
+        // 2. 应用其他过滤条件
+        return questions.stream()
+                .filter(q -> {
+                    // 关键字过滤
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        String lowerKeyword = keyword.toLowerCase();
+                        boolean titleMatch = q.getTitle() != null && q.getTitle().toLowerCase().contains(lowerKeyword);
+                        boolean descMatch = q.getQuestionDescription() != null && q.getQuestionDescription().toLowerCase().contains(lowerKeyword);
+                        if (!titleMatch && !descMatch) {
+                            return false;
+                        }
+                    }
+
+                    // 试题类型过滤
+                    if (questionType != null && !questionType.isEmpty()) {
+                        if (!questionType.equalsIgnoreCase(q.getQuestionType())) {
+                            return false;
+                        }
+                    }
+
+                    // 难度过滤
+                    if (difficulty != null && !difficulty.isEmpty()) {
+                        if (q.getDifficulty() == null || !difficulty.equalsIgnoreCase(q.getDifficulty().name())) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .map(question -> {
+                    // 转换为DTO并加载笔记
+                    QuestionDTO dto = convertToDTOWithDetails(question);
+
+                    // 加载用户笔记
+                    Optional<UserQuestionNote> userNote = noteRepository.findByQuestionIdAndUserId(question.getId(), userId);
+                    if (userNote.isPresent()) {
+                        dto.setUserNote(convertNoteToDTO(userNote.get()));
+                        dto.setHasUserNote(true);
+                    }
+
+                    // 加载AI笔记（user_id = -1）
+                    Optional<UserQuestionNote> aiNote = noteRepository.findByQuestionIdAndUserId(question.getId(), -1L);
+                    aiNote.ifPresent(n -> dto.setAiNote(convertNoteToDTO(n)));
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 获取Focus Area下的所有试题（管理员，含编程题详情）
      */
     public List<QuestionDTO> getAllQuestionsByFocusAreaId(Long focusAreaId) {

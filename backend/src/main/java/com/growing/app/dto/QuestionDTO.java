@@ -38,6 +38,9 @@ public class QuestionDTO {
     // 答题模版（Skill的默认模版，仅在获取详情时包含）
     private AnswerTemplateDTO answerTemplate;
 
+    // 是否有用户笔记（用于列表显示）
+    private Boolean hasUserNote;
+
     // note字段作为userNote的别名，方便前端使用
     public void setNote(UserQuestionNoteDTO note) {
         this.userNote = note;

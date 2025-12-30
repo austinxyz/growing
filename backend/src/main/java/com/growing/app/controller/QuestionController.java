@@ -38,6 +38,42 @@ public class QuestionController {
     private AuthService authService;
 
     /**
+     * 搜索试题（支持关键字、技能分类、试题类型等过滤）
+     *
+     * 支持的查询参数:
+     * - keyword: 关键字搜索（标题、描述）
+     * - careerPathId: 职业路径ID
+     * - skillId: 技能ID
+     * - majorCategoryId: 大分类ID
+     * - focusAreaId: Focus Area ID
+     * - questionType: 试题类型 (behavioral, technical, design, programming)
+     * - difficulty: 难度 (EASY, MEDIUM, HARD)
+     *
+     * IMPORTANT: 这个路由必须放在 /{id} 之前，避免被路径参数匹配
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<QuestionDTO>> searchQuestions(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long careerPathId,
+            @RequestParam(required = false) Long skillId,
+            @RequestParam(required = false) Long majorCategoryId,
+            @RequestParam(required = false) Long focusAreaId,
+            @RequestParam(required = false) String questionType,
+            @RequestParam(required = false) String difficulty,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = jwtUtil.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));
+
+        List<QuestionDTO> questions = questionService.searchQuestions(
+            keyword, careerPathId, skillId, majorCategoryId, focusAreaId,
+            questionType, difficulty, user.getId()
+        );
+        return ResponseEntity.ok(questions);
+    }
+
+    /**
      * 获取用户的学习总结（按大分类和Focus Area分组）
      * 只返回用户有笔记的试题
      *

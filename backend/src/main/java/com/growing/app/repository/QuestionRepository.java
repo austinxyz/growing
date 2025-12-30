@@ -67,4 +67,27 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * 统计多个Focus Area的试题数量
      */
     long countByFocusAreaIdIn(List<Long> focusAreaIds);
+
+    /**
+     * 批量获取多个Focus Area下用户可见的试题
+     */
+    @Query("SELECT q FROM Question q " +
+           "LEFT JOIN ProgrammingQuestionDetails pqd ON pqd.question.id = q.id " +
+           "WHERE q.focusArea.id IN :focusAreaIds " +
+           "AND (q.isOfficial = true OR q.createdByUser.id = :userId) " +
+           "ORDER BY CASE WHEN pqd.leetcodeNumber IS NULL THEN 1 ELSE 0 END, " +
+           "pqd.leetcodeNumber ASC, q.difficulty ASC, q.displayOrder ASC, q.createdAt DESC")
+    List<Question> findByFocusAreaIdInAndVisibleToUser(
+        @Param("focusAreaIds") List<Long> focusAreaIds,
+        @Param("userId") Long userId);
+
+    /**
+     * 获取所有用户可见的试题（公共试题 + 用户自己的私有试题）
+     */
+    @Query("SELECT q FROM Question q " +
+           "LEFT JOIN ProgrammingQuestionDetails pqd ON pqd.question.id = q.id " +
+           "WHERE (q.isOfficial = true OR q.createdByUser.id = :userId) " +
+           "ORDER BY CASE WHEN pqd.leetcodeNumber IS NULL THEN 1 ELSE 0 END, " +
+           "pqd.leetcodeNumber ASC, q.difficulty ASC, q.displayOrder ASC, q.createdAt DESC")
+    List<Question> findAllVisibleToUser(@Param("userId") Long userId);
 }
