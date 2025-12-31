@@ -41,6 +41,8 @@ public class SecurityConfig {
 
             // 配置授权规则
             .authorizeHttpRequests(auth -> auth
+                // 允许所有OPTIONS请求（CORS预检）
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // 公开的认证端点
                 .requestMatchers("/api/auth/**").permitAll()
                 // 公开的职业路径查询端点（用于注册页面）
@@ -60,9 +62,12 @@ public class SecurityConfig {
 
         // 允许的源
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
             "http://localhost:3001",
-            "http://localhost:5173"
+            "http://localhost:3004",  // Vite dev server (alternative port)
+            "http://localhost:5173",
+            "http://10.0.0.7:3001",   // Docker deployment
+            "http://10.0.0.13:3001",  // Network access (port 3001)
+            "http://10.0.0.13:3004"   // Network access (Vite dev port)
         ));
 
         // 允许的 HTTP 方法

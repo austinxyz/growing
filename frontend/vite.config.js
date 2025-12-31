@@ -11,7 +11,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 3000,
+    port: 3001,
     hmr: {
       overlay: true,
     },
@@ -20,7 +20,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://10.0.0.13:8082',  // 使用网络IP，支持移动端访问
         changeOrigin: true
       }
     }

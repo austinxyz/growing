@@ -2,80 +2,81 @@
   <aside
     :class="[
       'bg-card border-r border-border flex flex-col h-full transition-all duration-300 relative',
-      isCollapsed ? 'w-16' : 'w-64 lg:w-64 md:w-56 sm:w-64'
+      isCollapsed ? 'w-16' : 'w-64'
     ]"
   >
-    <!-- 折叠/展开按钮 -->
-    <button
-      @click="isCollapsed = !isCollapsed"
-      class="absolute top-2 right-2 z-20 p-1.5 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors"
-      :title="isCollapsed ? '展开侧边栏' : '折叠侧边栏'"
-    >
-      <svg
-        :class="['w-4 h-4 text-gray-600 transition-transform', isCollapsed ? 'rotate-180' : '']"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-      </svg>
-    </button>
+    <!-- Header: Logo + User Info + Collapse -->
+    <div class="border-b border-border">
+      <!-- Expanded State -->
+      <div v-if="!isCollapsed" class="p-4">
+        <!-- Logo & Collapse Button Row -->
+        <div class="flex items-center justify-between mb-3">
+          <router-link to="/dashboard" class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span class="text-primary-foreground font-bold text-lg">📚</span>
+            </div>
+            <div>
+              <h1 class="text-base font-bold text-foreground">个人成长管理</h1>
+            </div>
+          </router-link>
+          <button
+            v-if="!isMobile"
+            @click="isCollapsed = !isCollapsed"
+            class="p-2.5 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="折叠侧边栏"
+          >
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
 
-    <!-- User Info Section -->
-    <div v-if="!isCollapsed" class="p-4 border-b border-border bg-accent/20">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2 min-w-0 flex-1">
-          <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-            <span class="text-primary-foreground font-semibold text-sm">
-              {{ displayName.charAt(0).toUpperCase() }}
-            </span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1">
-              <p class="text-sm font-medium text-foreground truncate">{{ displayName }}</p>
-              <span v-if="isAdmin" class="px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary rounded">
-                管理员
+        <!-- User Info Row -->
+        <div class="flex items-center justify-between bg-accent/20 rounded-lg p-2">
+          <div class="flex items-center space-x-2 min-w-0 flex-1">
+            <div class="w-7 h-7 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="text-primary-foreground font-semibold text-xs">
+                {{ displayName.charAt(0).toUpperCase() }}
               </span>
             </div>
-            <p class="text-xs text-muted-foreground truncate">{{ username }}</p>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <p class="text-xs font-medium text-foreground truncate">{{ displayName }}</p>
+                <span v-if="isAdmin" class="px-1 py-0.5 text-[9px] font-semibold bg-primary/20 text-primary rounded">
+                  管理
+                </span>
+              </div>
+            </div>
           </div>
+          <button
+            @click="handleLogout"
+            class="flex-shrink-0 p-2 text-muted-foreground hover:text-destructive transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="登出"
+          >
+            <LogOut class="w-5 h-5" />
+          </button>
         </div>
+      </div>
+
+      <!-- Collapsed State -->
+      <div v-else class="p-2 flex flex-col items-center gap-2">
         <button
-          @click="handleLogout"
-          class="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors"
-          title="登出"
+          @click="isCollapsed = !isCollapsed"
+          class="p-2.5 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+          title="展开侧边栏"
         >
-          <LogOut class="w-4 h-4" />
+          <svg class="w-5 h-5 text-gray-600 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
         </button>
-      </div>
-    </div>
-
-    <!-- Collapsed User Avatar -->
-    <div v-else class="p-2 border-b border-border bg-accent/20 flex justify-center">
-      <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-        <span class="text-primary-foreground font-semibold text-sm">
-          {{ displayName.charAt(0).toUpperCase() }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Logo/Brand -->
-    <div v-if="!isCollapsed" class="p-6 border-b border-border">
-      <router-link to="/dashboard" class="flex items-center space-x-2">
         <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <span class="text-primary-foreground font-bold text-lg">📚</span>
         </div>
-        <div>
-          <h1 class="text-lg font-bold text-foreground">Growing</h1>
-          <p class="text-xs text-muted-foreground">Personal Growth</p>
+        <div class="w-7 h-7 bg-primary rounded-full flex items-center justify-center">
+          <span class="text-primary-foreground font-semibold text-xs">
+            {{ displayName.charAt(0).toUpperCase() }}
+          </span>
         </div>
-      </router-link>
-    </div>
-
-    <!-- Collapsed Logo -->
-    <div v-else class="p-2 border-b border-border flex justify-center">
-      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-        <span class="text-primary-foreground font-bold text-lg">📚</span>
       </div>
     </div>
 
@@ -405,7 +406,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import {
   LayoutDashboard,
   BookOpen,
@@ -426,21 +427,42 @@ import {
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 
-const route = useRoute();
-const activeTopTab = ref('learning');
-const isCollapsed = ref(false);
-
-// 从localStorage加载折叠状态
-onMounted(() => {
-  const saved = localStorage.getItem('sidebar-collapsed');
-  if (saved !== null) {
-    isCollapsed.value = saved === 'true';
+const props = defineProps({
+  isMobile: {
+    type: Boolean,
+    default: false
   }
 });
 
-// 保存折叠状态到localStorage
+const emit = defineEmits(['close']);
+
+const route = useRoute();
+const router = useRouter();
+const activeTopTab = ref('learning');
+const isCollapsed = ref(false);
+
+// 从localStorage加载折叠状态（仅在桌面端）
+onMounted(() => {
+  if (!props.isMobile) {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved !== null) {
+      isCollapsed.value = saved === 'true';
+    }
+  }
+});
+
+// 保存折叠状态到localStorage（仅在桌面端）
 watch(isCollapsed, (newValue) => {
-  localStorage.setItem('sidebar-collapsed', newValue.toString());
+  if (!props.isMobile) {
+    localStorage.setItem('sidebar-collapsed', newValue.toString());
+  }
+});
+
+// 监听路由变化，在移动端导航后自动关闭侧边栏
+watch(() => route.path, () => {
+  if (props.isMobile) {
+    emit('close');
+  }
 });
 
 // 用户认证状态

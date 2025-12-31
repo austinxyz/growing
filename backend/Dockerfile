@@ -19,8 +19,8 @@ WORKDIR /app
 # Copy the built jar from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port 8082 (matching application.properties)
+EXPOSE 8082
 
 # Set environment variables (can be overridden)
 ENV SPRING_PROFILES_ACTIVE=prod
@@ -28,7 +28,7 @@ ENV JAVA_OPTS="-Xms512m -Xmx1024m"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/auth/me || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8082/api/career-paths || exit 1
 
 # Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar"]

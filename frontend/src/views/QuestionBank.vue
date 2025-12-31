@@ -1,18 +1,18 @@
 <template>
   <div class="h-screen flex flex-col bg-gray-50">
     <!-- 顶部导航栏 -->
-    <div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900">📚 试题库</h1>
-          <span class="text-sm text-gray-500">职业技能试题练习</span>
+        <div class="flex items-center gap-2 md:gap-3">
+          <h1 class="text-xl md:text-2xl font-bold text-gray-900">📚 试题库</h1>
+          <span class="text-xs md:text-sm text-gray-500 hidden sm:inline">职业技能试题练习</span>
         </div>
       </div>
     </div>
 
     <!-- 查询过滤器 -->
-    <div v-show="showQuestionList" class="bg-white border-b border-gray-200 px-6 py-4">
-      <div class="flex flex-wrap gap-4 items-end">
+    <div v-show="showQuestionList" class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
+      <div class="flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-4 items-stretch md:items-end">
         <!-- 关键字搜索 -->
         <div class="flex-1 min-w-[200px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">关键字搜索</label>
@@ -26,7 +26,7 @@
         </div>
 
         <!-- 职业路径选择 -->
-        <div class="w-48">
+        <div class="w-full md:w-48">
           <label class="block text-sm font-medium text-gray-700 mb-1">职业路径</label>
           <select
             v-model="filters.careerPathId"
@@ -41,7 +41,7 @@
         </div>
 
         <!-- 技能选择 -->
-        <div class="w-48">
+        <div class="w-full md:w-48">
           <label class="block text-sm font-medium text-gray-700 mb-1">技能</label>
           <select
             v-model="filters.skillId"
