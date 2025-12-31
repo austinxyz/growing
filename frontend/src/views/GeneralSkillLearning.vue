@@ -1092,9 +1092,7 @@
                           <tr>
                             <th class="px-2 py-1.5 text-left font-semibold text-gray-700 w-12">#</th>
                             <th class="px-2 py-1.5 text-left font-semibold text-gray-700">题目</th>
-                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-16">类型</th>
-                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-16">难度</th>
-                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-12">状态</th>
+                            <th class="px-2 py-1.5 text-center font-semibold text-gray-700 w-12">难度</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1125,38 +1123,20 @@
                             ]" :title="question.title">
                               {{ question.title }}
                             </td>
-                            <!-- 类型 -->
+                            <!-- 难度图标 -->
                             <td class="px-2 py-1.5 text-center">
-                              <span :class="[
-                                'inline-block px-1.5 py-0.5 rounded text-xs',
-                                question.questionType === 'programming' ? 'bg-purple-100 text-purple-700' :
-                                question.questionType === 'technical' ? 'bg-blue-100 text-blue-700' :
-                                question.questionType === 'behavioral' ? 'bg-green-100 text-green-700' :
-                                'bg-orange-100 text-orange-700'
-                              ]">
-                                {{ question.questionType === 'programming' ? '编程' :
-                                   question.questionType === 'technical' ? '技术' :
-                                   question.questionType === 'behavioral' ? '行为' : '设计' }}
+                              <span
+                                :class="[
+                                  'inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold',
+                                  question.difficulty === 'EASY' ? 'bg-green-100 text-green-700' :
+                                  question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                ]"
+                                :title="question.difficulty === 'EASY' ? '简单' : question.difficulty === 'MEDIUM' ? '中等' : '困难'"
+                              >
+                                {{ question.difficulty === 'EASY' ? '易' :
+                                   question.difficulty === 'MEDIUM' ? '中' : '难' }}
                               </span>
-                            </td>
-                            <!-- 难度 -->
-                            <td class="px-2 py-1.5 text-center">
-                              <span :class="[
-                                'inline-block px-1.5 py-0.5 rounded text-xs font-medium',
-                                question.difficulty === 'EASY' ? 'bg-green-100 text-green-700' :
-                                question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                              ]">
-                                {{ question.difficulty === 'EASY' ? '简单' :
-                                   question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
-                              </span>
-                            </td>
-                            <!-- 状态 -->
-                            <td class="px-2 py-1.5 text-center">
-                              <span v-if="question.hasUserNote" class="inline-block w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center" title="已答题">
-                                ✓
-                              </span>
-                              <span v-else class="text-gray-300">-</span>
                             </td>
                           </tr>
                         </tbody>
@@ -2634,8 +2614,15 @@ const addNewQuestion = () => {
 // 保存试题
 const saveQuestion = async (questionData) => {
   try {
-    // 调用API保存
-    const savedQuestion = await questionApi.saveOrUpdateQuestion(questionData)
+    let savedQuestion
+    // 根据是否有ID判断是新建还是更新
+    if (questionData.id) {
+      // 更新现有试题
+      savedQuestion = await questionApi.updateQuestion(questionData.id, questionData)
+    } else {
+      // 新建试题
+      savedQuestion = await questionApi.createQuestion(questionData)
+    }
 
     // 更新本地列表
     if (questionData.id) {
@@ -3022,7 +3009,24 @@ const init = async () => {
       }
     }
     selectedSkillId.value = urlSkillId
+
+    // 等待分类和Focus Area数据加载完成
     await loadCategoriesAndFocusAreas()
+
+    // 如果URL还包含focusAreaId参数，自动选中并展开该Focus Area
+    const urlFocusAreaId = route.query.focusAreaId ? parseInt(route.query.focusAreaId) : null
+    if (urlFocusAreaId) {
+      // 在focusAreas中查找目标Focus Area
+      const targetFocusArea = focusAreas.value.find(fa => fa.id === urlFocusAreaId)
+      if (targetFocusArea && targetFocusArea.categoryIds) {
+        // 展开所有包含该Focus Area的大分类
+        targetFocusArea.categoryIds.forEach(categoryId => {
+          expandedCategories.value.add(categoryId)
+        })
+      }
+      // 选中该Focus Area
+      selectFocusArea(urlFocusAreaId)
+    }
   }
 }
 

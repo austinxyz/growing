@@ -463,6 +463,7 @@ const careerPaths = ref([])
 const skills = ref([])
 const selectedSkillId = ref('')
 const form = ref({
+  id: null,  // 添加 ID 字段，编辑时需要
   focusAreaId: '',
   title: '',
   questionDescription: '',
@@ -521,6 +522,7 @@ watch(() => props.question, (newQuestion) => {
   if (newQuestion) {
     isEdit.value = true
     form.value = {
+      id: newQuestion.id || null,  // 包含 ID，用于更新
       focusAreaId: newQuestion.focusAreaId || '',
       title: newQuestion.title || '',
       questionDescription: newQuestion.questionDescription || '',
@@ -542,6 +544,7 @@ watch(() => props.question, (newQuestion) => {
   } else {
     isEdit.value = false
     form.value = {
+      id: null,  // 新建时 ID 为 null
       focusAreaId: props.currentFocusAreaId || '',  // 使用当前选中的Focus Area
       title: '',
       questionDescription: '',

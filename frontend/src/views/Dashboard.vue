@@ -180,19 +180,20 @@
           </h3>
           <p class="text-sm text-gray-600 mb-3">共 {{ systemDesign.totalFocusAreas }} 个知识点</p>
           <div class="flex flex-wrap gap-2">
-            <span
+            <router-link
               v-for="fa in systemDesign.focusAreas"
               :key="fa.id"
-              class="px-3 py-1 bg-white text-gray-700 rounded-full text-xs border border-orange-200 hover:border-orange-400 transition-colors"
+              :to="{ name: 'GeneralSkillLearningWithId', params: { skillId: 2 }, query: { focusAreaId: fa.id } }"
+              class="px-3 py-1 bg-white text-gray-700 rounded-full text-xs border border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer"
             >
               {{ fa.name }}
-            </span>
+            </router-link>
             <span v-if="systemDesign.totalFocusAreas > 10" class="px-3 py-1 text-gray-400 text-xs">
               ...
             </span>
           </div>
           <router-link
-            to="/system-design/basics"
+            :to="{ name: 'GeneralSkillLearningWithId', params: { skillId: 2 } }"
             class="mt-4 inline-block text-sm text-orange-600 hover:text-orange-700 font-semibold"
           >
             查看全部 →
@@ -208,15 +209,16 @@
             典型案例
           </h3>
           <p class="text-sm text-gray-600 mb-3">共 {{ systemDesign.totalCases }} 个经典案例</p>
-          <div class="space-y-2">
-            <div
+          <div class="flex flex-wrap gap-2">
+            <router-link
               v-for="caseItem in systemDesign.cases"
               :key="caseItem.id"
-              class="px-3 py-2 bg-white rounded-lg text-sm text-gray-700 border border-pink-100 hover:border-pink-300 transition-colors"
+              :to="`/system-design/cases/${caseItem.id}`"
+              class="px-3 py-1 bg-white text-gray-700 rounded-full text-xs border border-pink-200 hover:border-pink-400 hover:bg-pink-50 transition-colors cursor-pointer"
             >
               {{ caseItem.title }}
-            </div>
-            <span v-if="systemDesign.totalCases > 5" class="block px-3 py-1 text-gray-400 text-xs">
+            </router-link>
+            <span v-if="systemDesign.totalCases > 10" class="px-3 py-1 text-gray-400 text-xs">
               ...
             </span>
           </div>

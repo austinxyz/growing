@@ -733,11 +733,13 @@ const loadCases = async () => {
     const data = await systemDesignCaseApi.getOfficialCases()
     cases.value = data || []
 
-    // 检查URL查询参数，如果有caseId则自动选择对应案例
+    // 检查URL路径参数 (/system-design/cases/:id) 或查询参数 (?caseId=1)
+    const caseIdFromParam = route.params.id
     const caseIdFromQuery = route.query.caseId
+    const targetCaseId = caseIdFromParam || caseIdFromQuery
 
-    if (caseIdFromQuery) {
-      const targetCase = cases.value.find(c => c.id == caseIdFromQuery)
+    if (targetCaseId) {
+      const targetCase = cases.value.find(c => c.id == targetCaseId)
       if (targetCase) {
         await selectCase(targetCase)
         return

@@ -116,6 +116,13 @@ const routes = [
     name: 'SystemDesignCases',
     component: () => import('../views/SystemDesignCases.vue')
   },
+  // 用户端 - 系统设计案例详情（通过URL参数）
+  {
+    path: '/system-design/cases/:id',
+    name: 'SystemDesignCaseDetail',
+    component: () => import('../views/SystemDesignCases.vue'),
+    props: route => ({ caseId: route.params.id })
+  },
   // 用户端 - 系统设计学习总结（Phase 5.2）
   {
     path: '/system-design/summary',
