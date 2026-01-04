@@ -454,3 +454,442 @@ CREATE TABLE `skill_templates` (
   CONSTRAINT `skill_templates_ibfk_1` FOREIGN KEY (`skill_id`) REFERENCES `skills` (`id`) ON DELETE CASCADE,
   CONSTRAINT `skill_templates_ibfk_2` FOREIGN KEY (`template_id`) REFERENCES `answer_templates` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技能-模版关联表';
+
+-- ========================================
+-- Phase 7: Job Search Management Module
+-- Created: 2026-01-03
+-- ========================================
+
+-- 1. 简历主表
+CREATE TABLE `resumes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `version_name` varchar(100) NOT NULL COMMENT '简历版本名称',
+  `is_default` tinyint(1) DEFAULT '0' COMMENT '是否为默认简历',
+  `about` text COMMENT '个人简介（Markdown）',
+  `career_objective` text COMMENT '职业目标（Markdown）',
+
+  -- Contact & Links
+  `email` varchar(255) NOT NULL COMMENT '邮箱',
+  `phone` varchar(50) DEFAULT NULL COMMENT '电话',
+  `address` varchar(255) DEFAULT NULL COMMENT '地址',
+  `linkedin_url` varchar(500) DEFAULT NULL COMMENT 'LinkedIn URL',
+  `github_url` varchar(500) DEFAULT NULL COMMENT 'GitHub URL',
+  `website_url` varchar(500) DEFAULT NULL COMMENT '个人网站',
+  `other_links` json DEFAULT NULL COMMENT '其他链接（JSON数组）',
+
+  -- Languages & Hobbies
+  `languages` json DEFAULT NULL COMMENT '语言能力（JSON数组）',
+  `hobbies` text COMMENT '兴趣爱好',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_version` (`user_id`,`version_name`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_default` (`user_id`,`is_default`),
+  CONSTRAINT `resumes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历主表';
+
+-- 2. 工作经历
+CREATE TABLE `resume_experiences` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `resume_id` bigint NOT NULL COMMENT '简历ID',
+  `company_name` varchar(255) NOT NULL COMMENT '公司名称',
+  `position` varchar(255) NOT NULL COMMENT '职位名称',
+  `location` varchar(255) DEFAULT NULL COMMENT '所在地（城市、国家）',
+  `start_date` date NOT NULL COMMENT '开始时间',
+  `end_date` date DEFAULT NULL COMMENT '结束时间（NULL表示至今）',
+  `is_current` tinyint(1) DEFAULT '0' COMMENT '是否为当前工作',
+  `responsibilities` text COMMENT '职责描述（Markdown）',
+  `achievements` text COMMENT '主要成就（Markdown）',
+
+  -- 关联项目经验
+  `project_ids` json DEFAULT NULL COMMENT '关联的项目经验ID列表（JSON数组）',
+
+  `sort_order` int DEFAULT '0' COMMENT '排序（按时间倒序）',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_resume` (`resume_id`),
+  KEY `idx_dates` (`start_date`,`end_date`),
+  CONSTRAINT `resume_experiences_ibfk_1` FOREIGN KEY (`resume_id`) REFERENCES `resumes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工作经历';
+
+-- 3. 简历技能列表
+CREATE TABLE `resume_skills` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `resume_id` bigint NOT NULL COMMENT '简历ID',
+  `skill_category` varchar(50) NOT NULL COMMENT '技能分类：Technical, Soft, Tools',
+  `skill_name` varchar(255) NOT NULL COMMENT '技能名称',
+  `proficiency` varchar(50) DEFAULT NULL COMMENT '熟练程度：Beginner, Intermediate, Advanced, Expert',
+  `sort_order` int DEFAULT '0' COMMENT '排序',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_resume` (`resume_id`),
+  KEY `idx_category` (`resume_id`,`skill_category`),
+  CONSTRAINT `resume_skills_ibfk_1` FOREIGN KEY (`resume_id`) REFERENCES `resumes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历技能列表';
+
+-- 4. 教育背景
+CREATE TABLE `resume_education` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `resume_id` bigint NOT NULL COMMENT '简历ID',
+  `school_name` varchar(255) NOT NULL COMMENT '学校名称',
+  `degree` varchar(100) NOT NULL COMMENT '学位：Bachelor, Master, PhD, Other',
+  `major` varchar(255) DEFAULT NULL COMMENT '专业',
+  `start_date` date DEFAULT NULL COMMENT '开始时间',
+  `end_date` date DEFAULT NULL COMMENT '结束时间',
+  `gpa` decimal(3,2) DEFAULT NULL COMMENT 'GPA（如3.8）',
+  `courses` text COMMENT '主要课程（Markdown）',
+  `sort_order` int DEFAULT '0' COMMENT '排序',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_resume` (`resume_id`),
+  CONSTRAINT `resume_education_ibfk_1` FOREIGN KEY (`resume_id`) REFERENCES `resumes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='教育背景';
+
+-- 5. 培训和证书
+CREATE TABLE `resume_certifications` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `resume_id` bigint NOT NULL COMMENT '简历ID',
+  `cert_name` varchar(255) NOT NULL COMMENT '证书名称',
+  `issuer` varchar(255) NOT NULL COMMENT '颁发机构',
+  `issue_date` date DEFAULT NULL COMMENT '获得时间',
+  `expiry_date` date DEFAULT NULL COMMENT '有效期（NULL表示永久有效）',
+  `cert_url` varchar(500) DEFAULT NULL COMMENT '证书链接',
+  `sort_order` int DEFAULT '0' COMMENT '排序',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_resume` (`resume_id`),
+  CONSTRAINT `resume_certifications_ibfk_1` FOREIGN KEY (`resume_id`) REFERENCES `resumes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='培训和证书';
+
+-- 6. 技术项目经验
+CREATE TABLE `project_experiences` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `project_name` varchar(255) NOT NULL COMMENT '项目名称',
+  `project_type` varchar(50) DEFAULT NULL COMMENT '项目类型：Feature, Optimization, Migration, BugFix, Infrastructure, Other',
+
+  -- What/When/Who/Why
+  `what_description` text COMMENT '项目是什么（Markdown）',
+  `start_date` date DEFAULT NULL COMMENT '开始时间',
+  `end_date` date DEFAULT NULL COMMENT '结束时间',
+  `team_size` int DEFAULT NULL COMMENT '团队规模',
+  `my_role` varchar(255) DEFAULT NULL COMMENT '我的角色',
+  `background` text COMMENT '项目背景和目标（Markdown）',
+
+  -- Problem Statement & Challenges
+  `problem_statement` text COMMENT '核心问题（Markdown）',
+  `challenges` text COMMENT '主要挑战和难点（Markdown）',
+  `constraints` text COMMENT '约束条件（Markdown）',
+
+  -- How
+  `tech_stack` text COMMENT '技术选型和理由（Markdown）',
+  `architecture` text COMMENT '架构设计（Markdown）',
+  `innovation` text COMMENT '创新点/差异化做法（Markdown）',
+  `my_contribution` text COMMENT '个人贡献（Markdown）',
+
+  -- Result
+  `quantitative_results` text COMMENT '量化数据（Markdown）',
+  `business_impact` text COMMENT '业务影响（Markdown）',
+  `personal_growth` text COMMENT '团队/个人成长（Markdown）',
+  `lessons_learned` text COMMENT '经验教训（Markdown）',
+
+  -- 标签和分类
+  `tech_tags` json DEFAULT NULL COMMENT '技术标签（JSON数组）',
+  `skill_ids` json DEFAULT NULL COMMENT '关联的技能ID（JSON数组，关联到skills表）',
+  `difficulty` varchar(50) DEFAULT NULL COMMENT '难度级别：Low, Medium, High, Critical',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_dates` (`start_date`,`end_date`),
+  CONSTRAINT `project_experiences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技术项目经验';
+
+-- 7. 人员管理经验
+CREATE TABLE `management_experiences` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `experience_name` varchar(255) NOT NULL COMMENT '经验名称',
+  `experience_type` varchar(50) NOT NULL COMMENT '经验类型：ManageUp, CrossTeam, TeamGrowth',
+
+  -- Team Growth 细分（仅当 experience_type = 'TeamGrowth' 时使用）
+  `team_growth_subtype` varchar(50) DEFAULT NULL COMMENT 'Hiring, HighPerformer, LowPerformer',
+
+  `start_date` date DEFAULT NULL COMMENT '开始时间',
+  `end_date` date DEFAULT NULL COMMENT '结束时间',
+
+  `background` text COMMENT '背景和挑战（Markdown）',
+  `actions_taken` text COMMENT '采取的行动（Markdown）',
+  `results` text COMMENT '结果和影响（Markdown）',
+  `lessons_learned` text COMMENT '经验教训（Markdown）',
+
+  -- Team Growth 特定字段
+  `hiring_count` int DEFAULT NULL COMMENT '招聘人数（仅 Hiring）',
+  `improvement_result` varchar(50) DEFAULT NULL COMMENT '改进结果（仅 LowPerformer）：Improved, Terminated',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_type` (`user_id`,`experience_type`),
+  CONSTRAINT `management_experiences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='人员管理经验';
+
+-- 8. 公司档案
+CREATE TABLE `companies` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `company_name` varchar(255) NOT NULL COMMENT '公司名称',
+  `company_description` text COMMENT '公司简介（Markdown）',
+  `company_culture` text COMMENT '企业文化（Markdown）',
+  `location` varchar(255) DEFAULT NULL COMMENT '所在地（总部城市、国家）',
+  `company_size` varchar(50) DEFAULT NULL COMMENT '公司规模：<50, 50-200, 200-1000, 1000-5000, >5000',
+  `industry` varchar(100) DEFAULT NULL COMMENT '行业分类：Technology, Finance, Healthcare, etc.',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_company` (`user_id`,`company_name`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_industry` (`industry`),
+  CONSTRAINT `companies_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公司档案';
+
+-- 9. 公司有用链接
+CREATE TABLE `company_links` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `company_id` bigint NOT NULL COMMENT '公司ID',
+  `link_title` varchar(255) NOT NULL COMMENT '链接标题',
+  `link_url` varchar(500) NOT NULL COMMENT 'URL',
+  `notes` text COMMENT '备注',
+  `sort_order` int DEFAULT '0' COMMENT '排序',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_company` (`company_id`),
+  CONSTRAINT `company_links_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公司有用链接';
+
+-- 10. 职位申请
+CREATE TABLE `job_applications` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `company_id` bigint NOT NULL COMMENT '公司ID',
+  `position_name` varchar(255) NOT NULL COMMENT '职位名称',
+  `position_level` varchar(50) DEFAULT NULL COMMENT '职位级别：Junior, Mid, Senior, Staff, Principal',
+  `posted_date` date DEFAULT NULL COMMENT '发布时间',
+  `job_url` varchar(500) DEFAULT NULL COMMENT '职位链接',
+
+  -- JD 核心内容
+  `qualifications` text COMMENT '技能要求（Markdown）',
+  `responsibilities` text COMMENT '岗位职责（Markdown）',
+
+  -- 申请状态
+  `application_status` varchar(50) DEFAULT 'NotApplied' COMMENT '申请状态：NotApplied, Applied, PhoneScreen, Onsite, Offer, Rejected',
+  `status_updated_at` timestamp NULL DEFAULT NULL COMMENT '状态更新时间',
+  `status_history` json DEFAULT NULL COMMENT '状态变更历史（JSON数组）',
+
+  -- Offer 详情（如果状态为 Offer）
+  `offer_received_at` timestamp NULL DEFAULT NULL COMMENT 'Offer 接收时间',
+  `base_salary` decimal(12,2) DEFAULT NULL COMMENT 'Base Salary（加密存储）',
+  `bonus` decimal(12,2) DEFAULT NULL COMMENT 'Bonus',
+  `stock_value` decimal(12,2) DEFAULT NULL COMMENT 'Stock/RSU',
+  `total_compensation` decimal(12,2) DEFAULT NULL COMMENT 'Total Compensation',
+  `offer_deadline` date DEFAULT NULL COMMENT 'Offer 截止时间',
+  `offer_decision` varchar(50) DEFAULT NULL COMMENT 'Offer 决策：Accepted, Declined, Pending',
+  `offer_notes` text COMMENT '决策备注（Markdown）',
+
+  -- 拒绝详情（如果状态为 Rejected）
+  `rejected_at` timestamp NULL DEFAULT NULL COMMENT '拒绝时间',
+  `rejected_stage` varchar(50) DEFAULT NULL COMMENT '拒绝阶段：PhoneScreen, Onsite, AfterOnsite',
+  `rejection_reasons` json DEFAULT NULL COMMENT '拒绝原因（JSON数组）',
+  `improvement_plan` text COMMENT '改进计划（Markdown）',
+
+  `notes` text COMMENT '备注',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_company_position` (`user_id`,`company_id`,`position_name`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_company` (`company_id`),
+  KEY `idx_status` (`application_status`),
+  CONSTRAINT `job_applications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `job_applications_ibfk_2` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='职位申请';
+
+-- 11. 面试流程阶段
+CREATE TABLE `interview_stages` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `job_application_id` bigint NOT NULL COMMENT '职位申请ID',
+  `stage_name` varchar(255) NOT NULL COMMENT '阶段名称：Phone Screen, Technical Interview, Onsite Round 1, etc.',
+  `stage_order` int NOT NULL COMMENT '阶段顺序',
+
+  -- 关联技能
+  `skill_ids` json DEFAULT NULL COMMENT '关联的技能ID（JSON数组，关联到skills表）',
+  `preparation_notes` text COMMENT '准备重点（Markdown）',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_job` (`job_application_id`),
+  KEY `idx_order` (`job_application_id`,`stage_order`),
+  CONSTRAINT `interview_stages_ibfk_1` FOREIGN KEY (`job_application_id`) REFERENCES `job_applications` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='面试流程阶段';
+
+-- 12. 招聘人员
+CREATE TABLE `recruiters` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `company_id` bigint NOT NULL COMMENT '所属公司ID',
+  `recruiter_name` varchar(255) NOT NULL COMMENT '姓名',
+  `email` varchar(255) DEFAULT NULL COMMENT '邮箱',
+  `phone` varchar(50) DEFAULT NULL COMMENT '电话',
+  `linkedin_url` varchar(500) DEFAULT NULL COMMENT 'LinkedIn URL',
+  `notes` text COMMENT '备注',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_company` (`company_id`),
+  CONSTRAINT `recruiters_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `recruiters_ibfk_2` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='招聘人员';
+
+-- 13. 招聘沟通记录
+CREATE TABLE `recruiter_communications` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `recruiter_id` bigint NOT NULL COMMENT 'Recruiter ID',
+  `job_application_id` bigint DEFAULT NULL COMMENT '关联的职位申请ID（可选）',
+
+  `communication_date` timestamp NOT NULL COMMENT '沟通时间',
+  `communication_method` varchar(50) NOT NULL COMMENT '沟通方式：Email, Phone, LinkedIn, InPerson',
+  `communication_content` text COMMENT '沟通内容（Markdown）',
+  `next_action` text COMMENT '下一步行动',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_recruiter` (`recruiter_id`),
+  KEY `idx_date` (`communication_date`),
+  CONSTRAINT `recruiter_communications_ibfk_1` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiters` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `recruiter_communications_ibfk_2` FOREIGN KEY (`job_application_id`) REFERENCES `job_applications` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='招聘沟通记录';
+
+-- 14. 内推人脉
+CREATE TABLE `referrals` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `company_id` bigint NOT NULL COMMENT '所属公司ID',
+  `referral_name` varchar(255) NOT NULL COMMENT '推荐人姓名',
+  `relationship` varchar(50) NOT NULL COMMENT '关系：FormerColleague, Classmate, Friend, Mentor, Other',
+  `position` varchar(255) DEFAULT NULL COMMENT '职位',
+
+  `email` varchar(255) DEFAULT NULL COMMENT '邮箱',
+  `phone` varchar(50) DEFAULT NULL COMMENT '电话',
+  `linkedin_url` varchar(500) DEFAULT NULL COMMENT 'LinkedIn URL',
+  `notes` text COMMENT '备注（如何认识、关系亲密度）',
+
+  -- 推荐状态
+  `referral_status` varchar(50) DEFAULT 'NotRequested' COMMENT '推荐状态：NotRequested, Requested, Agreed, Declined, Submitted',
+  `request_date` date DEFAULT NULL COMMENT '推荐请求时间',
+  `submission_date` date DEFAULT NULL COMMENT '推荐提交时间',
+  `referral_result` varchar(50) DEFAULT NULL COMMENT '推荐结果：InterviewScheduled, NoResponse, Rejected',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_company` (`company_id`),
+  KEY `idx_status` (`referral_status`),
+  CONSTRAINT `referrals_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `referrals_ibfk_2` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内推人脉';
+
+-- 15. 面试记录
+CREATE TABLE `interview_records` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `job_application_id` bigint NOT NULL COMMENT '职位申请ID',
+  `interview_stage_id` bigint DEFAULT NULL COMMENT '面试阶段ID（可选，关联到interview_stages）',
+
+  `interview_date` timestamp NOT NULL COMMENT '面试时间',
+  `interviewer_name` varchar(255) DEFAULT NULL COMMENT '面试官姓名',
+  `interviewer_position` varchar(255) DEFAULT NULL COMMENT '面试官职位',
+  `interviewer_linkedin` varchar(500) DEFAULT NULL COMMENT '面试官LinkedIn',
+
+  `interview_format` varchar(50) NOT NULL COMMENT '面试形式：VideoCall, InPerson, Phone',
+  `interview_duration` int DEFAULT NULL COMMENT '面试时长（分钟）',
+
+  -- 自我评估
+  `overall_performance` int DEFAULT NULL COMMENT '整体表现（1-5）',
+  `technical_depth` int DEFAULT NULL COMMENT '技术深度（1-5）',
+  `communication` int DEFAULT NULL COMMENT '沟通表达（1-5）',
+  `problem_solving` int DEFAULT NULL COMMENT '问题回答（1-5）',
+  `self_summary` text COMMENT '自我总结（Markdown）',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_job` (`job_application_id`),
+  KEY `idx_date` (`interview_date`),
+  CONSTRAINT `interview_records_ibfk_1` FOREIGN KEY (`job_application_id`) REFERENCES `job_applications` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `interview_records_ibfk_2` FOREIGN KEY (`interview_stage_id`) REFERENCES `interview_stages` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='面试记录';
+
+-- 16. 面试问题
+CREATE TABLE `interview_questions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `interview_record_id` bigint NOT NULL COMMENT '面试记录ID',
+  `question_order` int NOT NULL COMMENT '问题顺序',
+
+  `question_description` text NOT NULL COMMENT '问题描述',
+  `question_type` varchar(50) NOT NULL COMMENT '问题类型：Coding, SystemDesign, Behavioral, Technical, Other',
+
+  `my_answer` text COMMENT '我的回答（Markdown）',
+  `related_question_id` bigint DEFAULT NULL COMMENT '关联的试题ID（关联到questions表）',
+
+  `answer_quality` int DEFAULT NULL COMMENT '回答质量自我评估（1-5）',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_record` (`interview_record_id`),
+  KEY `idx_type` (`question_type`),
+  CONSTRAINT `interview_questions_ibfk_1` FOREIGN KEY (`interview_record_id`) REFERENCES `interview_records` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `interview_questions_ibfk_2` FOREIGN KEY (`related_question_id`) REFERENCES `questions` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='面试问题';
+
+-- 17. 面试反馈
+CREATE TABLE `interview_feedback` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `interview_record_id` bigint NOT NULL COMMENT '面试记录ID',
+
+  `feedback_date` timestamp NOT NULL COMMENT '反馈时间',
+  `feedback_source` varchar(100) DEFAULT NULL COMMENT '反馈来源：Recruiter, HiringManager, etc.',
+  `feedback_content` text COMMENT '反馈内容（Markdown）',
+
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_record` (`interview_record_id`),
+  CONSTRAINT `interview_feedback_ibfk_1` FOREIGN KEY (`interview_record_id`) REFERENCES `interview_records` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='面试反馈';

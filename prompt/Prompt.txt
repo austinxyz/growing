@@ -933,3 +933,125 @@ Situation / Task / Action / Result（note_content）
   5. 实施，支持AI笔记，1小时
   6. 文档更新 - 0.5小时
   完成Phase6的交付总结
+
+
+好，现在继续需求实现，Phase 7 求职
+简历管理
+   简历的信息分为这么几部分
+   1. About
+   2. Experience - 包含什么公司，什么职位，时期，职责，重要项目和主要成就
+   3. 联系方式，和链接，linkedin，github等
+   4. skills
+   5. Education & Training
+   6. Languages
+   7. Hobby
+   对于重要项目经验，可以做一些总结
+   1. What，When，Who，Why
+   2. Problem Statement and Challenges
+   3. How - 采取了哪些措施，用了什么技术，你做的有什么不一样的
+   4. Result - 有数据，有Impact，Learn Learnt
+   对于人员管理方面，也可以做一些总结
+   1. Manage Up
+   2. Cross team Management
+   3. Team grow - hiring，high performer，low performer
+   这些项目，人员管理经验，可以用来解答behavioral，Project，People Management的问题
+
+公司求职
+- 可以对一些目标公司建立档案
+  1. 公司简介
+  2. 企业文化 - 可以联系到Behaviorial的问题
+  3. 职位，一个公司可以有一系列职位
+    a. JD，什么时候发布的，link，最关心的是qualification 和 responsibilty
+    b. 面试流程，每个阶段需要和哪些skill联系，重点准备内容
+    c. 根据JD产生CV，以及定制化的简历
+    d. Recruiter
+    e. 面试经历，从准备阶段开始，结合面试流程，面试中问了什么问题，可以和试题库对应，反馈，特别是失败的经历
+  4. 在这个公司工作的熟人（前同事，同学，朋友），可以帮忙推荐的
+  5. 公司的一些有用链接，比如技术网站，公司介绍网站等
+  6. 其他人的面试经验
+请给一些建议，作为新的Phase 7的需求概要，保存在requirement目录
+
+=== Phase 7: 求职管理模块 (2026-01-03 开始) ===
+
+**初始需求 (2026-01-03)**:
+好，现在继续需求实现，Phase 7 求职
+简历管理
+   简历的信息分为这么几部分
+   1. About
+   2. Experience - 包含什么公司，什么职位，时期，职责，重要项目和主要成就
+   3. 联系方式，和链接，linkedin，github等
+   4. skills
+   5. Education & Training
+   6. Languages
+   7. Hobby
+   对于重要项目经验，可以做一些总结
+   1. What，When，Who，Why
+   2. Problem Statement and Challenges
+   3. How - 采取了哪些措施，用了什么技术，你做的有什么不一样的
+   4. Result - 有数据，有Impact，Learn Learnt
+   对于人员管理方面，也可以做一些总结
+   1. Manage Up
+   2. Cross team Management
+   3. Team grow - hiring，high performer，low performer
+   这些项目，人员管理经验，可以用来解答behavioral，Project，People Management的问题
+
+公司求职
+- 可以对一些目标公司建立档案
+  1. 公司简介
+  2. 企业文化 - 可以联系到Behaviorial的问题
+  3. 职位，一个公司可以有一系列职位
+    a. JD，什么时候发布的，link，最关心的是qualification 和 responsibilty
+    b. 面试流程，每个阶段需要和哪些skill联系，重点准备内容
+    c. 根据JD产生CV，以及定制化的简历
+    d. Recruiter
+    e. 面试经历，从准备阶段开始，结合面试流程，面试中问了什么问题，可以和试题库对应，反馈，特别是失败的经历
+  4. 在这个公司工作的熟人（前同事，同学，朋友），可以帮忙推荐的
+  5. 公司的一些有用链接，比如技术网站，公司介绍网站等
+  6. 其他人的面试经验
+请给一些建议，作为新的Phase 7的需求概要，保存在requirement目录
+
+✅ 创建 requirement/Phase7-需求概要.md
+
+**Austin Review Comments (2026-01-03)**:
+
+### Comment 1 (Line 38):
+> <Austin> Skills涉及到具体技术，比如编程的前端技术，后端技术，数据库技术等，不一定和Phase 2-6的技能对应
+
+**Context**: Section 2.1 简历管理 - Skills部分
+**Issue**: 简历中的Skills更侧重具体技术栈，与Phase 2-6的高层技能体系不完全对应
+**Solution**:
+- 简历Skills包含：技术技能（编程语言、框架、数据库、云平台等）、软技能、工具技能
+- 可选择性地从Phase 2-6技能树导入部分内容作为参考
+- 简历Skills是独立维护的字段，不强制关联现有技能树
+**Impact**:
+- 更新Section 2.1 Skills部分，细化技能分类
+- 更新Section 3.1 数据关联表，改为"可选择性导入作为参考"
+- 更新Section 6.2 数据导入/导出，改为"可查看Phase 2-6技能树作为简历技能填写参考"
+
+---
+
+### Comment 2 (Line 185):
+> <Austin> 以下是目前阶段要实现的页面，以及侧边栏链接
+> 侧边栏，
+> 求职-简历
+>    基本信息管理页面
+>    项目经验库页面
+>    人员管理经验库页面
+> 求职-面试
+>    公司信息 + 职位管理 + Recruiter管理 + 人脉推荐
+>    定制简历生成
+>    面试记录跟踪
+
+**Context**: Section 5 优先级划分 - 需要明确 Phase 7.1 的实施范围
+**Issue**: 原优先级划分（P0/P1/P2）不够具体，缺少页面层级和侧边栏导航设计
+**Solution**:
+- 重构 Section 5 为"Phase 7.1 实施范围与页面设计"
+- 新增 5.1 侧边栏导航结构（树形结构）
+- 新增 5.2 页面功能明细（6个具体页面）
+  - 求职 → 简历：基本信息管理、项目经验库、人员管理经验库
+  - 求职 → 面试：公司与职位、定制简历、面试记录
+- 更新 5.3 功能优先级：将原 P1 中的核心功能（项目经验库、人员管理经验库、Recruiter、人脉）提升到 P0
+**Impact**:
+- Phase 7.1 范围明确：6 个页面，全部为 P0 核心功能
+- P1 只保留智能化功能（JD 匹配分析、AI 推荐等）
+- 侧边栏导航结构清晰：求职 → 简历/面试 二级分类

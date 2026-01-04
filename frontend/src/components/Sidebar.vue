@@ -207,8 +207,62 @@
 
       <!-- 求职类菜单 -->
       <template v-if="activeTopTab === 'career'">
-        <div class="text-sm text-muted-foreground px-3 py-2">
-          求职模块即将推出...
+        <!-- 简历管理 -->
+        <div class="space-y-1">
+          <div class="nav-section-title">简历</div>
+          <router-link
+            to="/job-search/resume"
+            class="nav-item"
+            :class="isActive('/job-search/resume')"
+          >
+            <User class="w-5 h-5" />
+            <span>基本信息管理</span>
+          </router-link>
+          <router-link
+            to="/job-search/projects"
+            class="nav-item"
+            :class="isActive('/job-search/projects')"
+          >
+            <FolderOpen class="w-5 h-5" />
+            <span>项目经验库</span>
+          </router-link>
+          <router-link
+            to="/job-search/management"
+            class="nav-item"
+            :class="isActive('/job-search/management')"
+          >
+            <Users class="w-5 h-5" />
+            <span>人员管理经验库</span>
+          </router-link>
+        </div>
+
+        <!-- 面试准备 -->
+        <div class="space-y-1">
+          <div class="nav-section-title">面试</div>
+          <router-link
+            to="/job-search/companies"
+            class="nav-item"
+            :class="isActive('/job-search/companies')"
+          >
+            <Building class="w-5 h-5" />
+            <span>公司与职位</span>
+          </router-link>
+          <router-link
+            to="/job-search/customized-resume"
+            class="nav-item"
+            :class="isActive('/job-search/customized-resume')"
+          >
+            <FilePenLine class="w-5 h-5" />
+            <span>定制简历</span>
+          </router-link>
+          <router-link
+            to="/job-search/interviews"
+            class="nav-item"
+            :class="isActive('/job-search/interviews')"
+          >
+            <Calendar class="w-5 h-5" />
+            <span>面试记录</span>
+          </router-link>
         </div>
       </template>
 
@@ -222,7 +276,7 @@
             class="nav-item"
             :class="isActive('/admin/skills')"
           >
-            <Layers class="w-5 h-5" />
+            <Network class="w-5 h-5" />
             <span>技能架构管理</span>
           </router-link>
           <router-link
@@ -275,7 +329,7 @@
             class="nav-item"
             :class="isActive('/settings/users')"
           >
-            <Users class="w-5 h-5" />
+            <UserCog class="w-5 h-5" />
             <span>用户管理</span>
           </router-link>
         </div>
@@ -373,7 +427,7 @@
           :class="isActive('/admin/skills')"
           title="技能架构管理"
         >
-          <Layers class="w-5 h-5" />
+          <Network class="w-5 h-5" />
         </router-link>
         <router-link
           to="/admin/general-skills"
@@ -389,7 +443,7 @@
           :class="isActive('/settings/users')"
           title="用户管理"
         >
-          <Users class="w-5 h-5" />
+          <UserCog class="w-5 h-5" />
         </router-link>
       </template>
     </nav>
@@ -423,7 +477,14 @@ import {
   FileQuestion,
   BookCheck,
   Layers,
-  FileText
+  FileText,
+  Building,
+  Calendar,
+  UserCheck,
+  User,
+  FolderOpen,
+  FilePenLine,
+  UserCog
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 
@@ -476,7 +537,7 @@ const handleLogout = () => {
 // 顶级分类
 const topLevelTabs = [
   { key: 'learning', label: '学习', icon: BookOpen },
-  { key: 'career', label: '求职', icon: Briefcase },
+  { key: 'career', label: '求职', icon: UserCheck },
   { key: 'settings', label: '设置', icon: Settings }
 ];
 
@@ -484,14 +545,15 @@ const topLevelTabs = [
 watch(() => route.path, (newPath) => {
   if (newPath.startsWith('/settings') || newPath.startsWith('/admin')) {
     activeTopTab.value = 'settings';
+  } else if (newPath.startsWith('/job-search') || newPath.startsWith('/career') ||
+             newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
+    activeTopTab.value = 'career';
   } else if (newPath.startsWith('/skills') || newPath.startsWith('/dashboard') ||
              newPath.startsWith('/algorithm-learning') ||
              newPath.startsWith('/algorithm-templates') || newPath.startsWith('/system-design') ||
              newPath.startsWith('/learning-review') || newPath.startsWith('/question-bank') ||
              newPath.startsWith('/general-skills')) {
     activeTopTab.value = 'learning';
-  } else if (newPath.startsWith('/career') || newPath.startsWith('/companies') || newPath.startsWith('/resumes')) {
-    activeTopTab.value = 'career';
   } else {
     activeTopTab.value = 'learning';
   }

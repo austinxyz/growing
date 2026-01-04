@@ -65,3 +65,7 @@ docker-compose.override.yml
 
 # User notes
 notes/
+
+# Import files (personal resume data)
+import/Resume*
+import/resume/

@@ -156,6 +156,48 @@ const routes = [
     name: 'QuestionBank',
     component: () => import('../views/QuestionBank.vue')
   },
+  // 用户端 - 求职管理（Phase 7）
+  {
+    path: '/job-search',
+    redirect: '/job-search/resume',
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/resume',
+    name: 'ResumeManagement',
+    component: () => import('../views/job-search/ResumeManagement.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/projects',
+    name: 'ProjectExperiences',
+    component: () => import('../views/job-search/ProjectExperiences.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/management',
+    name: 'ManagementExperiences',
+    component: () => import('../views/job-search/ManagementExperiences.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/companies',
+    name: 'CompanyJobManagement',
+    component: () => import('../views/job-search/CompanyJobManagement.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/customized-resume',
+    name: 'CustomizedResume',
+    component: () => import('../views/job-search/CustomizedResume.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/interviews',
+    name: 'InterviewTracking',
+    component: () => import('../views/job-search/InterviewTracking.vue'),
+    meta: { requiresAuth: true }
+  },
 ]
 
 const router = createRouter({
