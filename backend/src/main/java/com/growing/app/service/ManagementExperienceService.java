@@ -39,8 +39,8 @@ public class ManagementExperienceService {
     public ManagementExperienceDTO createExperience(Long userId, ManagementExperienceDTO dto) {
         ManagementExperience experience = new ManagementExperience();
         experience.setUserId(userId);
+        experience.setFocusAreaId(dto.getFocusAreaId());
         experience.setExperienceName(dto.getExperienceName());
-        experience.setExperienceType(dto.getExperienceType());
         experience.setTeamGrowthSubtype(dto.getTeamGrowthSubtype());
         experience.setStartDate(dto.getStartDate());
         experience.setEndDate(dto.getEndDate());
@@ -64,8 +64,8 @@ public class ManagementExperienceService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此管理经验");
         }
 
+        experience.setFocusAreaId(dto.getFocusAreaId());
         experience.setExperienceName(dto.getExperienceName());
-        experience.setExperienceType(dto.getExperienceType());
         experience.setTeamGrowthSubtype(dto.getTeamGrowthSubtype());
         experience.setStartDate(dto.getStartDate());
         experience.setEndDate(dto.getEndDate());
@@ -96,8 +96,8 @@ public class ManagementExperienceService {
         ManagementExperienceDTO dto = new ManagementExperienceDTO();
         dto.setId(experience.getId());
         dto.setUserId(experience.getUserId());
+        dto.setFocusAreaId(experience.getFocusAreaId());
         dto.setExperienceName(experience.getExperienceName());
-        dto.setExperienceType(experience.getExperienceType());
         dto.setTeamGrowthSubtype(experience.getTeamGrowthSubtype());
         dto.setStartDate(experience.getStartDate());
         dto.setEndDate(experience.getEndDate());

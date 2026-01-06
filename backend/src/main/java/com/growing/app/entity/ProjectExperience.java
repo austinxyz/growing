@@ -93,8 +93,8 @@ public class ProjectExperience {
     @Column(name = "tech_tags", columnDefinition = "JSON")
     private String techTags;
 
-    @Column(name = "skill_ids", columnDefinition = "JSON")
-    private String skillIds;
+    @Column(name = "focus_area_ids", columnDefinition = "JSON")
+    private String focusAreaIds;  // Behavioral Focus Area IDs (replaced skill_ids for finer granularity)
 
     @Column(name = "difficulty", length = 50)
     private String difficulty;

@@ -353,18 +353,21 @@
             </div>
           </div>
 
-          <div v-if="focusAreas.length > 0" class="space-y-2">
+          <draggable
+            v-if="focusAreas.length > 0"
+            v-model="focusAreas"
+            @update:model-value="handleFocusAreaReorder"
+            @start="() => console.log('开始拖拽Focus Area排序')"
+            @end="() => console.log('结束拖拽Focus Area排序')"
+            item-key="id"
+            class="space-y-2"
+            :animation="200"
+          >
+            <template #item="{ element: focusArea, index }">
             <div
-              v-for="(focusArea, index) in focusAreas"
-              :key="focusArea.id"
-              draggable="true"
-              @dragstart="handleDragStart($event, focusArea)"
-              @dragend="handleDragEnd"
               :class="[
                 'p-3 border border-gray-200 rounded-lg transition-all cursor-move',
-                draggingFocusAreaId === focusArea.id
-                  ? 'opacity-50 border-blue-400'
-                  : 'hover:border-blue-300 hover:shadow-sm'
+                'hover:border-blue-300 hover:shadow-sm'
               ]"
             >
               <div class="flex items-start justify-between">
@@ -414,7 +417,8 @@
                 </div>
               </div>
             </div>
-          </div>
+            </template>
+          </draggable>
           <div v-else class="text-center text-gray-400 py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -467,6 +471,7 @@
 import { getAllCareerPaths, deleteCareerPath } from '@/api/careerPaths'
 import { getAllSkills, getUnassociatedSkills, deleteSkill } from '@/api/skills'
 import majorCategoryApi from '@/api/majorCategoryApi'
+import draggable from 'vuedraggable'
 import CareerPathEditModal from '@/components/skills/admin/CareerPathEditModal.vue'
 import SkillEditModal from '@/components/skills/admin/SkillEditModal.vue'
 import CategoryEditModal from '@/components/skills/admin/CategoryEditModal.vue'
@@ -475,6 +480,7 @@ import FocusAreaEditModal from '@/components/skills/admin/FocusAreaEditModal.vue
 export default {
   name: 'SkillManagement',
   components: {
+    draggable,
     CareerPathEditModal,
     SkillEditModal,
     CategoryEditModal,
@@ -914,6 +920,29 @@ export default {
       } finally {
         this.draggingFocusAreaId = null
         this.draggingFocusArea = null
+      }
+    },
+
+    // ===== Focus Area排序（新增） =====
+    async handleFocusAreaReorder(newList) {
+      console.log('handleFocusAreaReorder被调用了', newList)
+      try {
+        // 批量更新displayOrder
+        const updates = newList.map((fa, index) => ({
+          id: fa.id,
+          displayOrder: index
+        }))
+
+        console.log('发送更新请求:', updates)
+        await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+        console.log('更新成功')
+
+        // 刷新Focus Areas
+        await this.loadFocusAreas()
+      } catch (error) {
+        console.error('更新Focus Area顺序失败:', error)
+        alert('更新顺序失败: ' + (error.message || '未知错误'))
+        await this.loadFocusAreas()
       }
     }
   }

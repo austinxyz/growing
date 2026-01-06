@@ -243,4 +243,15 @@ public class FocusAreaService {
 
         return dto;
     }
+
+    // 批量更新Focus Area的displayOrder
+    @Transactional
+    public void batchUpdateDisplayOrder(List<com.growing.app.controller.MajorCategoryController.FocusAreaOrderUpdate> updates) {
+        for (com.growing.app.controller.MajorCategoryController.FocusAreaOrderUpdate update : updates) {
+            FocusArea focusArea = focusAreaRepository.findById(update.getId())
+                    .orElseThrow(() -> new RuntimeException("Focus Area not found: " + update.getId()));
+            focusArea.setDisplayOrder(update.getDisplayOrder());
+            focusAreaRepository.save(focusArea);
+        }
+    }
 }

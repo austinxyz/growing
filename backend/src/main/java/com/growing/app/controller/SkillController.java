@@ -1,7 +1,10 @@
 package com.growing.app.controller;
 
+import com.growing.app.dto.FocusAreaBriefDTO;
 import com.growing.app.dto.LearningResourceDTO;
 import com.growing.app.dto.SkillDTO;
+import com.growing.app.model.FocusArea;
+import com.growing.app.repository.FocusAreaRepository;
 import com.growing.app.service.AuthService;
 import com.growing.app.service.LearningResourceService;
 import com.growing.app.service.SkillService;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/skills")
@@ -22,6 +26,9 @@ public class SkillController {
 
     @Autowired
     private LearningResourceService learningResourceService;
+
+    @Autowired
+    private FocusAreaRepository focusAreaRepository;
 
     @Autowired
     private AuthService authService;
@@ -126,5 +133,35 @@ public class SkillController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "需要管理员权限");
         }
         return ResponseEntity.ok(skillService.getUnassociatedSkills());
+    }
+
+    // 获取 Behavioral 技能的所有 Focus Areas（用于项目经验关联选择）
+    @GetMapping("/behavioral/focus-areas")
+    public ResponseEntity<List<FocusAreaBriefDTO>> getBehavioralFocusAreas() {
+        // Behavioral skill ID = 3
+        List<FocusArea> focusAreas = focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(3L);
+
+        List<FocusAreaBriefDTO> dtos = focusAreas.stream()
+                .map(this::convertToFocusAreaBriefDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    // Convert FocusArea to FocusAreaBriefDTO
+    private FocusAreaBriefDTO convertToFocusAreaBriefDTO(FocusArea focusArea) {
+        FocusAreaBriefDTO dto = new FocusAreaBriefDTO();
+        dto.setId(focusArea.getId());
+        dto.setName(focusArea.getName());
+        dto.setDescription(focusArea.getDescription());
+        // Note: icon field removed - not in database schema
+
+        // Get skill ID and name from associated skill
+        if (focusArea.getSkill() != null) {
+            dto.setSkillId(focusArea.getSkill().getId());
+            dto.setSkillName(focusArea.getSkill().getName());
+        }
+
+        return dto;
     }
 }

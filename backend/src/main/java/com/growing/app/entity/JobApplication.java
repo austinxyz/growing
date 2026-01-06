@@ -104,6 +104,9 @@ public class JobApplication {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "recruiter_insights", columnDefinition = "JSON")
+    private String recruiterInsights;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

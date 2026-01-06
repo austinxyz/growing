@@ -97,5 +97,13 @@ export default {
    */
   deleteFocusArea(id) {
     return api.delete(`/focus-areas/${id}`)
+  },
+
+  /**
+   * 批量更新Focus Area的displayOrder
+   * @param {Array} updates - [{id: number, displayOrder: number}, ...]
+   */
+  batchUpdateFocusAreaOrder(updates) {
+    return api.put('/focus-areas/batch-update-order', updates)
   }
 }

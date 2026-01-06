@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.JobApplicationDTO;
 import com.growing.app.dto.InterviewStageDTO;
 import com.growing.app.dto.InterviewRecordDTO;
+import com.growing.app.dto.RecruiterInsightsDTO;
 import com.growing.app.entity.*;
 import com.growing.app.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,21 @@ public class JobApplicationService {
     // 按状态获取
     public List<JobApplicationDTO> getApplicationsByStatus(Long userId, String status) {
         return jobApplicationRepository.findByUserIdAndApplicationStatusOrderByCreatedAtDesc(userId, status).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 按公司获取
+    public List<JobApplicationDTO> getJobsByCompany(Long companyId, Long userId) {
+        // 验证公司属于该用户
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
+        if (!company.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此公司");
+        }
+
+        return jobApplicationRepository.findByCompanyIdOrderByCreatedAtDesc(companyId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -104,6 +120,9 @@ public class JobApplicationService {
             if (dto.getRejectionReasons() != null) {
                 application.setRejectionReasons(objectMapper.writeValueAsString(dto.getRejectionReasons()));
             }
+            if (dto.getRecruiterInsights() != null) {
+                application.setRecruiterInsights(objectMapper.writeValueAsString(dto.getRecruiterInsights()));
+            }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "JSON字段格式错误: " + e.getMessage());
         }
@@ -160,6 +179,9 @@ public class JobApplicationService {
             }
             if (dto.getRejectionReasons() != null) {
                 application.setRejectionReasons(objectMapper.writeValueAsString(dto.getRejectionReasons()));
+            }
+            if (dto.getRecruiterInsights() != null) {
+                application.setRecruiterInsights(objectMapper.writeValueAsString(dto.getRecruiterInsights()));
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "JSON字段格式错误: " + e.getMessage());
@@ -235,11 +257,21 @@ public class JobApplicationService {
                 dto.setRejectionReasons(objectMapper.readValue(application.getRejectionReasons(),
                         new TypeReference<List<String>>() {}));
             }
+            // DTO Completeness Checklist: Parse recruiterInsights
+            if (application.getRecruiterInsights() != null) {
+                dto.setRecruiterInsights(objectMapper.readValue(application.getRecruiterInsights(),
+                        RecruiterInsightsDTO.class));
+            }
         } catch (Exception e) {
-            // If JSON parsing fails, set empty lists
+            // If JSON parsing fails, set empty lists/null
             dto.setStatusHistory(Collections.emptyList());
             dto.setRejectionReasons(Collections.emptyList());
+            dto.setRecruiterInsights(null);
         }
+
+        // Populate statistics (for list view)
+        dto.setInterviewStageCount(interviewStageRepository.countByJobApplicationId(application.getId()));
+        dto.setInterviewRecordCount(interviewRecordRepository.countByJobApplicationId(application.getId()));
 
         return dto;
     }

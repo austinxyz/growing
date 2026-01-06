@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.ResumeExperienceDTO;
 import com.growing.app.entity.ResumeExperience;
 import com.growing.app.entity.Resume;
+import com.growing.app.entity.ProjectExperience;
 import com.growing.app.repository.ResumeExperienceRepository;
 import com.growing.app.repository.ResumeRepository;
+import com.growing.app.repository.ProjectExperienceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,9 @@ public class ResumeExperienceService {
 
     @Autowired
     private ResumeRepository resumeRepository;
+
+    @Autowired
+    private ProjectExperienceRepository projectExperienceRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -158,11 +163,21 @@ public class ResumeExperienceService {
         // Parse JSON field
         try {
             if (experience.getProjectIds() != null) {
-                dto.setProjectIds(objectMapper.readValue(experience.getProjectIds(),
-                        new TypeReference<List<Long>>() {}));
+                List<Long> projectIds = objectMapper.readValue(experience.getProjectIds(),
+                        new TypeReference<List<Long>>() {});
+                dto.setProjectIds(projectIds);
+
+                // 填充项目名称列表
+                if (projectIds != null && !projectIds.isEmpty()) {
+                    List<String> projectNames = projectExperienceRepository.findAllById(projectIds).stream()
+                            .map(ProjectExperience::getProjectName)
+                            .collect(Collectors.toList());
+                    dto.setProjectNames(projectNames);
+                }
             }
         } catch (Exception e) {
             dto.setProjectIds(Collections.emptyList());
+            dto.setProjectNames(Collections.emptyList());
         }
 
         return dto;

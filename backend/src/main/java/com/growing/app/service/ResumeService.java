@@ -37,6 +37,9 @@ public class ResumeService {
     @Autowired
     private ResumeCertificationRepository resumeCertificationRepository;
 
+    @Autowired
+    private ProjectExperienceRepository projectExperienceRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 获取用户所有简历版本
@@ -254,14 +257,24 @@ public class ResumeService {
         dto.setCreatedAt(exp.getCreatedAt());
         dto.setUpdatedAt(exp.getUpdatedAt());
 
-        // Parse JSON field
+        // Parse JSON field and populate project names
         try {
             if (exp.getProjectIds() != null) {
-                dto.setProjectIds(objectMapper.readValue(exp.getProjectIds(),
-                        new TypeReference<List<Long>>() {}));
+                List<Long> projectIds = objectMapper.readValue(exp.getProjectIds(),
+                        new TypeReference<List<Long>>() {});
+                dto.setProjectIds(projectIds);
+
+                // 填充项目名称列表
+                if (projectIds != null && !projectIds.isEmpty()) {
+                    List<String> projectNames = projectExperienceRepository.findAllById(projectIds).stream()
+                            .map(ProjectExperience::getProjectName)
+                            .collect(Collectors.toList());
+                    dto.setProjectNames(projectNames);
+                }
             }
         } catch (Exception e) {
             dto.setProjectIds(Collections.emptyList());
+            dto.setProjectNames(Collections.emptyList());
         }
 
         return dto;

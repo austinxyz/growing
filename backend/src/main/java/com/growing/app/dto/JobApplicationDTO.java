@@ -45,9 +45,16 @@ public class JobApplicationDTO {
 
     private String notes;
 
+    // Recruiter Insights (Phase 7 Enhancements)
+    private RecruiterInsightsDTO recruiterInsights;  // From JobApplication.recruiterInsights JSON
+
     // Nested collections (DTO Completeness Checklist: all collections populated)
     private List<InterviewStageDTO> stages;
     private List<InterviewRecordDTO> interviews;
+
+    // Statistics for list view
+    private Integer interviewStageCount;
+    private Integer interviewRecordCount;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

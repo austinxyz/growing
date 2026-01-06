@@ -107,4 +107,39 @@ public class MajorCategoryController {
         focusAreaService.deleteFocusArea(id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 批量更新Focus Area的displayOrder
+     * PUT /api/focus-areas/batch-update-order
+     * Body: [{id: 1, displayOrder: 0}, {id: 2, displayOrder: 1}, ...]
+     */
+    @PutMapping("/focus-areas/batch-update-order")
+    public ResponseEntity<Void> batchUpdateFocusAreaOrder(@RequestBody List<FocusAreaOrderUpdate> updates) {
+        focusAreaService.batchUpdateDisplayOrder(updates);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * DTO for batch update
+     */
+    public static class FocusAreaOrderUpdate {
+        private Long id;
+        private Integer displayOrder;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Integer getDisplayOrder() {
+            return displayOrder;
+        }
+
+        public void setDisplayOrder(Integer displayOrder) {
+            this.displayOrder = displayOrder;
+        }
+    }
 }

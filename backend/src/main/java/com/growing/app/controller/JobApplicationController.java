@@ -47,6 +47,18 @@ public class JobApplicationController {
         return ResponseEntity.ok(jobApplicationService.getApplicationsByStatus(userId, status));
     }
 
+    // 按公司获取
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<JobApplicationDTO>> getJobsByCompany(
+            @PathVariable Long companyId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        return ResponseEntity.ok(jobApplicationService.getJobsByCompany(companyId, userId));
+    }
+
     // 获取申请详情（包含所有nested resources）
     @GetMapping("/{id}")
     public ResponseEntity<JobApplicationDTO> getApplicationById(

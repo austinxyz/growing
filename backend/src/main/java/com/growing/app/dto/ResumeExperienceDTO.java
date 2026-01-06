@@ -19,6 +19,7 @@ public class ResumeExperienceDTO {
     private String responsibilities;
     private String achievements;
     private List<Long> projectIds;  // From ResumeExperience.projectIds JSON
+    private List<String> projectNames;  // 项目名称列表（用于显示）
     private Integer sortOrder;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

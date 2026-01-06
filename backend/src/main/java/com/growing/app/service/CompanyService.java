@@ -110,6 +110,95 @@ public class CompanyService {
         companyRepository.delete(company);
     }
 
+    // --- Company Links ---
+
+    // 获取公司所有链接
+    public List<CompanyLinkDTO> getCompanyLinks(Long companyId, Long userId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
+        // 验证所有权
+        if (!company.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此公司");
+        }
+
+        return companyLinkRepository.findByCompanyIdOrderBySortOrder(companyId).stream()
+                .map(this::convertToLinkDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 创建公司链接
+    @Transactional
+    public CompanyLinkDTO createCompanyLink(Long companyId, Long userId, CompanyLinkDTO dto) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
+        // 验证所有权
+        if (!company.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此公司");
+        }
+
+        CompanyLink link = new CompanyLink();
+        link.setCompanyId(companyId);
+        link.setLinkTitle(dto.getLinkTitle());
+        link.setLinkUrl(dto.getLinkUrl());
+        link.setNotes(dto.getNotes());
+        link.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
+
+        link = companyLinkRepository.save(link);
+        return convertToLinkDTO(link);
+    }
+
+    // 更新公司链接
+    @Transactional
+    public CompanyLinkDTO updateCompanyLink(Long companyId, Long linkId, Long userId, CompanyLinkDTO dto) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
+        // 验证所有权
+        if (!company.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此公司");
+        }
+
+        CompanyLink link = companyLinkRepository.findById(linkId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "链接不存在"));
+
+        // 验证链接属于该公司
+        if (!link.getCompanyId().equals(companyId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "链接不属于该公司");
+        }
+
+        link.setLinkTitle(dto.getLinkTitle());
+        link.setLinkUrl(dto.getLinkUrl());
+        link.setNotes(dto.getNotes());
+        link.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : link.getSortOrder());
+
+        link = companyLinkRepository.save(link);
+        return convertToLinkDTO(link);
+    }
+
+    // 删除公司链接
+    @Transactional
+    public void deleteCompanyLink(Long companyId, Long linkId, Long userId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
+        // 验证所有权
+        if (!company.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权修改此公司");
+        }
+
+        CompanyLink link = companyLinkRepository.findById(linkId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "链接不存在"));
+
+        // 验证链接属于该公司
+        if (!link.getCompanyId().equals(companyId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "链接不属于该公司");
+        }
+
+        companyLinkRepository.delete(link);
+    }
+
     // DTO Conversion
     private CompanyDTO convertToDTO(Company company) {
         CompanyDTO dto = new CompanyDTO();

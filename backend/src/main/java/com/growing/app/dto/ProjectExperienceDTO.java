@@ -40,7 +40,9 @@ public class ProjectExperienceDTO {
 
     // Tags and Classification
     private List<String> techTags;  // From ProjectExperience.techTags JSON
-    private List<Long> skillIds;  // From ProjectExperience.skillIds JSON
+    private List<Long> focusAreaIds;  // Behavioral Focus Area IDs (input)
+    private List<FocusAreaBriefDTO> focusAreas;  // Complete Focus Area details with skill info (output)
+    private List<Long> skillIds;  // Dynamically calculated from focusAreas (output only)
     private String difficulty;  // Low, Medium, High, Critical
 
     private LocalDateTime createdAt;

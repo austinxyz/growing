@@ -36,6 +36,9 @@ public class InterviewStage {
     @Column(name = "skill_ids", columnDefinition = "JSON")
     private String skillIds;
 
+    @Column(name = "focus_area_ids", columnDefinition = "JSON")
+    private String focusAreaIds;
+
     @Column(name = "preparation_notes", columnDefinition = "TEXT")
     private String preparationNotes;
 

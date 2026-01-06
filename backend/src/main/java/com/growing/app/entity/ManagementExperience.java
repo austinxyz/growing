@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "management_experiences",
        indexes = {
            @Index(name = "idx_user", columnList = "user_id"),
-           @Index(name = "idx_type", columnList = "user_id, experience_type")
+           @Index(name = "idx_focus_area", columnList = "user_id, focus_area_id")
        })
 @Data
 public class ManagementExperience {
@@ -28,11 +28,11 @@ public class ManagementExperience {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "focus_area_id")
+    private Long focusAreaId;
+
     @Column(name = "experience_name", nullable = false)
     private String experienceName;
-
-    @Column(name = "experience_type", nullable = false, length = 50)
-    private String experienceType;
 
     @Column(name = "team_growth_subtype", length = 50)
     private String teamGrowthSubtype;

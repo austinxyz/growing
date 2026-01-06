@@ -13,7 +13,7 @@
 4. **NEVER skip admin role check on `/api/users/*`** - Use `authService.isAdminByToken()`
 5. **NEVER modify user resources without ownership check** - Users can only delete their own resources
 6. **NEVER hardcode JWT secret** - Must be in `backend/.env` as `JWT_SECRET`
-7. **NEVER allow CORS from all origins** - Only `http://localhost:3000` in development (see `SecurityConfig.java`)
+7. **NEVER allow CORS from all origins** - Only `http://localhost:3001` in development (see `SecurityConfig.java`)
 8. **NEVER use `response.data` when axios interceptor is configured** - Interceptor already returns `response.data`, use `response` directly
    ```javascript
    // ❌ WRONG - response.data is undefined!
@@ -215,11 +215,16 @@ Business Logic:
 
 ## Quick Start
 
+### 🚨 CRITICAL: Port Configuration
+**Frontend**: http://localhost:3001 (NOT 3000!)
+**Backend**: http://localhost:8082 (NOT 8080!)
+**NEVER assume default ports** - Always check these ports before debugging
+
 ### Backend
 ```bash
 cd backend
 ./start.sh  # Sources .env and runs Spring Boot
-# Runs on http://localhost:8080
+# Runs on http://localhost:8082
 ```
 
 ### Frontend
@@ -227,8 +232,8 @@ cd backend
 cd frontend
 npm install
 npm run dev
-# Runs on http://localhost:3000
-# Proxies /api → http://localhost:8080
+# Runs on http://localhost:3001
+# Proxies /api → http://localhost:8082
 ```
 
 ### Database

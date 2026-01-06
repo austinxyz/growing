@@ -17,6 +17,13 @@
         <div class="h-1/2 border-b border-gray-200 overflow-hidden flex flex-col">
           <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wider">职业路径与技能</h3>
+            <!-- 测试按钮 -->
+            <button
+              @click="testItems = ['Item 1', 'Item 2', 'Item 3']"
+              class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors mr-2"
+            >
+              测试
+            </button>
             <!-- 职业路径管理按钮 -->
             <button
               @click="showCareerPathModal = true"
@@ -25,6 +32,24 @@
             >
               + 职业路径
             </button>
+          </div>
+
+          <!-- 测试拖拽区域 -->
+          <div v-if="testItems.length > 0" class="p-2 bg-yellow-50 border border-yellow-200">
+            <p class="text-xs mb-2">测试拖拽 (应该可以拖动下面的项目):</p>
+            <draggable
+              v-model="testItems"
+              @start="() => console.log('测试拖拽开始', testItems)"
+              @end="() => console.log('测试拖拽结束', testItems)"
+              item-key="index"
+              class="space-y-1"
+            >
+              <template #item="{ element }">
+                <div class="bg-white p-2 rounded border cursor-move">
+                  {{ element }}
+                </div>
+              </template>
+            </draggable>
           </div>
 
           <div class="flex-1 overflow-y-auto p-2">
@@ -185,25 +210,42 @@
           <div v-else class="flex-1 overflow-y-auto p-2">
             <!-- 第二类技能: 只有General大分类,直接显示Focus Area -->
             <template v-if="isSecondTypeSkill">
-              <div class="space-y-1">
-                <div
-                  v-for="focusArea in focusAreas"
-                  :key="focusArea.id"
-                  @click="selectFocusArea(focusArea.id)"
-                  :class="[
-                    'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors',
-                    selectedFocusAreaId === focusArea.id
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  ]"
-                >
-                  <!-- Focus Area图标 -->
-                  <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                  </svg>
-                  <span class="text-sm truncate">{{ focusArea.name }}</span>
-                </div>
-              </div>
+              <draggable
+                v-model="focusAreas"
+                @update:model-value="handleSecondTypeFocusAreaReorder"
+                @start="() => console.log('开始拖拽第二类技能Focus Area')"
+                @end="() => console.log('结束拖拽第二类技能Focus Area')"
+                item-key="id"
+                class="space-y-1"
+                :animation="200"
+              >
+                <template #item="{ element: focusArea }">
+                  <div
+                    @click="selectFocusArea(focusArea.id)"
+                    :class="[
+                      'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors group',
+                      selectedFocusAreaId === focusArea.id
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    ]"
+                  >
+                    <!-- 拖拽手柄 (6个点) -->
+                    <svg class="w-4 h-4 mr-1.5 flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-move drag-handle transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                      <circle cx="7" cy="5" r="1.5"/>
+                      <circle cx="13" cy="5" r="1.5"/>
+                      <circle cx="7" cy="10" r="1.5"/>
+                      <circle cx="13" cy="10" r="1.5"/>
+                      <circle cx="7" cy="15" r="1.5"/>
+                      <circle cx="13" cy="15" r="1.5"/>
+                    </svg>
+                    <!-- Focus Area图标 -->
+                    <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
+                    <span class="text-sm truncate">{{ focusArea.name }}</span>
+                  </div>
+                </template>
+              </draggable>
             </template>
 
             <!-- 第一类技能: 显示大分类 → Focus Area树 -->
@@ -229,25 +271,44 @@
                     <span class="text-sm font-medium text-gray-700 truncate">{{ category.name }}</span>
                   </div>
 
-                  <!-- Focus Area列表 (子节点) -->
-                  <div v-if="expandedCategories.has(category.id)" class="ml-5 mt-1 space-y-1">
-                    <div
-                      v-for="focusArea in getFocusAreasByCategory(category.id)"
-                      :key="focusArea.id"
-                      @click.stop="selectFocusArea(focusArea.id)"
-                      :class="[
-                        'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors',
-                        selectedFocusAreaId === focusArea.id
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      ]"
+                  <!-- Focus Area列表 (子节点) - 可拖拽 -->
+                  <div v-if="expandedCategories.has(category.id)" class="ml-5 mt-1">
+                    <draggable
+                      :model-value="getFocusAreasByCategory(category.id)"
+                      @update:model-value="(newList) => handleFocusAreaReorder(category.id, newList)"
+                      @start="() => console.log('开始拖拽Focus Area')"
+                      @end="() => console.log('结束拖拽Focus Area')"
+                      item-key="id"
+                      :animation="200"
+                      class="space-y-1"
                     >
-                      <!-- Focus Area图标 -->
-                      <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                      </svg>
-                      <span class="text-sm truncate">{{ focusArea.name }}</span>
-                    </div>
+                    <template #item="{ element: focusArea }">
+                      <div
+                        @click.stop="selectFocusArea(focusArea.id)"
+                        :class="[
+                          'flex items-center px-2 py-1.5 rounded cursor-pointer transition-colors group',
+                          selectedFocusAreaId === focusArea.id
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        ]"
+                      >
+                        <!-- 拖拽手柄 (6个点) -->
+                        <svg class="w-4 h-4 mr-1.5 flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-move drag-handle transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                          <circle cx="7" cy="5" r="1.5"/>
+                          <circle cx="13" cy="5" r="1.5"/>
+                          <circle cx="7" cy="10" r="1.5"/>
+                          <circle cx="13" cy="10" r="1.5"/>
+                          <circle cx="7" cy="15" r="1.5"/>
+                          <circle cx="13" cy="15" r="1.5"/>
+                        </svg>
+                        <!-- Focus Area图标 -->
+                        <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                        </svg>
+                        <span class="text-sm truncate">{{ focusArea.name }}</span>
+                      </div>
+                    </template>
+                    </draggable>
                   </div>
                 </div>
               </div>
@@ -827,6 +888,7 @@ import learningContentApi from '@/api/learningContentApi'
 import { adminQuestionApi } from '@/api/questionApi'
 import api from '@/api/index'
 import { marked } from 'marked'
+import draggable from 'vuedraggable'
 import AIImportModal from '@/components/AIImportModal.vue'
 import LearningContentEditForm from '@/components/skills/admin/LearningContentEditForm.vue'
 import QuestionViewModal from '@/components/questions/QuestionViewModal.vue'
@@ -836,6 +898,7 @@ import CareerPathEditModal from '@/components/skills/admin/CareerPathEditModal.v
 export default {
   name: 'GeneralSkillContentManagement',
   components: {
+    draggable,
     AIImportModal,
     LearningContentEditForm,
     QuestionViewModal,
@@ -844,6 +907,9 @@ export default {
   },
   data() {
     return {
+      // 测试拖拽
+      testItems: [],
+
       // 职业路径和技能树
       careerPaths: [],
       loadingCareerPaths: false,
@@ -906,6 +972,8 @@ export default {
     }
   },
   async mounted() {
+    console.log('GeneralSkillContentManagement mounted')
+    console.log('draggable component:', this.$options.components.draggable)
     await this.loadCareerPaths()
   },
   watch: {
@@ -1069,7 +1137,120 @@ export default {
     getFocusAreasByCategory(categoryId) {
       return this.focusAreas.filter(fa =>
         fa.categoryIds && fa.categoryIds.includes(categoryId)
-      )
+      ).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    },
+
+    // ===== Focus Area拖拽排序 =====
+    async handleFocusAreaReorder(categoryId, newList) {
+      console.log('handleFocusAreaReorder被调用了', categoryId, newList)
+      try {
+        // 批量更新displayOrder
+        const updates = newList.map((fa, index) => ({
+          id: fa.id,
+          displayOrder: index
+        }))
+
+        console.log('发送更新请求:', updates)
+        await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+        console.log('更新成功')
+
+        // 刷新Focus Areas
+        await this.loadCategoriesAndFocusAreas()
+      } catch (error) {
+        console.error('更新Focus Area顺序失败:', error)
+        alert('更新顺序失败: ' + (error.message || '未知错误'))
+        await this.loadCategoriesAndFocusAreas()
+      }
+    },
+
+    async handleFocusAreaDragEnd(categoryId, evt) {
+      // evt.oldIndex和evt.newIndex是拖拽前后的索引
+      if (evt.oldIndex === evt.newIndex) {
+        return // 没有移动
+      }
+
+      try {
+        console.log('拖拽结束，分类ID:', categoryId, '从', evt.oldIndex, '到', evt.newIndex)
+
+        // 获取该分类下的所有Focus Areas
+        const focusAreasInCategory = this.getFocusAreasByCategory(categoryId)
+
+        // 移动元素
+        const movedItem = focusAreasInCategory[evt.oldIndex]
+        focusAreasInCategory.splice(evt.oldIndex, 1)
+        focusAreasInCategory.splice(evt.newIndex, 0, movedItem)
+
+        console.log('新顺序:', focusAreasInCategory.map(fa => fa.name))
+
+        // 批量更新displayOrder
+        const updates = focusAreasInCategory.map((fa, index) => ({
+          id: fa.id,
+          displayOrder: index
+        }))
+
+        console.log('发送更新请求:', updates)
+        await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+        console.log('更新成功')
+
+        // 刷新Focus Areas以获取最新顺序
+        await this.loadFocusAreas()
+      } catch (error) {
+        console.error('更新Focus Area顺序失败:', error)
+        alert('更新顺序失败: ' + (error.message || '未知错误'))
+        // 失败时重新加载恢复原顺序
+        await this.loadFocusAreas()
+      }
+    },
+
+    // 处理第二类技能（无分类）的拖拽 - 使用v-model
+    async handleSecondTypeFocusAreaReorder(newList) {
+      console.log('handleSecondTypeFocusAreaReorder被调用了', newList)
+      try {
+        // 批量更新displayOrder（按新顺序）
+        const updates = newList.map((fa, index) => ({
+          id: fa.id,
+          displayOrder: index
+        }))
+
+        console.log('发送更新请求:', updates)
+        await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+        console.log('更新成功')
+
+        // 刷新Focus Areas
+        await this.loadCategoriesAndFocusAreas()
+      } catch (error) {
+        console.error('更新Focus Area顺序失败:', error)
+        alert('更新顺序失败: ' + (error.message || '未知错误'))
+        await this.loadCategoriesAndFocusAreas()
+      }
+    },
+
+    // 处理第二类技能（无分类）的拖拽
+    async handleSecondTypeFocusAreaDragEnd(evt) {
+      if (evt.oldIndex === evt.newIndex) {
+        return // 没有移动
+      }
+
+      try {
+        console.log('第二类技能拖拽结束，从', evt.oldIndex, '到', evt.newIndex)
+
+        // 批量更新displayOrder（按当前数组顺序）
+        const updates = this.focusAreas.map((fa, index) => ({
+          id: fa.id,
+          displayOrder: index
+        }))
+
+        console.log('发送更新请求:', updates)
+        await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+        console.log('更新成功')
+
+        // 刷新Focus Areas
+        await this.loadFocusAreas()
+      } catch (error) {
+        console.error('更新Focus Area顺序失败:', error)
+        alert('更新顺序失败: ' + (error.message || '未知错误'))
+        await this.loadFocusAreas()
+      }
     },
 
     // ===== 学习资料相关方法 =====

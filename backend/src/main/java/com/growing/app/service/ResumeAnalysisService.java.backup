@@ -1,0 +1,304 @@
+package com.growing.app.service;
+
+import com.growing.app.dto.*;
+import com.growing.app.entity.*;
+import com.growing.app.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 简历分析Service
+ * Phase 7: Job Search Module - Resume Analysis & Customization
+ */
+@Service
+public class ResumeAnalysisService {
+
+    @Autowired
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
+    private ResumeRepository resumeRepository;
+
+    @Autowired
+    private ProjectExperienceRepository projectExperienceRepository;
+
+    @Autowired
+    private ManagementExperienceRepository managementExperienceRepository;
+
+    @Autowired
+    private ResumeService resumeService;
+
+    /**
+     * 分析简历与职位的匹配度 (通过jobApplicationId)
+     */
+    public ResumeAnalysisDTO analyzeResumeByApplication(Long jobApplicationId, Long userId) {
+        // 获取职位申请
+        JobApplication application = jobApplicationRepository.findById(jobApplicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "职位申请不存在"));
+
+        if (!application.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此职位申请");
+        }
+
+        return performAnalysis(
+                application.getId(),
+                application.getQualifications(),
+                application.getResponsibilities(),
+                userId
+        );
+    }
+
+    /**
+     * 分析简历与职位的匹配度 (通过jobId - 未申请的职位)
+     */
+    public ResumeAnalysisDTO analyzeResumeByJob(Long jobId, Long userId) {
+        // 获取职位
+        JobApplication job = jobApplicationRepository.findById(jobId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "职位不存在"));
+
+        // 不检查userId，因为这是未申请的职位，任何人都可以查看
+
+        return performAnalysis(
+                job.getId(),
+                job.getQualifications(),
+                job.getResponsibilities(),
+                userId
+        );
+    }
+
+    /**
+     * 执行简历分析 (核心逻辑)
+     */
+    private ResumeAnalysisDTO performAnalysis(
+            Long jobId,
+            String qualifications,
+            String responsibilities,
+            Long userId
+    ) {
+
+        // 获取用户默认简历
+        Resume resume = resumeRepository.findByUserIdAndIsDefaultTrue(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "未找到默认简历"));
+
+        // 获取简历数据
+        List<ProjectExperience> projects = projectExperienceRepository.findByUserIdOrderByStartDateDesc(userId);
+        List<ManagementExperience> managementExps = managementExperienceRepository.findByUserIdOrderByStartDateDesc(userId);
+
+        // 执行匹配分析
+        ResumeAnalysisDTO analysis = new ResumeAnalysisDTO();
+        analysis.setJobApplicationId(jobId);
+        analysis.setResumeId(resume.getId());
+
+        // 提取职位要求关键词
+        List<String> requiredSkills = extractSkillsFromJD(
+                qualifications,
+                responsibilities
+        );
+
+        // 提取简历中的技能
+        List<String> resumeSkills = extractSkillsFromResume(projects, managementExps, resume);
+
+        // 计算匹配的技能
+        List<String> matchedSkills = requiredSkills.stream()
+                .filter(skill -> resumeSkills.stream()
+                        .anyMatch(rs -> rs.toLowerCase().contains(skill.toLowerCase()) ||
+                                skill.toLowerCase().contains(rs.toLowerCase())))
+                .collect(Collectors.toList());
+
+        // 计算缺失的技能
+        List<String> missingSkills = requiredSkills.stream()
+                .filter(skill -> !matchedSkills.contains(skill))
+                .collect(Collectors.toList());
+
+        analysis.setMatchedSkills(matchedSkills);
+        analysis.setMissingSkills(missingSkills);
+
+        // 计算匹配度 (0-100)
+        int matchScore = requiredSkills.isEmpty() ? 100 :
+                (matchedSkills.size() * 100) / requiredSkills.size();
+        analysis.setMatchScore(matchScore);
+
+        // 分析优势
+        List<String> strengths = analyzeStrengths(projects, managementExps, matchedSkills);
+        analysis.setStrengths(strengths);
+
+        // 分析需要改进的地方
+        List<String> improvements = analyzeImprovements(missingSkills, requiredSkills);
+        analysis.setImprovements(improvements);
+
+        // 如果匹配度>70%，生成定制化建议
+        if (matchScore > 70) {
+            ResumeCustomizationDTO customization = generateCustomization(
+                    qualifications, responsibilities, resume, projects, managementExps,
+                    matchedSkills, missingSkills
+            );
+            analysis.setCustomization(customization);
+        }
+
+        return analysis;
+    }
+
+    /**
+     * 从JD中提取技能关键词
+     */
+    private List<String> extractSkillsFromJD(String qualifications, String responsibilities) {
+        Set<String> skills = new HashSet<>();
+
+        // 常见技术栈关键词
+        String[] commonSkills = {
+                "Java", "Python", "JavaScript", "TypeScript", "Go", "C++", "React", "Vue", "Angular",
+                "Spring", "Spring Boot", "Node.js", "Express", "Django", "Flask",
+                "MySQL", "PostgreSQL", "MongoDB", "Redis", "Elasticsearch",
+                "Docker", "Kubernetes", "AWS", "Azure", "GCP",
+                "Microservices", "RESTful", "GraphQL", "gRPC",
+                "CI/CD", "Jenkins", "Git", "GitHub", "GitLab",
+                "Agile", "Scrum", "Kafka", "RabbitMQ", "Nginx"
+        };
+
+        String combinedText = (qualifications != null ? qualifications : "") + " " +
+                (responsibilities != null ? responsibilities : "");
+        String lowerText = combinedText.toLowerCase();
+
+        for (String skill : commonSkills) {
+            if (lowerText.contains(skill.toLowerCase())) {
+                skills.add(skill);
+            }
+        }
+
+        return new ArrayList<>(skills);
+    }
+
+    /**
+     * 从简历中提取技能
+     */
+    private List<String> extractSkillsFromResume(
+            List<ProjectExperience> projects,
+            List<ManagementExperience> managementExps,
+            Resume resume
+    ) {
+        Set<String> skills = new HashSet<>();
+
+        // 从项目经验中提取技术栈
+        for (ProjectExperience project : projects) {
+            if (project.getTechStack() != null) {
+                Arrays.stream(project.getTechStack().split("[,;\\n]"))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .forEach(skills::add);
+            }
+        }
+
+        return new ArrayList<>(skills);
+    }
+
+    /**
+     * 分析优势
+     */
+    private List<String> analyzeStrengths(
+            List<ProjectExperience> projects,
+            List<ManagementExperience> managementExps,
+            List<String> matchedSkills
+    ) {
+        List<String> strengths = new ArrayList<>();
+
+        if (!matchedSkills.isEmpty()) {
+            strengths.add(String.format("技术栈匹配：掌握 %d 项职位要求的核心技术",
+                    matchedSkills.size()));
+        }
+
+        if (!projects.isEmpty()) {
+            strengths.add(String.format("项目经验丰富：共 %d 个相关项目经验",
+                    projects.size()));
+        }
+
+        if (!managementExps.isEmpty()) {
+            strengths.add(String.format("管理经验：具备 %d 项管理相关经验",
+                    managementExps.size()));
+        }
+
+        return strengths;
+    }
+
+    /**
+     * 分析需要改进的地方
+     */
+    private List<String> analyzeImprovements(List<String> missingSkills, List<String> requiredSkills) {
+        List<String> improvements = new ArrayList<>();
+
+        if (!missingSkills.isEmpty()) {
+            improvements.add(String.format("技能补充：建议学习 %s 等技术",
+                    String.join(", ", missingSkills.subList(0, Math.min(3, missingSkills.size())))));
+        }
+
+        return improvements;
+    }
+
+    /**
+     * 生成定制化建议
+     */
+    private ResumeCustomizationDTO generateCustomization(
+            String qualifications,
+            String responsibilities,
+            Resume resume,
+            List<ProjectExperience> projects,
+            List<ManagementExperience> managementExps,
+            List<String> matchedSkills,
+            List<String> missingSkills
+    ) {
+        ResumeCustomizationDTO customization = new ResumeCustomizationDTO();
+
+        // 关键词优化建议
+        List<ResumeCustomizationDTO.KeywordSuggestion> keywordSuggestions = new ArrayList<>();
+        for (String skill : matchedSkills.subList(0, Math.min(5, matchedSkills.size()))) {
+            ResumeCustomizationDTO.KeywordSuggestion suggestion = new ResumeCustomizationDTO.KeywordSuggestion();
+            suggestion.setKeyword(skill);
+            suggestion.setSection("项目经验或技能列表");
+            suggestion.setReason("职位要求中的核心技能，建议在简历中突出展示");
+            keywordSuggestions.add(suggestion);
+        }
+        customization.setKeywordSuggestions(keywordSuggestions);
+
+        // 项目经验优化建议
+        List<ResumeCustomizationDTO.ProjectOptimization> projectOptimizations = new ArrayList<>();
+        for (ProjectExperience project : projects.subList(0, Math.min(3, projects.size()))) {
+            ResumeCustomizationDTO.ProjectOptimization optimization = new ResumeCustomizationDTO.ProjectOptimization();
+            optimization.setProjectId(project.getId());
+            optimization.setProjectName(project.getProjectName());
+
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("突出使用的核心技术栈: " + String.join(", ", matchedSkills.subList(0, Math.min(3, matchedSkills.size()))));
+            suggestions.add("量化项目成果，添加具体数据（如性能提升百分比、用户增长等）");
+            suggestions.add("强调解决的技术难题与职位要求的匹配点");
+
+            optimization.setSuggestions(suggestions);
+            projectOptimizations.add(optimization);
+        }
+        customization.setProjectOptimizations(projectOptimizations);
+
+        // 技能突出建议
+        List<ResumeCustomizationDTO.SkillHighlight> skillHighlights = new ArrayList<>();
+        for (String skill : matchedSkills.subList(0, Math.min(3, matchedSkills.size()))) {
+            ResumeCustomizationDTO.SkillHighlight highlight = new ResumeCustomizationDTO.SkillHighlight();
+            highlight.setSkill(skill);
+            highlight.setCurrentMention("在技能列表中提及");
+            highlight.setSuggestedMention(String.format(
+                    "在项目描述中具体说明如何使用%s解决实际问题，展示熟练度", skill));
+            skillHighlights.add(highlight);
+        }
+        customization.setSkillHighlights(skillHighlights);
+
+        // 整体结构建议
+        List<String> structuralSuggestions = new ArrayList<>();
+        structuralSuggestions.add("将最相关的项目经验放在简历前三位");
+        structuralSuggestions.add("在个人总结中提及" + String.join("、", matchedSkills.subList(0, Math.min(3, matchedSkills.size()))));
+        structuralSuggestions.add("针对职位要求，调整项目描述的侧重点");
+        customization.setStructuralSuggestions(structuralSuggestions);
+
+        return customization;
+    }
+}

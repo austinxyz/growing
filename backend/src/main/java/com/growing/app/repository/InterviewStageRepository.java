@@ -19,6 +19,11 @@ public interface InterviewStageRepository extends JpaRepository<InterviewStage, 
     List<InterviewStage> findByJobApplicationIdOrderByStageOrder(Long jobApplicationId);
 
     /**
+     * 统计职位的面试阶段数量
+     */
+    int countByJobApplicationId(Long jobApplicationId);
+
+    /**
      * 删除指定职位的所有面试阶段
      */
     void deleteByJobApplicationId(Long jobApplicationId);

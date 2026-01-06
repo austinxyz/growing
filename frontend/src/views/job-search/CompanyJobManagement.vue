@@ -1,170 +1,1074 @@
 <template>
-  <div class="company-job-management p-6">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">公司与职位管理</h1>
+  <div class="company-job-management h-full flex bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <!-- 左侧：公司列表 -->
+    <div class="w-80 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 border-b border-purple-700">
+        <h2 class="text-lg font-bold text-white mb-3">🏢 公司列表</h2>
+        <button
+          @click="showCreateCompanyModal = true"
+          class="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 hover:shadow-lg transition-all flex items-center justify-center gap-2 font-semibold shadow-md"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          新建公司
+        </button>
+      </div>
 
-    <div class="grid grid-cols-4 gap-6">
-      <!-- 左侧: 公司列表 -->
-      <div class="col-span-1 bg-white rounded-lg shadow p-4">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold">公司列表</h2>
-          <button
-            @click="showCreateCompanyModal = true"
-            class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-          >
-            新建
-          </button>
-        </div>
-
-        <div class="space-y-2">
+      <div class="flex-1 overflow-y-auto">
+        <div class="p-2">
           <div
             v-for="company in companies"
             :key="company.id"
-            @click="selectedCompanyId = company.id"
-            class="p-3 border rounded cursor-pointer hover:bg-gray-50"
-            :class="{ 'bg-blue-50 border-blue-500': selectedCompanyId === company.id }"
+            @click="selectCompany(company.id)"
+            :class="[
+              'p-3 mb-2 rounded-lg cursor-pointer transition-all duration-200',
+              selectedCompanyId === company.id
+                ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-l-indigo-600 shadow-md'
+                : 'bg-gray-50 border border-gray-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:shadow-sm'
+            ]"
           >
-            <div class="font-medium">{{ company.companyName }}</div>
-            <div class="text-xs text-gray-500">{{ company.industry }}</div>
+            <div class="font-semibold text-gray-900">{{ company.companyName }}</div>
+            <div class="text-xs text-gray-600 mt-1">{{ company.industry || '未分类' }}</div>
+            <div class="text-xs text-gray-500 mt-1">
+              {{ company.companySize ? `规模: ${company.companySize}` : '' }}
+            </div>
+          </div>
+
+          <div v-if="!companies.length" class="text-center text-gray-500 py-8">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <p class="text-sm">暂无公司</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：公司详情 + Tab -->
+    <div class="flex-1 flex flex-col">
+      <div v-if="currentCompany" class="flex-1 flex flex-col">
+        <!-- 顶部操作栏 -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 border-b border-purple-700 p-4 flex items-center justify-between shadow-lg">
+          <h1 class="text-xl font-bold text-white">{{ currentCompany.companyName }}</h1>
+          <div class="flex gap-2">
+            <button
+              @click="deleteCompany"
+              class="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 hover:shadow-lg transition-all font-semibold shadow-md"
+            >
+              删除公司
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab导航 -->
+        <div class="bg-white border-b border-gray-200">
+          <div class="flex px-4">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              :class="[
+                'px-6 py-3 font-semibold transition-all duration-200',
+                activeTab === tab.id
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
+              ]"
+            >
+              {{ tab.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab内容 -->
+        <div class="flex-1 overflow-y-auto p-4">
+          <!-- Tab 1: 公司基本信息 -->
+          <div v-if="activeTab === 'info'" class="bg-white rounded-lg shadow p-6 space-y-6">
+            <div class="flex justify-end gap-2">
+              <button
+                v-if="!editModes.info"
+                @click="editModes.info = true; loadCompanyForEdit()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                编辑
+              </button>
+              <template v-else>
+                <button
+                  @click="editModes.info = false"
+                  class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  取消
+                </button>
+                <button
+                  @click="saveCompanyInfo"
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  保存
+                </button>
+              </template>
+            </div>
+
+            <div v-if="!editModes.info" class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">行业</label>
+                  <p class="text-gray-900">{{ currentCompany.industry || '未设置' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">公司规模</label>
+                  <p class="text-gray-900">{{ currentCompany.companySize || '未设置' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">地点</label>
+                  <p class="text-gray-900">{{ currentCompany.location || '未设置' }}</p>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">公司简介</label>
+                <div v-if="currentCompany.companyDescription" v-html="renderMarkdown(currentCompany.companyDescription)" class="prose max-w-none"></div>
+                <p v-else class="text-gray-500 italic">未设置</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">企业文化</label>
+                <div v-if="currentCompany.companyCulture" v-html="renderMarkdown(currentCompany.companyCulture)" class="prose max-w-none"></div>
+                <p v-else class="text-gray-500 italic">未设置</p>
+              </div>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">公司名称 *</label>
+                <input v-model="editCompanyData.companyName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">行业</label>
+                  <input v-model="editCompanyData.industry" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">公司规模</label>
+                  <select v-model="editCompanyData.companySize" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="">请选择</option>
+                    <option value="<50">小于50人</option>
+                    <option value="50-200">50-200人</option>
+                    <option value="200-1000">200-1000人</option>
+                    <option value="1000-5000">1000-5000人</option>
+                    <option value=">5000">5000人以上</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">地点</label>
+                  <input v-model="editCompanyData.location" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="例如: San Francisco, CA" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">公司简介 (支持 Markdown)</label>
+                <textarea v-model="editCompanyData.companyDescription" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">企业文化 (支持 Markdown)</label>
+                <textarea v-model="editCompanyData.companyCulture" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
+              </div>
+            </div>
+
+            <!-- 相关链接（独立管理区域，不在编辑模式中） -->
+            <div class="border-t pt-6 mt-6">
+              <div class="flex justify-between items-center mb-4">
+                <label class="block text-sm font-medium text-gray-700">相关链接</label>
+                <button
+                  @click="showCreateLinkModal = true"
+                  class="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all"
+                >
+                  + 添加链接
+                </button>
+              </div>
+              <div v-if="currentCompany.links && currentCompany.links.length > 0" class="space-y-2">
+                <div v-for="link in currentCompany.links" :key="link.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <span class="text-sm font-medium text-gray-700">{{ link.linkTitle }}:</span>
+                    <a :href="link.linkUrl" target="_blank" class="text-blue-600 hover:underline text-sm ml-2">{{ link.linkUrl }}</a>
+                    <p v-if="link.notes" class="text-xs text-gray-500 mt-1">{{ link.notes }}</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openLinkModal(link)"
+                      class="text-blue-600 hover:text-blue-700 text-sm"
+                      title="编辑"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      @click="deleteLink(link.id)"
+                      class="text-red-600 hover:text-red-700 text-sm"
+                      title="删除"
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="text-gray-500 italic text-sm">暂无相关链接</p>
+            </div>
+          </div>
+
+          <!-- Tab 2: 职位管理 - 左右两栏布局 -->
+          <div v-if="activeTab === 'jobs'" class="flex gap-4 h-full">
+            <!-- 左侧：职位列表 -->
+            <div class="w-80 bg-white rounded-lg shadow p-4 flex flex-col">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">职位列表</h3>
+                <button
+                  @click="openJobModal()"
+                  class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all font-semibold shadow-md"
+                >
+                  + 添加
+                </button>
+              </div>
+
+              <div class="flex-1 overflow-y-auto space-y-2">
+                <div
+                  v-for="job in jobs"
+                  :key="job.id"
+                  @click="selectJob(job.id)"
+                  :class="[
+                    'p-3 rounded-lg cursor-pointer transition-all duration-200 border',
+                    selectedJobId === job.id
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-500 shadow-md'
+                      : 'bg-gray-50 border-gray-200 hover:border-green-300 hover:shadow-sm'
+                  ]"
+                >
+                  <h4 class="font-semibold text-gray-900 text-sm">{{ job.positionName }}</h4>
+                  <p class="text-xs text-gray-600 mt-1">{{ job.positionLevel || '级别未设置' }}</p>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', getStatusColor(job.applicationStatus)]">
+                      {{ job.applicationStatus || '未申请' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="!jobs.length" class="text-center text-gray-500 py-8">
+                  <p class="text-sm">暂无职位</p>
+                  <p class="text-xs mt-1">点击上方按钮添加</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：职位详情 -->
+            <div v-if="currentJob" class="flex-1 bg-white rounded-lg shadow flex flex-col">
+              <!-- 职位标题栏 -->
+              <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 p-4 flex items-center justify-between">
+                <div>
+                  <h2 class="text-xl font-bold text-gray-900">{{ currentJob.positionName }}</h2>
+                  <p class="text-sm text-gray-600 mt-1">{{ currentJob.positionLevel || '级别未设置' }}</p>
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    @click="openJobModal(currentJob)"
+                    class="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    @click="deleteJob(currentJob.id)"
+                    class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-Tab导航 -->
+              <div class="border-b border-gray-200 bg-gray-50">
+                <div class="flex px-4">
+                  <button
+                    v-for="tab in jobDetailTabs"
+                    :key="tab.id"
+                    @click="activeJobDetailTab = tab.id"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium transition-all duration-200',
+                      activeJobDetailTab === tab.id
+                        ? 'text-green-600 border-b-2 border-green-600 bg-white'
+                        : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                    ]"
+                  >
+                    {{ tab.name }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-Tab内容 -->
+              <div class="flex-1 overflow-y-auto p-6">
+                <!-- Tab 1: JD (Job Description) -->
+                <div v-if="activeJobDetailTab === 'jd'" class="space-y-6">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">职位名称</label>
+                      <p class="text-gray-900">{{ currentJob.positionName }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">职位级别</label>
+                      <p class="text-gray-900">{{ currentJob.positionLevel || '未设置' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">发布时间</label>
+                      <p class="text-gray-900">{{ currentJob.postedDate ? formatDate(currentJob.postedDate) : '未设置' }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">申请状态</label>
+                      <span :class="['px-3 py-1 rounded-full text-sm font-medium inline-block', getStatusColor(currentJob.applicationStatus)]">
+                        {{ currentJob.applicationStatus || '未申请' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="currentJob.jobUrl">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">职位链接</label>
+                    <a :href="currentJob.jobUrl" target="_blank" class="text-blue-600 hover:underline break-all">
+                      {{ currentJob.jobUrl }}
+                    </a>
+                  </div>
+
+                  <div class="border-t pt-6">
+                    <label class="block text-lg font-semibold text-gray-900 mb-3">📋 Qualifications（技能要求）</label>
+                    <div v-if="currentJob.qualifications" v-html="renderMarkdown(currentJob.qualifications)" class="prose max-w-none"></div>
+                    <p v-else class="text-gray-500 italic">未设置</p>
+                  </div>
+
+                  <div class="border-t pt-6">
+                    <label class="block text-lg font-semibold text-gray-900 mb-3">💼 Responsibilities（岗位职责）</label>
+                    <div v-if="currentJob.responsibilities" v-html="renderMarkdown(currentJob.responsibilities)" class="prose max-w-none"></div>
+                    <p v-else class="text-gray-500 italic">未设置</p>
+                  </div>
+
+                  <div v-if="currentJob.notes" class="border-t pt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                    <div v-html="renderMarkdown(currentJob.notes)" class="prose max-w-none text-sm"></div>
+                  </div>
+                </div>
+
+                <!-- Tab 2: 面试流程 -->
+                <div v-if="activeJobDetailTab === 'interview'" class="space-y-6">
+                  <!-- 面试阶段部分 -->
+                  <div>
+                    <div class="flex justify-between items-center mb-4">
+                      <h3 class="text-lg font-semibold text-gray-900">📝 面试阶段</h3>
+                      <button
+                        @click="showCreateStageModal = true"
+                        class="px-3 py-1 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600"
+                      >
+                        + 添加阶段
+                      </button>
+                    </div>
+
+                    <div v-if="interviewStages.length > 0" class="space-y-2">
+                      <div
+                        v-for="stage in interviewStages"
+                        :key="stage.id"
+                        class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all"
+                      >
+                        <div class="flex items-start justify-between">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                              <span class="text-sm font-medium text-gray-500">阶段 {{ stage.stageOrder }}</span>
+                              <h4 class="text-lg font-semibold text-gray-900">{{ stage.stageName }}</h4>
+                            </div>
+                            <div v-if="stage.preparationNotes" class="mt-2 text-sm text-gray-600">
+                              <strong>准备要点：</strong>
+                              <div v-html="renderMarkdown(stage.preparationNotes)" class="prose max-w-none mt-1"></div>
+                            </div>
+                            <div v-if="stage.skillIds && stage.skillIds.length > 0" class="mt-2">
+                              <span class="text-xs text-gray-500">关联技能ID: {{ stage.skillIds.join(', ') }}</span>
+                            </div>
+                          </div>
+                          <div class="flex gap-2">
+                            <button
+                              @click="openStageModal(stage)"
+                              class="text-blue-600 hover:text-blue-700 text-sm"
+                              title="编辑"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              @click="deleteStage(stage.id)"
+                              class="text-red-600 hover:text-red-700 text-sm"
+                              title="删除"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-else class="text-center text-gray-500 py-8 bg-gray-50 rounded-lg">
+                      <p class="text-sm">暂无面试阶段</p>
+                      <p class="text-xs mt-1">点击上方按钮添加（如 Phone Screen、Technical、Behavioral 等）</p>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Tab 3: 定制简历 -->
+                <div v-if="activeJobDetailTab === 'resume'" class="space-y-6">
+                  <!-- 加载简历分析 -->
+                  <div v-if="!resumeAnalysis" class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center py-12">
+                      <button
+                        @click="loadResumeAnalysis"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
+                      >
+                        分析简历匹配度
+                      </button>
+                      <p class="text-sm text-gray-500 mt-3">分析您的简历与此职位的匹配程度，并提供定制化建议</p>
+                    </div>
+                  </div>
+
+                  <!-- 简历分析结果 -->
+                  <div v-if="resumeAnalysis" class="space-y-6">
+                    <!-- 匹配度概览 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">匹配度分析</h3>
+                        <button
+                          @click="loadResumeAnalysis"
+                          class="text-sm text-indigo-600 hover:text-indigo-700"
+                        >
+                          重新分析
+                        </button>
+                      </div>
+
+                      <div class="flex items-center gap-6">
+                        <!-- 匹配度圆环 -->
+                        <div class="relative w-32 h-32">
+                          <svg class="w-full h-full transform -rotate-90">
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="56"
+                              stroke="#e5e7eb"
+                              stroke-width="12"
+                              fill="none"
+                            />
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="56"
+                              :stroke="getMatchScoreColor(resumeAnalysis.matchScore)"
+                              stroke-width="12"
+                              fill="none"
+                              :stroke-dasharray="`${(resumeAnalysis.matchScore / 100) * 351.86} 351.86`"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                          <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                              <p class="text-2xl font-bold" :class="getMatchScoreColor(resumeAnalysis.matchScore)">
+                                {{ resumeAnalysis.matchScore }}%
+                              </p>
+                              <p class="text-xs text-gray-500">匹配度</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 匹配详情 -->
+                        <div class="flex-1">
+                          <div class="grid grid-cols-2 gap-4">
+                            <div>
+                              <label class="block text-sm font-medium text-gray-600 mb-1">匹配技能</label>
+                              <p class="text-2xl font-bold text-green-600">{{ resumeAnalysis.matchedSkills.length }}</p>
+                            </div>
+                            <div>
+                              <label class="block text-sm font-medium text-gray-600 mb-1">缺失技能</label>
+                              <p class="text-2xl font-bold text-red-600">{{ resumeAnalysis.missingSkills.length }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 匹配的技能 -->
+                    <div v-if="resumeAnalysis.matchedSkills.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">✅ 已匹配技能</h4>
+                      <div class="flex flex-wrap gap-2">
+                        <span
+                          v-for="skill in resumeAnalysis.matchedSkills"
+                          :key="skill"
+                          class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium"
+                        >
+                          {{ skill }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- 缺失的技能 -->
+                    <div v-if="resumeAnalysis.missingSkills.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">⚠️ 需要补充的技能</h4>
+                      <div class="flex flex-wrap gap-2">
+                        <span
+                          v-for="skill in resumeAnalysis.missingSkills"
+                          :key="skill"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium"
+                        >
+                          {{ skill }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- 优势分析 -->
+                    <div v-if="resumeAnalysis.strengths.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">💪 您的优势</h4>
+                      <ul class="space-y-2">
+                        <li v-for="(strength, idx) in resumeAnalysis.strengths" :key="idx" class="flex items-start gap-2">
+                          <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                          </svg>
+                          <span class="text-sm text-gray-700">{{ strength }}</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <!-- 改进建议 -->
+                    <div v-if="resumeAnalysis.improvements.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">📈 改进建议</h4>
+                      <ul class="space-y-2">
+                        <li v-for="(improvement, idx) in resumeAnalysis.improvements" :key="idx" class="flex items-start gap-2">
+                          <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                          </svg>
+                          <span class="text-sm text-gray-700">{{ improvement }}</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <!-- 定制化建议 (仅在匹配度>70%时显示) -->
+                    <div v-if="resumeAnalysis.customization" class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md border border-purple-200 p-6">
+                      <h3 class="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                        定制化建议
+                      </h3>
+
+                      <!-- 关键词优化 -->
+                      <div v-if="resumeAnalysis.customization.keywordSuggestions?.length > 0" class="mb-6">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">🔑 关键词优化</h4>
+                        <div class="space-y-2">
+                          <div
+                            v-for="(kw, idx) in resumeAnalysis.customization.keywordSuggestions"
+                            :key="idx"
+                            class="bg-white rounded-lg p-3 border border-purple-100"
+                          >
+                            <p class="font-medium text-sm text-purple-900">{{ kw.keyword }}</p>
+                            <p class="text-xs text-gray-600 mt-1">{{ kw.reason }}</p>
+                            <p class="text-xs text-purple-600 mt-1">建议位置: {{ kw.section }}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 项目优化 -->
+                      <div v-if="resumeAnalysis.customization.projectOptimizations?.length > 0" class="mb-6">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">📁 项目经验优化</h4>
+                        <div class="space-y-3">
+                          <div
+                            v-for="project in resumeAnalysis.customization.projectOptimizations"
+                            :key="project.projectId"
+                            class="bg-white rounded-lg p-3 border border-purple-100"
+                          >
+                            <p class="font-medium text-sm text-purple-900 mb-2">{{ project.projectName }}</p>
+                            <ul class="space-y-1">
+                              <li v-for="(suggestion, idx) in project.suggestions" :key="idx" class="text-xs text-gray-700 flex items-start gap-1">
+                                <span class="text-purple-600 flex-shrink-0">•</span>
+                                <span>{{ suggestion }}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 技能突出建议 -->
+                      <div v-if="resumeAnalysis.customization.skillHighlights?.length > 0" class="mb-6">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">⭐ 技能突出建议</h4>
+                        <div class="space-y-2">
+                          <div
+                            v-for="(highlight, idx) in resumeAnalysis.customization.skillHighlights"
+                            :key="idx"
+                            class="bg-white rounded-lg p-3 border border-purple-100"
+                          >
+                            <p class="font-medium text-sm text-purple-900">{{ highlight.skill }}</p>
+                            <p class="text-xs text-gray-600 mt-1">
+                              <span class="text-gray-500">当前:</span> {{ highlight.currentMention }}
+                            </p>
+                            <p class="text-xs text-purple-700 mt-1">
+                              <span class="font-medium">建议:</span> {{ highlight.suggestedMention }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 结构建议 -->
+                      <div v-if="resumeAnalysis.customization.structuralSuggestions?.length > 0">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">📐 整体结构建议</h4>
+                        <ul class="space-y-2">
+                          <li v-for="(suggestion, idx) in resumeAnalysis.customization.structuralSuggestions" :key="idx" class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm text-gray-700">{{ suggestion }}</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 4: Recruiter -->
+                <div v-if="activeJobDetailTab === 'recruiter'" class="space-y-4">
+                  <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">👤 招聘人员</h3>
+                    <button
+                      @click="addRecruiterContact"
+                      class="px-3 py-1 bg-indigo-500 text-white text-sm rounded-lg hover:bg-indigo-600"
+                    >
+                      + 添加Recruiter
+                    </button>
+                  </div>
+
+                  <div v-if="recruiterContacts.length > 0" class="grid grid-cols-2 gap-4">
+                    <div
+                      v-for="contact in recruiterContacts"
+                      :key="contact.id"
+                      class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all"
+                    >
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-gray-900">{{ contact.referralName }}</h4>
+                          <p class="text-sm text-gray-600 mt-1">{{ contact.position || 'Recruiter' }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                          <button
+                            @click="openContactModal(contact)"
+                            class="text-blue-600 hover:text-blue-700 text-sm"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            @click="deleteContact(contact.id)"
+                            class="text-red-600 hover:text-red-700 text-sm"
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 联系方式 -->
+                      <div class="space-y-1 mb-2">
+                        <div v-if="contact.email" class="flex items-center gap-1 text-xs text-gray-700">
+                          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          <a :href="`mailto:${contact.email}`" class="hover:text-blue-600 truncate">{{ contact.email }}</a>
+                        </div>
+                        <div v-if="contact.phone" class="flex items-center gap-1 text-xs text-gray-700">
+                          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          <a :href="`tel:${contact.phone}`" class="hover:text-blue-600">{{ contact.phone }}</a>
+                        </div>
+                        <div v-if="contact.linkedinUrl" class="flex items-center gap-1 text-xs">
+                          <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                          </svg>
+                          <a :href="contact.linkedinUrl" target="_blank" class="text-blue-600 hover:underline">LinkedIn</a>
+                        </div>
+                      </div>
+
+                      <!-- 沟通记录 -->
+                      <div v-if="contact.notes" class="text-xs text-gray-600 border-t pt-2 mt-2">
+                        <strong class="text-gray-700">备注:</strong>
+                        <p class="line-clamp-2 mt-1">{{ contact.notes }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else class="text-center text-gray-500 py-12 bg-gray-50 rounded-lg">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <p class="text-sm">暂无Recruiter信息</p>
+                    <p class="text-xs mt-1">点击上方按钮添加招聘人员联系方式</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：未选择职位时的占位符 -->
+            <div v-else class="flex-1 bg-white rounded-lg shadow flex items-center justify-center">
+              <div class="text-center text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-lg">请选择一个职位查看详情</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: 人脉管理 -->
+          <div v-if="activeTab === 'contacts'" class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">人脉列表</h3>
+              <button
+                @click="showCreateContactModal = true"
+                class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-lg transition-all font-semibold shadow-md"
+              >
+                + 添加人脉
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div
+                v-for="contact in contacts"
+                :key="contact.id"
+                class="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">{{ contact.referralName }}</h4>
+                      <span v-if="contact.referralStatus" :class="['px-2 py-0.5 rounded-full text-xs font-medium', getReferralStatusColor(contact.referralStatus)]">
+                        {{ contact.referralStatus }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ contact.position || '职位未知' }}</p>
+                    <p class="text-sm text-gray-500 mt-1">
+                      <span class="font-medium">关系:</span> {{ contact.relationship || '未知' }}
+                    </p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openContactModal(contact)"
+                      class="text-blue-600 hover:text-blue-700"
+                      title="编辑"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="deleteContact(contact.id)"
+                      class="text-red-600 hover:text-red-700"
+                      title="删除"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 联系方式 -->
+                <div class="space-y-1 mb-2">
+                  <div v-if="contact.phone" class="flex items-center gap-1 text-xs text-gray-700">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <a :href="`tel:${contact.phone}`" class="hover:text-blue-600">{{ contact.phone }}</a>
+                  </div>
+                  <div v-if="contact.email" class="flex items-center gap-1 text-xs text-gray-700">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <a :href="`mailto:${contact.email}`" class="hover:text-blue-600 truncate">{{ contact.email }}</a>
+                  </div>
+                  <div v-if="contact.linkedinUrl" class="flex items-center gap-1 text-xs">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    <a :href="contact.linkedinUrl" target="_blank" class="text-blue-600 hover:underline">LinkedIn</a>
+                  </div>
+                </div>
+
+                <!-- 内推日期 -->
+                <div v-if="contact.requestDate || contact.submissionDate" class="text-xs text-gray-600 mb-2">
+                  <span v-if="contact.requestDate" class="mr-3">
+                    <span class="font-medium">请求日期:</span> {{ formatDate(contact.requestDate) }}
+                  </span>
+                  <span v-if="contact.submissionDate">
+                    <span class="font-medium">提交日期:</span> {{ formatDate(contact.submissionDate) }}
+                  </span>
+                </div>
+
+                <!-- 内推结果 -->
+                <div v-if="contact.referralResult" class="text-xs mb-2">
+                  <span class="font-medium text-gray-700">结果:</span>
+                  <span :class="getReferralResultColor(contact.referralResult)">
+                    {{ contact.referralResult }}
+                  </span>
+                </div>
+
+                <!-- 备注预览 -->
+                <div v-if="contact.notes" class="text-xs text-gray-600 border-t pt-2 mt-2">
+                  <p class="line-clamp-2">{{ contact.notes }}</p>
+                </div>
+              </div>
+
+              <div v-if="!contacts.length" class="col-span-2 text-center text-gray-500 py-8">
+                暂无人脉
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 中间: 公司详情 + Tab -->
-      <div class="col-span-1 bg-white rounded-lg shadow p-4">
-        <div v-if="currentCompany">
-          <h2 class="font-semibold mb-4">{{ currentCompany.companyName }}</h2>
-
-          <!-- Tab切换 -->
-          <div class="flex border-b mb-4">
-            <button
-              @click="activeTab = 'jobs'"
-              class="px-4 py-2 text-sm"
-              :class="activeTab === 'jobs' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
-            >
-              职位
-            </button>
-            <button
-              @click="activeTab = 'recruiters'"
-              class="px-4 py-2 text-sm"
-              :class="activeTab === 'recruiters' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
-            >
-              Recruiter
-            </button>
-            <button
-              @click="activeTab = 'referrals'"
-              class="px-4 py-2 text-sm"
-              :class="activeTab === 'referrals' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
-            >
-              人脉
-            </button>
-          </div>
-
-          <!-- 职位列表 -->
-          <div v-if="activeTab === 'jobs'" class="space-y-2">
-            <button
-              @click="showCreateJobModal = true"
-              class="w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 mb-2"
-            >
-              添加职位
-            </button>
-            <div
-              v-for="job in jobs"
-              :key="job.id"
-              @click="selectedJobId = job.id"
-              class="p-2 border rounded cursor-pointer hover:bg-gray-50 text-sm"
-              :class="{ 'bg-green-50 border-green-500': selectedJobId === job.id }"
-            >
-              <div class="font-medium">{{ job.positionName }}</div>
-              <div class="text-xs text-gray-500">{{ job.applicationStatus }}</div>
-            </div>
-          </div>
-
-          <!-- Recruiter列表 (简化) -->
-          <div v-if="activeTab === 'recruiters'" class="text-gray-500 text-center py-4">
-            Recruiter功能待实现
-          </div>
-
-          <!-- 人脉列表 (简化) -->
-          <div v-if="activeTab === 'referrals'" class="text-gray-500 text-center py-4">
-            人脉功能待实现
-          </div>
-        </div>
-      </div>
-
-      <!-- 右侧: 职位详情 -->
-      <div class="col-span-2 bg-white rounded-lg shadow p-6">
-        <div v-if="currentJob">
-          <h2 class="text-xl font-semibold mb-4">{{ currentJob.positionName }}</h2>
-
-          <div class="space-y-4">
-            <div>
-              <h3 class="font-semibold text-gray-700 mb-2">职位要求 (Qualifications)</h3>
-              <div class="text-gray-600 whitespace-pre-wrap">{{ currentJob.qualifications }}</div>
-            </div>
-
-            <div>
-              <h3 class="font-semibold text-gray-700 mb-2">岗位职责 (Responsibilities)</h3>
-              <div class="text-gray-600 whitespace-pre-wrap">{{ currentJob.responsibilities }}</div>
-            </div>
-
-            <div>
-              <h3 class="font-semibold text-gray-700 mb-2">申请状态</h3>
-              <div class="text-lg font-medium text-blue-600">{{ currentJob.applicationStatus }}</div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 mt-6">
-            <button
-              @click="deleteJob"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              删除职位
-            </button>
-          </div>
-        </div>
-
-        <div v-else class="text-center text-gray-500 py-12">
-          请选择一个职位查看详情
+      <div v-else class="flex-1 flex items-center justify-center">
+        <div class="text-center text-gray-500">
+          <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <p class="text-lg">请选择或创建一个公司</p>
         </div>
       </div>
     </div>
 
     <!-- 创建公司 Modal -->
     <div v-if="showCreateCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96">
+      <div class="bg-white rounded-lg p-6 w-[500px]">
         <h3 class="text-lg font-semibold mb-4">创建公司</h3>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">公司名称 *</label>
-          <input v-model="companyFormData.companyName" class="w-full px-4 py-2 border rounded-lg" />
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">公司名称 *</label>
+            <input v-model="companyFormData.companyName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">行业</label>
+            <input v-model="companyFormData.industry" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="例如: 科技、金融" />
+          </div>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button @click="showCreateCompanyModal = false" class="px-4 py-2 border rounded-lg">取消</button>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showCreateCompanyModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
           <button @click="createCompany" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">创建</button>
         </div>
       </div>
     </div>
 
-    <!-- 创建职位 Modal -->
+    <!-- 创建/编辑职位 Modal -->
     <div v-if="showCreateJobModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-2/3">
-        <h3 class="text-lg font-semibold mb-4">创建职位</h3>
+      <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">{{ editingJob?.id ? '编辑职位' : '创建职位' }}</h3>
         <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">职位名称 *</label>
-            <input v-model="jobFormData.positionName" class="w-full px-4 py-2 border rounded-lg" />
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">职位名称 *</label>
+              <input v-model="jobFormData.positionName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">职位级别</label>
+              <select v-model="jobFormData.positionLevel" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                <option value="">请选择</option>
+                <option value="Junior">Junior</option>
+                <option value="Mid">Mid</option>
+                <option value="Senior">Senior</option>
+                <option value="Staff">Staff</option>
+                <option value="Principal">Principal</option>
+              </select>
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">职位要求</label>
-            <textarea v-model="jobFormData.qualifications" rows="3" class="w-full px-4 py-2 border rounded-lg"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">职位链接</label>
+            <input v-model="jobFormData.jobUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">岗位职责</label>
-            <textarea v-model="jobFormData.responsibilities" rows="3" class="w-full px-4 py-2 border rounded-lg"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">职位要求 (支持 Markdown)</label>
+            <textarea v-model="jobFormData.qualifications" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">岗位职责 (支持 Markdown)</label>
+            <textarea v-model="jobFormData.responsibilities" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">申请状态</label>
+              <select v-model="jobFormData.applicationStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                <option value="未申请">未申请</option>
+                <option value="已投递">已投递</option>
+                <option value="筛选中">筛选中</option>
+                <option value="面试中">面试中</option>
+                <option value="Offer">Offer</option>
+                <option value="已拒绝">已拒绝</option>
+                <option value="已撤回">已撤回</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">申请日期</label>
+              <input v-model="jobFormData.appliedDate" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
           </div>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button @click="showCreateJobModal = false" class="px-4 py-2 border rounded-lg">取消</button>
-          <button @click="createJob" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">创建</button>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showCreateJobModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="saveJob" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建/编辑人脉 Modal -->
+    <div v-if="showCreateContactModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[600px]">
+        <h3 class="text-lg font-semibold mb-4">{{ editingContact?.id ? '编辑人脉' : '添加人脉' }}</h3>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">姓名 *</label>
+              <input v-model="contactFormData.referralName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">职位</label>
+              <input v-model="contactFormData.position" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">关系类型</label>
+            <select v-model="contactFormData.relationship" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <option value="">请选择</option>
+              <option value="Recruiter">Recruiter</option>
+              <option value="Referral">Referral (内推人)</option>
+              <option value="Colleague">Colleague (前同事)</option>
+              <option value="Friend">Friend (朋友)</option>
+              <option value="Other">Other (其他)</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+              <input v-model="contactFormData.email" type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">电话</label>
+              <input v-model="contactFormData.phone" type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+            <input v-model="contactFormData.linkedinUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://linkedin.com/in/..." />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">备注 (支持 Markdown)</label>
+            <textarea v-model="contactFormData.notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showCreateContactModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="saveContact" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建/编辑面试阶段 Modal -->
+    <div v-if="showCreateStageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">{{ editingStage?.id ? '编辑面试阶段' : '添加面试阶段' }}</h3>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">阶段名称 *</label>
+              <input v-model="stageFormData.stageName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="如: Phone Screen" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">阶段顺序</label>
+              <input v-model.number="stageFormData.stageOrder" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" />
+            </div>
+          </div>
+
+          <!-- Skill Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">关联技能</label>
+            <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
+              <div v-for="skill in allSkills" :key="skill.id" class="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  :id="`skill-${skill.id}`"
+                  :value="skill.id"
+                  v-model="stageFormData.skillIds"
+                  class="rounded border-gray-300"
+                />
+                <label :for="`skill-${skill.id}`" class="text-sm text-gray-700 cursor-pointer">
+                  {{ skill.name }}
+                </label>
+              </div>
+              <div v-if="allSkills.length === 0" class="text-sm text-gray-500 text-center py-2">
+                加载中...
+              </div>
+            </div>
+          </div>
+
+          <!-- Focus Area Selection (only show if at least one skill is selected) -->
+          <div v-if="stageFormData.skillIds && stageFormData.skillIds.length > 0">
+            <label class="block text-sm font-medium text-gray-700 mb-2">关联Focus Area</label>
+            <div class="border border-gray-300 rounded-lg p-3 max-h-64 overflow-y-auto">
+              <div v-for="skill in selectedSkillsWithFocusAreas" :key="skill.id" class="mb-4 last:mb-0">
+                <div class="text-sm font-medium text-gray-900 mb-2 bg-gray-100 px-2 py-1 rounded">
+                  {{ skill.name }}
+                </div>
+                <div v-for="focusArea in skill.focusAreas" :key="focusArea.id" class="flex items-center gap-2 ml-4 mb-2">
+                  <input
+                    type="checkbox"
+                    :id="`focus-${focusArea.id}`"
+                    :value="focusArea.id"
+                    v-model="stageFormData.focusAreaIds"
+                    class="rounded border-gray-300"
+                  />
+                  <label :for="`focus-${focusArea.id}`" class="text-sm text-gray-600 cursor-pointer">
+                    {{ focusArea.name }}
+                    <span v-if="focusArea.category" class="text-xs text-gray-400 ml-1">({{ focusArea.category }})</span>
+                  </label>
+                </div>
+                <div v-if="!skill.focusAreas || skill.focusAreas.length === 0" class="text-xs text-gray-400 ml-4">
+                  该技能暂无Focus Area
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">准备要点 (支持 Markdown)</label>
+            <textarea v-model="stageFormData.preparationNotes" rows="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="## 准备重点&#10;- 算法题：Array, Hash Table&#10;- 系统设计：Database Schema"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showCreateStageModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="saveStage" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建/编辑链接 Modal -->
+    <div v-if="showCreateLinkModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[500px]">
+        <h3 class="text-lg font-semibold mb-4">{{ editingLink?.id ? '编辑链接' : '添加链接' }}</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">链接标题 *</label>
+            <input v-model="linkFormData.linkTitle" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="例如: 官网、招聘页面" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">链接URL *</label>
+            <input v-model="linkFormData.linkUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+            <textarea v-model="linkFormData.notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">排序</label>
+            <input v-model.number="linkFormData.sortOrder" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="0" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showCreateLinkModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="saveLink" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
         </div>
       </div>
     </div>
@@ -173,19 +1077,109 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { companyApi } from '@/api/companyApi'
 import { jobApplicationApi } from '@/api/jobApplicationApi'
+import { referralApi } from '@/api/referralApi'
+import { interviewStageApi } from '@/api/interviewStageApi'
+import { getSkills } from '@/api/skillApi'
+import { getFocusAreasBySkillId } from '@/api/focusAreaApi'
+import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
+import MarkdownIt from 'markdown-it'
+
+const route = useRoute()
+const md = new MarkdownIt()
 
 const companies = ref([])
 const jobs = ref([])
+const contacts = ref([])
+const interviewStages = ref([])
+const allSkills = ref([])
+const skillFocusAreas = ref({}) // { skillId: [...focusAreas] }
 const selectedCompanyId = ref(null)
 const selectedJobId = ref(null)
-const activeTab = ref('jobs')
+const activeTab = ref('info')
+const activeJobDetailTab = ref('jd')
+const resumeAnalysis = ref(null)
 const showCreateCompanyModal = ref(false)
 const showCreateJobModal = ref(false)
+const showCreateContactModal = ref(false)
+const showCreateLinkModal = ref(false)
+const showCreateStageModal = ref(false)
 
-const companyFormData = ref({ companyName: '' })
-const jobFormData = ref({ positionName: '', qualifications: '', responsibilities: '' })
+const editModes = ref({
+  info: false
+})
+
+const tabs = [
+  { id: 'info', name: '公司信息' },
+  { id: 'jobs', name: '职位管理' },
+  { id: 'contacts', name: '人脉管理' }
+]
+
+const jobDetailTabs = [
+  { id: 'jd', name: 'JD (Job Description)' },
+  { id: 'interview', name: '面试流程' },
+  { id: 'resume', name: '定制简历' },
+  { id: 'recruiter', name: 'Recruiter' }
+]
+
+const companyFormData = ref({
+  companyName: '',
+  industry: ''
+})
+
+const editCompanyData = ref({
+  companyName: '',
+  industry: '',
+  companySize: '',
+  location: '',
+  companyDescription: '',
+  companyCulture: ''
+})
+
+const jobFormData = ref({
+  positionName: '',
+  positionLevel: '',
+  jobUrl: '',
+  qualifications: '',
+  responsibilities: '',
+  applicationStatus: '未申请',
+  appliedDate: ''
+})
+
+const editingJob = ref(null)
+
+const contactFormData = ref({
+  referralName: '',
+  position: '',
+  relationship: '',
+  email: '',
+  phone: '',
+  linkedinUrl: '',
+  notes: ''
+})
+
+const editingContact = ref(null)
+
+const linkFormData = ref({
+  linkTitle: '',
+  linkUrl: '',
+  notes: '',
+  sortOrder: 0
+})
+
+const editingLink = ref(null)
+
+const stageFormData = ref({
+  stageName: '',
+  stageOrder: 1,
+  skillIds: [],
+  focusAreaIds: [],
+  preparationNotes: ''
+})
+
+const editingStage = ref(null)
 
 const currentCompany = computed(() =>
   companies.value.find(c => c.id === selectedCompanyId.value)
@@ -195,22 +1189,192 @@ const currentJob = computed(() =>
   jobs.value.find(j => j.id === selectedJobId.value)
 )
 
-onMounted(() => {
-  loadCompanies()
+const recruiterContacts = computed(() =>
+  contacts.value.filter(c => c.relationship === 'Recruiter')
+)
+
+// Get skills with their focus areas for the selected skills
+const selectedSkillsWithFocusAreas = computed(() => {
+  if (!stageFormData.value.skillIds || stageFormData.value.skillIds.length === 0) {
+    return []
+  }
+
+  return stageFormData.value.skillIds
+    .map(skillId => {
+      const skill = allSkills.value.find(s => s.id === skillId)
+      if (!skill) return null
+
+      return {
+        id: skill.id,
+        name: skill.name,
+        focusAreas: skillFocusAreas.value[skillId] || []
+      }
+    })
+    .filter(s => s !== null)
 })
 
-watch(selectedCompanyId, (newVal) => {
-  if (newVal) {
-    loadJobs()
-  } else {
-    jobs.value = []
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.substring(0, 10)
+}
+
+const renderMarkdown = (text) => {
+  if (!text) return ''
+  if (typeof text !== 'string') {
+    text = String(text)
+  }
+  return md.render(text)
+}
+
+// 加载简历分析
+const loadResumeAnalysis = async () => {
+  if (!selectedJobId.value) return
+
+  try {
+    const data = await resumeAnalysisApi.analyzeResumeByJob(selectedJobId.value)
+    resumeAnalysis.value = data
+  } catch (error) {
+    console.error('加载简历分析失败:', error)
+    alert('分析失败，请稍后重试')
+  }
+}
+
+// 获取匹配度颜色
+const getMatchScoreColor = (score) => {
+  if (score >= 80) return 'text-green-600'
+  if (score >= 60) return 'text-yellow-600'
+  return 'text-red-600'
+}
+
+const getStatusColor = (status) => {
+  const colors = {
+    '未申请': 'bg-gray-100 text-gray-700',
+    '已投递': 'bg-blue-100 text-blue-700',
+    '筛选中': 'bg-yellow-100 text-yellow-700',
+    '面试中': 'bg-purple-100 text-purple-700',
+    'Offer': 'bg-green-100 text-green-700',
+    '已拒绝': 'bg-red-100 text-red-700',
+    '已撤回': 'bg-gray-100 text-gray-700'
+  }
+  return colors[status] || 'bg-gray-100 text-gray-700'
+}
+
+const getReferralStatusColor = (status) => {
+  const colors = {
+    'NotRequested': 'bg-gray-100 text-gray-700',
+    'Requested': 'bg-blue-100 text-blue-700',
+    'Agreed': 'bg-green-100 text-green-700',
+    'Declined': 'bg-red-100 text-red-700',
+    'Submitted': 'bg-purple-100 text-purple-700'
+  }
+  return colors[status] || 'bg-gray-100 text-gray-700'
+}
+
+const getReferralResultColor = (result) => {
+  const colors = {
+    'InterviewScheduled': 'text-green-600 font-medium',
+    'NoResponse': 'text-yellow-600',
+    'Rejected': 'text-red-600'
+  }
+  return colors[result] || 'text-gray-600'
+}
+
+onMounted(async () => {
+  await loadCompanies()
+  await loadAllSkills()
+
+  // 处理路由query参数（从申请列表跳转过来）
+  if (route.query.companyId) {
+    const companyId = parseInt(route.query.companyId)
+    if (companies.value.some(c => c.id === companyId)) {
+      selectedCompanyId.value = companyId
+      activeTab.value = 'jobs'
+
+      // 等待jobs加载完成后选中职位
+      if (route.query.jobId) {
+        setTimeout(() => {
+          const jobId = parseInt(route.query.jobId)
+          if (jobs.value.some(j => j.id === jobId)) {
+            selectedJobId.value = jobId
+          }
+        }, 500)
+      }
+    }
   }
 })
+
+watch(selectedCompanyId, async (newVal) => {
+  if (newVal) {
+    // 加载公司完整详情（包含 links）
+    try {
+      const fullCompany = await companyApi.getCompanyById(newVal)
+      const index = companies.value.findIndex(c => c.id === newVal)
+      if (index !== -1) {
+        companies.value[index] = fullCompany
+      }
+    } catch (error) {
+      console.error('加载公司详情失败:', error)
+    }
+
+    loadJobs()
+    loadContacts()
+  } else {
+    jobs.value = []
+    contacts.value = []
+  }
+  // 重置编辑模式
+  editModes.value.info = false
+})
+
+watch(selectedJobId, async (newVal) => {
+  if (newVal) {
+    await loadInterviewStages()
+  } else {
+    interviewStages.value = []
+  }
+})
+
+// Watch for skillIds changes to load focus areas
+watch(() => stageFormData.value.skillIds, async (newSkillIds, oldSkillIds) => {
+  if (!newSkillIds || newSkillIds.length === 0) {
+    return
+  }
+
+  // Find newly added skills
+  const oldIds = oldSkillIds || []
+  const newIds = newSkillIds.filter(id => !oldIds.includes(id))
+
+  // Load focus areas for new skills
+  for (const skillId of newIds) {
+    if (!skillFocusAreas.value[skillId]) {
+      try {
+        const focusAreas = await getFocusAreasBySkillId(skillId)
+        skillFocusAreas.value[skillId] = focusAreas || []
+      } catch (error) {
+        console.error(`加载Skill ${skillId}的Focus Areas失败:`, error)
+        skillFocusAreas.value[skillId] = []
+      }
+    }
+  }
+}, { deep: true })
+
+const selectCompany = (companyId) => {
+  selectedCompanyId.value = companyId
+  activeTab.value = 'info'
+}
+
+const selectJob = (jobId) => {
+  selectedJobId.value = jobId
+  activeJobDetailTab.value = 'jd'
+}
 
 const loadCompanies = async () => {
   try {
     const data = await companyApi.getCompanies()
     companies.value = data || []
+    if (companies.value.length > 0 && !selectedCompanyId.value) {
+      selectedCompanyId.value = companies.value[0].id
+    }
   } catch (error) {
     console.error('加载公司列表失败:', error)
   }
@@ -222,16 +1386,45 @@ const loadJobs = async () => {
   try {
     const data = await jobApplicationApi.getJobsByCompany(selectedCompanyId.value)
     jobs.value = data || []
+    // 自动选中第一个职位
+    if (jobs.value.length > 0 && !selectedJobId.value) {
+      selectedJobId.value = jobs.value[0].id
+    }
   } catch (error) {
     console.error('加载职位列表失败:', error)
   }
 }
 
+const loadContacts = async () => {
+  if (!selectedCompanyId.value) return
+
+  try {
+    const data = await referralApi.getReferralsByCompany(selectedCompanyId.value)
+    contacts.value = data || []
+  } catch (error) {
+    console.error('加载人脉列表失败:', error)
+  }
+}
+
+const loadAllSkills = async () => {
+  try {
+    const data = await getSkills()
+    allSkills.value = data || []
+  } catch (error) {
+    console.error('加载技能列表失败:', error)
+  }
+}
+
 const createCompany = async () => {
+  if (!companyFormData.value.companyName.trim()) {
+    alert('请输入公司名称')
+    return
+  }
+
   try {
     await companyApi.createCompany(companyFormData.value)
     showCreateCompanyModal.value = false
-    companyFormData.value = { companyName: '' }
+    companyFormData.value = { companyName: '', industry: '' }
     await loadCompanies()
   } catch (error) {
     console.error('创建公司失败:', error)
@@ -239,31 +1432,401 @@ const createCompany = async () => {
   }
 }
 
-const createJob = async () => {
+const deleteCompany = async () => {
+  if (!confirm('确定要删除这个公司吗？所有关联的职位和人脉也将被删除。')) return
+
   try {
-    await jobApplicationApi.createJobApplication({
-      ...jobFormData.value,
-      companyId: selectedCompanyId.value
-    })
-    showCreateJobModal.value = false
-    jobFormData.value = { positionName: '', qualifications: '', responsibilities: '' }
-    await loadJobs()
+    await companyApi.deleteCompany(selectedCompanyId.value)
+    selectedCompanyId.value = null
+    await loadCompanies()
+    alert('删除成功')
   } catch (error) {
-    console.error('创建职位失败:', error)
-    alert('创建失败')
+    console.error('删除公司失败:', error)
+    alert('删除失败')
   }
 }
 
-const deleteJob = async () => {
+const loadCompanyForEdit = () => {
+  if (!currentCompany.value) return
+  editCompanyData.value = {
+    companyName: currentCompany.value.companyName || '',
+    industry: currentCompany.value.industry || '',
+    companySize: currentCompany.value.companySize || '',
+    location: currentCompany.value.location || '',
+    companyDescription: currentCompany.value.companyDescription || '',
+    companyCulture: currentCompany.value.companyCulture || ''
+  }
+}
+
+const saveCompanyInfo = async () => {
+  try {
+    await companyApi.updateCompany(selectedCompanyId.value, editCompanyData.value)
+    alert('保存成功')
+    editModes.value.info = false
+    await loadCompanies()
+  } catch (error) {
+    console.error('保存失败:', error)
+    alert('保存失败')
+  }
+}
+
+const openJobModal = (job = null) => {
+  if (job) {
+    editingJob.value = job
+    jobFormData.value = {
+      positionName: job.positionName || '',
+      positionLevel: job.positionLevel || '',
+      jobUrl: job.jobUrl || '',
+      qualifications: job.qualifications || '',
+      responsibilities: job.responsibilities || '',
+      applicationStatus: job.applicationStatus || '未申请',
+      appliedDate: job.appliedDate ? job.appliedDate.substring(0, 10) : ''
+    }
+  } else {
+    editingJob.value = null
+    jobFormData.value = {
+      positionName: '',
+      positionLevel: '',
+      jobUrl: '',
+      qualifications: '',
+      responsibilities: '',
+      applicationStatus: '未申请',
+      appliedDate: ''
+    }
+  }
+  showCreateJobModal.value = true
+}
+
+const saveJob = async () => {
+  if (!jobFormData.value.positionName.trim()) {
+    alert('请输入职位名称')
+    return
+  }
+
+  try {
+    const payload = {
+      ...jobFormData.value,
+      companyId: selectedCompanyId.value
+    }
+
+    if (editingJob.value?.id) {
+      await jobApplicationApi.updateJobApplication(editingJob.value.id, payload)
+    } else {
+      await jobApplicationApi.createJobApplication(payload)
+    }
+
+    showCreateJobModal.value = false
+    editingJob.value = null
+    await loadJobs()
+  } catch (error) {
+    console.error('保存职位失败:', error)
+    alert('保存失败')
+  }
+}
+
+const deleteJob = async (jobId) => {
   if (!confirm('确定要删除这个职位吗?')) return
 
   try {
-    await jobApplicationApi.deleteJobApplication(selectedJobId.value)
-    selectedJobId.value = null
+    await jobApplicationApi.deleteJobApplication(jobId)
+    if (selectedJobId.value === jobId) {
+      selectedJobId.value = null
+    }
     await loadJobs()
   } catch (error) {
     console.error('删除职位失败:', error)
     alert('删除失败')
   }
 }
+
+const openContactModal = (contact = null) => {
+  if (contact) {
+    editingContact.value = contact
+    contactFormData.value = {
+      referralName: contact.referralName || '',
+      position: contact.position || '',
+      relationship: contact.relationship || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      linkedinUrl: contact.linkedinUrl || '',
+      notes: contact.notes || ''
+    }
+  } else {
+    editingContact.value = null
+    contactFormData.value = {
+      referralName: '',
+      position: '',
+      relationship: '',
+      email: '',
+      phone: '',
+      linkedinUrl: '',
+      notes: ''
+    }
+  }
+  showCreateContactModal.value = true
+}
+
+const saveContact = async () => {
+  if (!contactFormData.value.referralName.trim()) {
+    alert('请输入姓名')
+    return
+  }
+
+  try {
+    const payload = {
+      ...contactFormData.value,
+      companyId: selectedCompanyId.value
+    }
+
+    if (editingContact.value?.id) {
+      await referralApi.updateReferral(editingContact.value.id, payload)
+    } else {
+      await referralApi.createReferral(payload)
+    }
+
+    showCreateContactModal.value = false
+    editingContact.value = null
+    await loadContacts()
+  } catch (error) {
+    console.error('保存人脉失败:', error)
+    alert('保存失败')
+  }
+}
+
+const deleteContact = async (contactId) => {
+  if (!confirm('确定要删除这个人脉吗?')) return
+
+  try {
+    await referralApi.deleteReferral(contactId)
+    await loadContacts()
+  } catch (error) {
+    console.error('删除人脉失败:', error)
+    alert('删除失败')
+  }
+}
+
+// Company Links 管理
+const openLinkModal = (link = null) => {
+  if (link) {
+    editingLink.value = link
+    linkFormData.value = {
+      linkTitle: link.linkTitle || '',
+      linkUrl: link.linkUrl || '',
+      notes: link.notes || '',
+      sortOrder: link.sortOrder || 0
+    }
+  } else {
+    editingLink.value = null
+    linkFormData.value = {
+      linkTitle: '',
+      linkUrl: '',
+      notes: '',
+      sortOrder: 0
+    }
+  }
+  showCreateLinkModal.value = true
+}
+
+const saveLink = async () => {
+  if (!linkFormData.value.linkTitle.trim() || !linkFormData.value.linkUrl.trim()) {
+    alert('请输入链接标题和URL')
+    return
+  }
+
+  try {
+    if (editingLink.value?.id) {
+      await companyApi.updateCompanyLink(selectedCompanyId.value, editingLink.value.id, linkFormData.value)
+    } else {
+      await companyApi.createCompanyLink(selectedCompanyId.value, linkFormData.value)
+    }
+
+    showCreateLinkModal.value = false
+    editingLink.value = null
+    // 重新加载公司详情以获取更新后的 links
+    const updated = await companyApi.getCompanyById(selectedCompanyId.value)
+    const index = companies.value.findIndex(c => c.id === selectedCompanyId.value)
+    if (index !== -1) {
+      companies.value[index] = updated
+    }
+  } catch (error) {
+    console.error('保存链接失败:', error)
+    alert('保存失败')
+  }
+}
+
+const deleteLink = async (linkId) => {
+  if (!confirm('确定要删除这个链接吗?')) return
+
+  try {
+    await companyApi.deleteCompanyLink(selectedCompanyId.value, linkId)
+    // 重新加载公司详情以获取更新后的 links
+    const updated = await companyApi.getCompanyById(selectedCompanyId.value)
+    const index = companies.value.findIndex(c => c.id === selectedCompanyId.value)
+    if (index !== -1) {
+      companies.value[index] = updated
+    }
+  } catch (error) {
+    console.error('删除链接失败:', error)
+    alert('删除失败')
+  }
+}
+
+// --- Interview Stages Management ---
+const loadInterviewStages = async () => {
+  if (!selectedJobId.value) return
+
+  try {
+    const data = await interviewStageApi.getStagesByJob(selectedJobId.value)
+    interviewStages.value = data || []
+  } catch (error) {
+    console.error('加载面试阶段失败:', error)
+  }
+}
+
+const openStageModal = (stage = null) => {
+  if (stage) {
+    editingStage.value = stage
+    stageFormData.value = {
+      stageName: stage.stageName || '',
+      stageOrder: stage.stageOrder || 1,
+      skillIds: stage.skillIds || [],
+      focusAreaIds: stage.focusAreaIds || [],
+      preparationNotes: stage.preparationNotes || ''
+    }
+  } else {
+    editingStage.value = null
+    stageFormData.value = {
+      stageName: '',
+      stageOrder: interviewStages.value.length + 1,
+      skillIds: [],
+      focusAreaIds: [],
+      preparationNotes: ''
+    }
+  }
+  showCreateStageModal.value = true
+}
+
+const saveStage = async () => {
+  if (!stageFormData.value.stageName.trim()) {
+    alert('请输入阶段名称')
+    return
+  }
+
+  try {
+    const payload = {
+      ...stageFormData.value,
+      jobApplicationId: selectedJobId.value
+    }
+
+    if (editingStage.value?.id) {
+      await interviewStageApi.updateStage(editingStage.value.id, payload)
+    } else {
+      await interviewStageApi.createStage(selectedJobId.value, payload)
+    }
+
+    showCreateStageModal.value = false
+    editingStage.value = null
+    await loadInterviewStages()
+  } catch (error) {
+    console.error('保存面试阶段失败:', error)
+    alert('保存失败')
+  }
+}
+
+const deleteStage = async (stageId) => {
+  if (!confirm('确定要删除这个面试阶段吗?')) return
+
+  try {
+    await interviewStageApi.deleteStage(stageId)
+    await loadInterviewStages()
+  } catch (error) {
+    console.error('删除面试阶段失败:', error)
+    alert('删除失败')
+  }
+}
+
+// --- Interview Records Management ---
+
+// --- Recruiter Management ---
+const addRecruiterContact = () => {
+  // 预填充relationship为Recruiter
+  contactFormData.value = {
+    referralName: '',
+    position: 'Recruiter',
+    relationship: 'Recruiter',
+    email: '',
+    phone: '',
+    linkedinUrl: '',
+    notes: ''
+  }
+  editingContact.value = null
+  showCreateContactModal.value = true
+}
 </script>
+
+<style scoped>
+/* 文本截断样式 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Markdown渲染样式 */
+.prose {
+  @apply text-gray-900;
+}
+
+.prose :deep(h1) {
+  @apply text-2xl font-bold mt-4 mb-2;
+}
+
+.prose :deep(h2) {
+  @apply text-xl font-bold mt-3 mb-2;
+}
+
+.prose :deep(h3) {
+  @apply text-lg font-semibold mt-2 mb-1;
+}
+
+.prose :deep(p) {
+  @apply mb-2;
+}
+
+.prose :deep(ul) {
+  @apply list-disc ml-6 mb-2;
+}
+
+.prose :deep(ol) {
+  @apply list-decimal ml-6 mb-2;
+}
+
+.prose :deep(li) {
+  @apply mb-1;
+}
+
+.prose :deep(strong) {
+  @apply font-semibold;
+}
+
+.prose :deep(em) {
+  @apply italic;
+}
+
+.prose :deep(a) {
+  @apply text-blue-600 hover:underline;
+}
+
+.prose :deep(code) {
+  @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.prose :deep(pre) {
+  @apply bg-gray-100 p-3 rounded overflow-x-auto mb-2;
+}
+
+.prose :deep(blockquote) {
+  @apply border-l-4 border-gray-300 pl-4 italic my-2;
+}
+</style>

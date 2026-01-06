@@ -52,21 +52,39 @@
             <div v-if="filteredFocusAreas.length === 0" class="text-sm text-gray-500 text-center py-4">
               该分类下暂无Focus Area
             </div>
-            <div v-else class="space-y-1">
-              <button
-                v-for="focusArea in filteredFocusAreas"
-                :key="focusArea.id"
-                @click="selectedFocusAreaId = focusArea.id"
-                :class="[
-                  'w-full text-left px-3 py-2 text-sm rounded-md',
-                  selectedFocusAreaId === focusArea.id
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                ]"
-              >
-                {{ focusArea.name }}
-              </button>
-            </div>
+            <draggable
+              v-else
+              :model-value="filteredFocusAreas"
+              @update:model-value="handleFocusAreaReorder"
+              @start="() => console.log('开始拖拽算法Focus Area')"
+              @end="() => console.log('结束拖拽算法Focus Area')"
+              item-key="id"
+              class="space-y-1"
+              :animation="200"
+            >
+              <template #item="{ element: focusArea }">
+                <button
+                  @click="selectedFocusAreaId = focusArea.id"
+                  :class="[
+                    'w-full text-left px-3 py-2 text-sm rounded-md flex items-center gap-2 group',
+                    selectedFocusAreaId === focusArea.id
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  ]"
+                >
+                  <!-- 拖拽手柄 (6个点) -->
+                  <svg class="w-4 h-4 flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-move drag-handle transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                    <circle cx="7" cy="5" r="1.5"/>
+                    <circle cx="13" cy="5" r="1.5"/>
+                    <circle cx="7" cy="10" r="1.5"/>
+                    <circle cx="13" cy="10" r="1.5"/>
+                    <circle cx="7" cy="15" r="1.5"/>
+                    <circle cx="13" cy="15" r="1.5"/>
+                  </svg>
+                  <span class="flex-1">{{ focusArea.name }}</span>
+                </button>
+              </template>
+            </draggable>
           </div>
         </template>
       </div>
@@ -419,6 +437,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import draggable from 'vuedraggable'
 import majorCategoryApi from '@/api/majorCategoryApi'
 import learningContentApi from '@/api/learningContentApi'
 import { getStagesBySkill } from '@/api/learningStageApi'
@@ -467,9 +486,11 @@ const editingContent = ref(null)
 const filteredFocusAreas = computed(() => {
   if (!selectedCategoryId.value) return []
 
-  return allFocusAreas.value.filter(fa => {
-    return fa.categoryIds && fa.categoryIds.includes(selectedCategoryId.value)
-  })
+  return allFocusAreas.value
+    .filter(fa => {
+      return fa.categoryIds && fa.categoryIds.includes(selectedCategoryId.value)
+    })
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
 })
 
 // 计算属性：获取选中的Focus Area对象
@@ -747,6 +768,67 @@ const saveQuestion = async (formData) => {
   } catch (error) {
     console.error('保存试题失败:', error)
     alert('保存失败: ' + (error.message || '未知错误'))
+  }
+}
+
+// ===== Focus Area拖拽排序 =====
+const handleFocusAreaReorder = async (newList) => {
+  console.log('handleFocusAreaReorder被调用了', newList)
+  try {
+    // 批量更新displayOrder
+    const updates = newList.map((fa, index) => ({
+      id: fa.id,
+      displayOrder: index
+    }))
+
+    console.log('发送更新请求:', updates)
+    await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+    console.log('更新成功')
+
+    // 刷新Focus Areas以获取最新顺序
+    await loadData()
+  } catch (error) {
+    console.error('更新Focus Area顺序失败:', error)
+    alert('更新顺序失败: ' + (error.message || '未知错误'))
+    await loadData()
+  }
+}
+
+const handleFocusAreaDragEnd = async (evt) => {
+  if (evt.oldIndex === evt.newIndex || !selectedCategoryId.value) {
+    return // 没有移动
+  }
+
+  try {
+    console.log('算法页面拖拽结束，从', evt.oldIndex, '到', evt.newIndex)
+
+    // 获取当前分类下的Focus Areas
+    const focusAreasInCategory = filteredFocusAreas.value
+
+    // 移动元素
+    const movedItem = focusAreasInCategory[evt.oldIndex]
+    focusAreasInCategory.splice(evt.oldIndex, 1)
+    focusAreasInCategory.splice(evt.newIndex, 0, movedItem)
+
+    console.log('新顺序:', focusAreasInCategory.map(fa => fa.name))
+
+    // 批量更新displayOrder
+    const updates = focusAreasInCategory.map((fa, index) => ({
+      id: fa.id,
+      displayOrder: index
+    }))
+
+    console.log('发送更新请求:', updates)
+    await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
+    console.log('更新成功')
+
+    // 刷新Focus Areas
+    await loadFocusAreas()
+  } catch (error) {
+    console.error('更新Focus Area顺序失败:', error)
+    alert('更新顺序失败: ' + (error.message || '未知错误'))
+    // 失败时重新加载恢复原顺序
+    await loadFocusAreas()
   }
 }
 

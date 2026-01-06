@@ -187,17 +187,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/job-search/customized-resume',
-    name: 'CustomizedResume',
-    component: () => import('../views/job-search/CustomizedResume.vue'),
+    path: '/job-search/applications',
+    name: 'JobApplicationList',
+    component: () => import('../views/job-search/JobApplicationList.vue'),
     meta: { requiresAuth: true }
-  },
-  {
-    path: '/job-search/interviews',
-    name: 'InterviewTracking',
-    component: () => import('../views/job-search/InterviewTracking.vue'),
-    meta: { requiresAuth: true }
-  },
+  }
 ]
 
 const router = createRouter({

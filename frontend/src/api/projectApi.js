@@ -32,5 +32,10 @@ export const projectApi = {
   // 获取相关 Behavioral 试题 (P1, 暂不实现)
   getRelatedQuestions(id) {
     return api.get(`/project-experiences/${id}/related-questions`)
+  },
+
+  // 获取所有 Behavioral Focus Areas（用于项目关联选择）
+  getBehavioralFocusAreas() {
+    return api.get('/skills/behavioral/focus-areas')
   }
 }

@@ -2,8 +2,11 @@ package com.growing.app.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.growing.app.dto.FocusAreaBriefDTO;
 import com.growing.app.dto.ProjectExperienceDTO;
 import com.growing.app.entity.ProjectExperience;
+import com.growing.app.model.FocusArea;
+import com.growing.app.repository.FocusAreaRepository;
 import com.growing.app.repository.ProjectExperienceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,8 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +22,9 @@ public class ProjectExperienceService {
 
     @Autowired
     private ProjectExperienceRepository projectExperienceRepository;
+
+    @Autowired
+    private FocusAreaRepository focusAreaRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,8 +86,8 @@ public class ProjectExperienceService {
             if (dto.getTechTags() != null) {
                 project.setTechTags(objectMapper.writeValueAsString(dto.getTechTags()));
             }
-            if (dto.getSkillIds() != null) {
-                project.setSkillIds(objectMapper.writeValueAsString(dto.getSkillIds()));
+            if (dto.getFocusAreaIds() != null) {
+                project.setFocusAreaIds(objectMapper.writeValueAsString(dto.getFocusAreaIds()));
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "JSON字段格式错误: " + e.getMessage());
@@ -129,8 +134,8 @@ public class ProjectExperienceService {
             if (dto.getTechTags() != null) {
                 project.setTechTags(objectMapper.writeValueAsString(dto.getTechTags()));
             }
-            if (dto.getSkillIds() != null) {
-                project.setSkillIds(objectMapper.writeValueAsString(dto.getSkillIds()));
+            if (dto.getFocusAreaIds() != null) {
+                project.setFocusAreaIds(objectMapper.writeValueAsString(dto.getFocusAreaIds()));
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "JSON字段格式错误: " + e.getMessage());
@@ -187,15 +192,62 @@ public class ProjectExperienceService {
             if (project.getTechTags() != null) {
                 dto.setTechTags(objectMapper.readValue(project.getTechTags(),
                         new TypeReference<List<String>>() {}));
+            } else {
+                dto.setTechTags(Collections.emptyList());
             }
-            if (project.getSkillIds() != null) {
-                dto.setSkillIds(objectMapper.readValue(project.getSkillIds(),
-                        new TypeReference<List<Long>>() {}));
+
+            // Parse focusAreaIds and populate complete Focus Area details
+            if (project.getFocusAreaIds() != null) {
+                List<Long> focusAreaIds = objectMapper.readValue(project.getFocusAreaIds(),
+                        new TypeReference<List<Long>>() {});
+                dto.setFocusAreaIds(focusAreaIds);
+
+                // Fetch complete Focus Area details
+                if (!focusAreaIds.isEmpty()) {
+                    List<FocusArea> focusAreas = focusAreaRepository.findAllById(focusAreaIds);
+                    List<FocusAreaBriefDTO> focusAreaDTOs = focusAreas.stream()
+                            .map(this::convertToFocusAreaBriefDTO)
+                            .collect(Collectors.toList());
+                    dto.setFocusAreas(focusAreaDTOs);
+
+                    // Dynamically calculate skillIds from focusAreas (de-duplicated)
+                    Set<Long> skillIdsSet = focusAreas.stream()
+                            .filter(fa -> fa.getSkill() != null)
+                            .map(fa -> fa.getSkill().getId())
+                            .collect(Collectors.toSet());
+                    dto.setSkillIds(new ArrayList<>(skillIdsSet));
+                } else {
+                    dto.setFocusAreas(Collections.emptyList());
+                    dto.setSkillIds(Collections.emptyList());
+                }
+            } else {
+                dto.setFocusAreaIds(Collections.emptyList());
+                dto.setFocusAreas(Collections.emptyList());
+                dto.setSkillIds(Collections.emptyList());
             }
         } catch (Exception e) {
             // If JSON parsing fails, set empty lists
             dto.setTechTags(Collections.emptyList());
+            dto.setFocusAreaIds(Collections.emptyList());
+            dto.setFocusAreas(Collections.emptyList());
             dto.setSkillIds(Collections.emptyList());
+        }
+
+        return dto;
+    }
+
+    // Convert FocusArea to FocusAreaBriefDTO
+    private FocusAreaBriefDTO convertToFocusAreaBriefDTO(FocusArea focusArea) {
+        FocusAreaBriefDTO dto = new FocusAreaBriefDTO();
+        dto.setId(focusArea.getId());
+        dto.setName(focusArea.getName());
+        dto.setDescription(focusArea.getDescription());
+        // Note: icon field removed - not in database schema
+
+        // Get skill ID and name from associated skill
+        if (focusArea.getSkill() != null) {
+            dto.setSkillId(focusArea.getSkill().getId());
+            dto.setSkillName(focusArea.getSkill().getName());
         }
 
         return dto;

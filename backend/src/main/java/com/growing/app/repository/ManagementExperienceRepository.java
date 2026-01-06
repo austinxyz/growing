@@ -19,11 +19,6 @@ public interface ManagementExperienceRepository extends JpaRepository<Management
     List<ManagementExperience> findByUserIdOrderByStartDateDesc(Long userId);
 
     /**
-     * 根据用户ID和经验类型查找管理经验
-     */
-    List<ManagementExperience> findByUserIdAndExperienceTypeOrderByStartDateDesc(Long userId, String experienceType);
-
-    /**
      * 删除指定用户的所有管理经验
      */
     void deleteByUserId(Long userId);

@@ -1,6 +1,7 @@
 package com.growing.app.controller;
 
 import com.growing.app.dto.CompanyDTO;
+import com.growing.app.dto.CompanyLinkDTO;
 import com.growing.app.service.AuthService;
 import com.growing.app.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,62 @@ public class CompanyController {
         Long userId = authService.getUserIdByUsername(username);
 
         companyService.deleteCompany(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- Company Links ---
+
+    // 获取公司所有链接
+    @GetMapping("/{companyId}/links")
+    public ResponseEntity<List<CompanyLinkDTO>> getCompanyLinks(
+            @PathVariable Long companyId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        return ResponseEntity.ok(companyService.getCompanyLinks(companyId, userId));
+    }
+
+    // 创建公司链接
+    @PostMapping("/{companyId}/links")
+    public ResponseEntity<CompanyLinkDTO> createCompanyLink(
+            @PathVariable Long companyId,
+            @RequestBody CompanyLinkDTO linkDTO,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        CompanyLinkDTO created = companyService.createCompanyLink(companyId, userId, linkDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    // 更新公司链接
+    @PutMapping("/{companyId}/links/{linkId}")
+    public ResponseEntity<CompanyLinkDTO> updateCompanyLink(
+            @PathVariable Long companyId,
+            @PathVariable Long linkId,
+            @RequestBody CompanyLinkDTO linkDTO,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        return ResponseEntity.ok(companyService.updateCompanyLink(companyId, linkId, userId, linkDTO));
+    }
+
+    // 删除公司链接
+    @DeleteMapping("/{companyId}/links/{linkId}")
+    public ResponseEntity<Void> deleteCompanyLink(
+            @PathVariable Long companyId,
+            @PathVariable Long linkId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        companyService.deleteCompanyLink(companyId, linkId, userId);
         return ResponseEntity.noContent().build();
     }
 }

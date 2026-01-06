@@ -19,6 +19,11 @@ public interface InterviewRecordRepository extends JpaRepository<InterviewRecord
     List<InterviewRecord> findByJobApplicationIdOrderByInterviewDateDesc(Long jobApplicationId);
 
     /**
+     * 统计职位的面试记录数量
+     */
+    int countByJobApplicationId(Long jobApplicationId);
+
+    /**
      * 根据面试阶段ID查找所有面试记录
      */
     List<InterviewRecord> findByInterviewStageIdOrderByInterviewDateDesc(Long interviewStageId);

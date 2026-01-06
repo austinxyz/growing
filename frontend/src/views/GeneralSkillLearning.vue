@@ -228,6 +228,17 @@
             <!-- Tab 导航 -->
             <nav class="flex space-x-1" aria-label="Tabs">
               <button
+                @click="activeTab = 'description'"
+                :class="[
+                  'px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                  activeTab === 'description'
+                    ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
+                    : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                ]"
+              >
+                <span>📖 Focus Area描述</span>
+              </button>
+              <button
                 @click="activeTab = 'learning'"
                 :class="[
                   'px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-2',
@@ -276,6 +287,27 @@
 
           <!-- Tab 内容 -->
           <div class="flex-1 overflow-hidden">
+            <!-- Tab 0: Focus Area描述 -->
+            <div v-if="activeTab === 'description'" class="h-full overflow-auto p-6">
+              <div v-if="selectedFocusArea?.description" class="prose max-w-none">
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-4">
+                  <div class="flex items-start gap-3">
+                    <div class="text-3xl">📖</div>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-semibold text-gray-900 mb-2">关于 {{ selectedFocusArea.name }}</h3>
+                      <div class="text-gray-700 whitespace-pre-wrap leading-relaxed">{{ selectedFocusArea.description }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="flex flex-col items-center justify-center h-64 text-gray-400">
+                <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-lg">暂无描述信息</p>
+              </div>
+            </div>
+
             <!-- Tab 1: 学习资料 - 网格卡片布局 -->
             <div v-if="activeTab === 'learning'" class="h-full flex flex-col">
               <div v-if="loadingContents" class="text-center py-12">
@@ -1897,7 +1929,7 @@ const categoriesCache = new Map()  // skillId -> categories
 const focusAreasCache = new Map()  // skillId -> focusAreas
 
 // 右侧Tab状态
-const activeTab = ref('learning') // 'learning' or 'questions'
+const activeTab = ref('description') // 'description', 'learning' or 'questions'
 const learningContents = ref([])
 const selectedContent = ref(null) // 当前选中的学习资料
 const questions = ref([])

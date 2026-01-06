@@ -248,20 +248,12 @@
             <span>公司与职位</span>
           </router-link>
           <router-link
-            to="/job-search/customized-resume"
+            to="/job-search/applications"
             class="nav-item"
-            :class="isActive('/job-search/customized-resume')"
-          >
-            <FilePenLine class="w-5 h-5" />
-            <span>定制简历</span>
-          </router-link>
-          <router-link
-            to="/job-search/interviews"
-            class="nav-item"
-            :class="isActive('/job-search/interviews')"
+            :class="isActive('/job-search/applications')"
           >
             <Calendar class="w-5 h-5" />
-            <span>面试记录</span>
+            <span>申请列表</span>
           </router-link>
         </div>
       </template>
@@ -483,7 +475,6 @@ import {
   UserCheck,
   User,
   FolderOpen,
-  FilePenLine,
   UserCog
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
