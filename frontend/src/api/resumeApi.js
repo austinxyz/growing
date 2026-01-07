@@ -112,5 +112,17 @@ export const resumeApi = {
 
   deleteCertification(resumeId, certificationId) {
     return api.delete(`/resumes/${resumeId}/certifications/${certificationId}`)
+  },
+
+  // --- Phase 7 扩展: 定制简历功能 ---
+
+  // Clone默认简历并关联到职位
+  cloneResumeForJob(jobApplicationId) {
+    return api.post(`/resumes/clone-for-job/${jobApplicationId}`)
+  },
+
+  // 获取职位的定制简历
+  getResumeByJob(jobApplicationId) {
+    return api.get(`/resumes/by-job/${jobApplicationId}`)
   }
 }

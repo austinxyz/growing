@@ -123,34 +123,49 @@
 
           <!-- Tab 1: 基本信息 -->
           <div v-if="activeTab === 'basic'" class="bg-white rounded-lg shadow p-4 space-y-4 text-sm">
+            <!-- 顶部编辑按钮 -->
+            <div class="flex justify-end gap-2 border-b pb-3">
+              <button
+                v-if="!editModes.basic"
+                @click="editModes.basic = true"
+                class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                编辑
+              </button>
+              <template v-else>
+                <button
+                  @click="editModes.basic = false"
+                  class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  取消
+                </button>
+                <button
+                  @click="saveBasicInfo"
+                  class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  保存
+                </button>
+              </template>
+            </div>
+
+            <!-- 简历版本名称 -->
+            <div>
+              <h3 class="text-sm font-semibold text-gray-900 mb-2">简历版本名称</h3>
+              <div v-if="!editModes.basic" class="text-gray-900">
+                {{ currentResume.versionName }}
+              </div>
+              <input
+                v-else
+                v-model="currentResume.versionName"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="例如: Google - Software Engineer"
+              />
+            </div>
+
             <!-- 个人简介 -->
             <div>
-              <div class="flex justify-between items-start mb-2">
-                <h3 class="text-sm font-semibold text-gray-900">个人简介</h3>
-                <div class="flex gap-2">
-                  <button
-                    v-if="!editModes.basic"
-                    @click="editModes.basic = true"
-                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    编辑
-                  </button>
-                  <template v-else>
-                    <button
-                      @click="editModes.basic = false"
-                      class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      取消
-                    </button>
-                    <button
-                      @click="saveBasicInfo"
-                      class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      保存
-                    </button>
-                  </template>
-                </div>
-              </div>
+              <h3 class="text-sm font-semibold text-gray-900 mb-2">个人简介</h3>
               <div v-if="!editModes.basic" v-html="renderMarkdown(currentResume.about)" class="prose max-w-none"></div>
               <textarea
                 v-else
