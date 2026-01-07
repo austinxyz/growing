@@ -414,213 +414,136 @@
 
                 <!-- Tab 3: 定制简历 -->
                 <div v-if="activeJobDetailTab === 'resume'" class="space-y-6">
-                  <!-- 加载简历分析 -->
-                  <div v-if="!resumeAnalysis" class="bg-white rounded-lg shadow p-6">
+                  <!-- Loading State -->
+                  <div v-if="loadingCustomizedResume" class="bg-white rounded-lg shadow p-6">
                     <div class="text-center py-12">
-                      <button
-                        @click="loadResumeAnalysis"
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
-                      >
-                        分析简历匹配度
-                      </button>
-                      <p class="text-sm text-gray-500 mt-3">分析您的简历与此职位的匹配程度，并提供定制化建议</p>
+                      <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p class="text-sm text-gray-500">加载定制简历...</p>
                     </div>
                   </div>
 
-                  <!-- 简历分析结果 -->
-                  <div v-if="resumeAnalysis" class="space-y-6">
-                    <!-- 匹配度概览 -->
+                  <!-- No Customized Resume Yet -->
+                  <div v-else-if="!customizedResume" class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center py-12">
+                      <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <h3 class="text-lg font-semibold text-gray-900 mb-2">还没有定制简历</h3>
+                      <p class="text-sm text-gray-500 mb-6">为此职位创建定制简历，根据AI分析建议优化您的简历</p>
+                      <button
+                        @click="cloneResumeForJob"
+                        class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium shadow-md hover:shadow-lg transition-all"
+                      >
+                        创建定制简历
+                      </button>
+                      <p class="text-xs text-gray-400 mt-3">将克隆您的默认简历，并可根据建议进行优化</p>
+                    </div>
+                  </div>
+
+                  <!-- Customized Resume Exists -->
+                  <div v-else class="space-y-6">
+                    <!-- Resume Summary -->
                     <div class="bg-white rounded-lg shadow p-6">
                       <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">匹配度分析</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                          </svg>
+                          定制简历 - {{ customizedResume.versionName }}
+                        </h3>
                         <button
-                          @click="loadResumeAnalysis"
-                          class="text-sm text-indigo-600 hover:text-indigo-700"
+                          @click="editCustomizedResume"
+                          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all"
                         >
-                          重新分析
+                          编辑简历
                         </button>
                       </div>
 
-                      <div class="flex items-center gap-6">
-                        <!-- 匹配度圆环 -->
-                        <div class="relative w-32 h-32">
-                          <svg class="w-full h-full transform -rotate-90">
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="56"
-                              stroke="#e5e7eb"
-                              stroke-width="12"
-                              fill="none"
-                            />
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="56"
-                              :stroke="getMatchScoreColor(resumeAnalysis.matchScore)"
-                              stroke-width="12"
-                              fill="none"
-                              :stroke-dasharray="`${(resumeAnalysis.matchScore / 100) * 351.86} 351.86`"
-                              stroke-linecap="round"
-                            />
-                          </svg>
-                          <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="text-center">
-                              <p class="text-2xl font-bold" :class="getMatchScoreColor(resumeAnalysis.matchScore)">
-                                {{ resumeAnalysis.matchScore }}%
-                              </p>
-                              <p class="text-xs text-gray-500">匹配度</p>
-                            </div>
-                          </div>
+                      <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-600 mb-1">邮箱</label>
+                          <p class="text-sm text-gray-900">{{ customizedResume.email || '未设置' }}</p>
                         </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-600 mb-1">电话</label>
+                          <p class="text-sm text-gray-900">{{ customizedResume.phone || '未设置' }}</p>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-600 mb-1">GitHub</label>
+                          <a v-if="customizedResume.githubUrl" :href="customizedResume.githubUrl" target="_blank" class="text-sm text-blue-600 hover:underline">
+                            {{ customizedResume.githubUrl }}
+                          </a>
+                          <p v-else class="text-sm text-gray-500">未设置</p>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-600 mb-1">LinkedIn</label>
+                          <a v-if="customizedResume.linkedinUrl" :href="customizedResume.linkedinUrl" target="_blank" class="text-sm text-blue-600 hover:underline">
+                            {{ customizedResume.linkedinUrl }}
+                          </a>
+                          <p v-else class="text-sm text-gray-500">未设置</p>
+                        </div>
+                      </div>
 
-                        <!-- 匹配详情 -->
-                        <div class="flex-1">
-                          <div class="grid grid-cols-2 gap-4">
-                            <div>
-                              <label class="block text-sm font-medium text-gray-600 mb-1">匹配技能</label>
-                              <p class="text-2xl font-bold text-green-600">{{ resumeAnalysis.matchedSkills.length }}</p>
-                            </div>
-                            <div>
-                              <label class="block text-sm font-medium text-gray-600 mb-1">缺失技能</label>
-                              <p class="text-2xl font-bold text-red-600">{{ resumeAnalysis.missingSkills.length }}</p>
-                            </div>
-                          </div>
+                      <div v-if="customizedResume.about" class="mb-4">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">关于我</label>
+                        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ customizedResume.about }}</p>
+                      </div>
+
+                      <div v-if="customizedResume.careerObjective" class="mb-4">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">职业目标</label>
+                        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ customizedResume.careerObjective }}</p>
+                      </div>
+                    </div>
+
+                    <!-- Work Experiences -->
+                    <div v-if="customizedResume.experiences && customizedResume.experiences.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">💼 工作经历 ({{ customizedResume.experiences.length }})</h4>
+                      <div class="space-y-3">
+                        <div v-for="exp in customizedResume.experiences" :key="exp.id" class="border-l-2 border-indigo-600 pl-4">
+                          <p class="font-medium text-gray-900">{{ exp.position }} @ {{ exp.companyName }}</p>
+                          <p class="text-xs text-gray-500">{{ formatDate(exp.startDate) }} - {{ exp.isCurrent ? '至今' : formatDate(exp.endDate) }}</p>
                         </div>
                       </div>
                     </div>
 
-                    <!-- 匹配的技能 -->
-                    <div v-if="resumeAnalysis.matchedSkills.length > 0" class="bg-white rounded-lg shadow p-6">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-3">✅ 已匹配技能</h4>
+                    <!-- Skills -->
+                    <div v-if="customizedResume.skills && customizedResume.skills.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">🎯 技能 ({{ customizedResume.skills.length }})</h4>
                       <div class="flex flex-wrap gap-2">
                         <span
-                          v-for="skill in resumeAnalysis.matchedSkills"
-                          :key="skill"
-                          class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium"
+                          v-for="skill in customizedResume.skills"
+                          :key="skill.id"
+                          class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
                         >
-                          {{ skill }}
+                          {{ skill.skillName }}
                         </span>
                       </div>
                     </div>
 
-                    <!-- 缺失的技能 -->
-                    <div v-if="resumeAnalysis.missingSkills.length > 0" class="bg-white rounded-lg shadow p-6">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-3">⚠️ 需要补充的技能</h4>
-                      <div class="flex flex-wrap gap-2">
-                        <span
-                          v-for="skill in resumeAnalysis.missingSkills"
-                          :key="skill"
-                          class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium"
-                        >
-                          {{ skill }}
-                        </span>
+                    <!-- Education -->
+                    <div v-if="customizedResume.education && customizedResume.education.length > 0" class="bg-white rounded-lg shadow p-6">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">🎓 教育背景 ({{ customizedResume.education.length }})</h4>
+                      <div class="space-y-3">
+                        <div v-for="edu in customizedResume.education" :key="edu.id" class="border-l-2 border-purple-600 pl-4">
+                          <p class="font-medium text-gray-900">{{ edu.degree }} @ {{ edu.schoolName }}</p>
+                          <p class="text-xs text-gray-600">{{ edu.major }}</p>
+                          <p class="text-xs text-gray-500">{{ formatDate(edu.startDate) }} - {{ formatDate(edu.endDate) }}</p>
+                        </div>
                       </div>
                     </div>
 
-                    <!-- 优势分析 -->
-                    <div v-if="resumeAnalysis.strengths.length > 0" class="bg-white rounded-lg shadow p-6">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-3">💪 您的优势</h4>
-                      <ul class="space-y-2">
-                        <li v-for="(strength, idx) in resumeAnalysis.strengths" :key="idx" class="flex items-start gap-2">
-                          <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                          </svg>
-                          <span class="text-sm text-gray-700">{{ strength }}</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <!-- 改进建议 -->
-                    <div v-if="resumeAnalysis.improvements.length > 0" class="bg-white rounded-lg shadow p-6">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-3">📈 改进建议</h4>
-                      <ul class="space-y-2">
-                        <li v-for="(improvement, idx) in resumeAnalysis.improvements" :key="idx" class="flex items-start gap-2">
-                          <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                          </svg>
-                          <span class="text-sm text-gray-700">{{ improvement }}</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <!-- 定制化建议 (仅在匹配度>70%时显示) -->
-                    <div v-if="resumeAnalysis.customization" class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md border border-purple-200 p-6">
-                      <h3 class="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                        定制化建议
-                      </h3>
-
-                      <!-- 关键词优化 -->
-                      <div v-if="resumeAnalysis.customization.keywordSuggestions?.length > 0" class="mb-6">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-3">🔑 关键词优化</h4>
-                        <div class="space-y-2">
-                          <div
-                            v-for="(kw, idx) in resumeAnalysis.customization.keywordSuggestions"
-                            :key="idx"
-                            class="bg-white rounded-lg p-3 border border-purple-100"
-                          >
-                            <p class="font-medium text-sm text-purple-900">{{ kw.keyword }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ kw.reason }}</p>
-                            <p class="text-xs text-purple-600 mt-1">建议位置: {{ kw.section }}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- 项目优化 -->
-                      <div v-if="resumeAnalysis.customization.projectOptimizations?.length > 0" class="mb-6">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-3">📁 项目经验优化</h4>
-                        <div class="space-y-3">
-                          <div
-                            v-for="project in resumeAnalysis.customization.projectOptimizations"
-                            :key="project.projectId"
-                            class="bg-white rounded-lg p-3 border border-purple-100"
-                          >
-                            <p class="font-medium text-sm text-purple-900 mb-2">{{ project.projectName }}</p>
-                            <ul class="space-y-1">
-                              <li v-for="(suggestion, idx) in project.suggestions" :key="idx" class="text-xs text-gray-700 flex items-start gap-1">
-                                <span class="text-purple-600 flex-shrink-0">•</span>
-                                <span>{{ suggestion }}</span>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- 技能突出建议 -->
-                      <div v-if="resumeAnalysis.customization.skillHighlights?.length > 0" class="mb-6">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-3">⭐ 技能突出建议</h4>
-                        <div class="space-y-2">
-                          <div
-                            v-for="(highlight, idx) in resumeAnalysis.customization.skillHighlights"
-                            :key="idx"
-                            class="bg-white rounded-lg p-3 border border-purple-100"
-                          >
-                            <p class="font-medium text-sm text-purple-900">{{ highlight.skill }}</p>
-                            <p class="text-xs text-gray-600 mt-1">
-                              <span class="text-gray-500">当前:</span> {{ highlight.currentMention }}
-                            </p>
-                            <p class="text-xs text-purple-700 mt-1">
-                              <span class="font-medium">建议:</span> {{ highlight.suggestedMention }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- 结构建议 -->
-                      <div v-if="resumeAnalysis.customization.structuralSuggestions?.length > 0">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-3">📐 整体结构建议</h4>
-                        <ul class="space-y-2">
-                          <li v-for="(suggestion, idx) in resumeAnalysis.customization.structuralSuggestions" :key="idx" class="flex items-start gap-2">
-                            <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="text-sm text-gray-700">{{ suggestion }}</span>
-                          </li>
-                        </ul>
-                      </div>
+                    <!-- Call to Action -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200 p-6 text-center">
+                      <p class="text-sm text-gray-700 mb-4">点击"编辑简历"可以查看AI分析建议并进行优化</p>
+                      <button
+                        @click="editCustomizedResume"
+                        class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium shadow-md hover:shadow-lg transition-all"
+                      >
+                        立即编辑简历
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1194,7 +1117,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { companyApi } from '@/api/companyApi'
 import { jobApplicationApi } from '@/api/jobApplicationApi'
 import { referralApi } from '@/api/referralApi'
@@ -1203,9 +1126,11 @@ import { getSkills } from '@/api/skillApi'
 import { getFocusAreasBySkillId } from '@/api/focusAreaApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
 import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
+import { resumeApi } from '@/api/resumeApi'
 import MarkdownIt from 'markdown-it'
 
 const route = useRoute()
+const router = useRouter()
 const md = new MarkdownIt()
 
 const companies = ref([])
@@ -1222,6 +1147,8 @@ const resumeAnalysis = ref(null)
 const aiPromptData = ref(null)
 const savedAnalyses = ref([])
 const selectedAnalysis = ref(null)
+const customizedResume = ref(null) // 定制简历
+const loadingCustomizedResume = ref(false) // 加载状态
 const showCreateCompanyModal = ref(false)
 const showCreateJobModal = ref(false)
 const showCreateContactModal = ref(false)
@@ -1241,8 +1168,8 @@ const tabs = [
 const jobDetailTabs = [
   { id: 'jd', name: 'JD (Job Description)' },
   { id: 'interview', name: '面试流程' },
-  { id: 'resume', name: '定制简历' },
   { id: 'ai-analysis', name: '简历分析' },
+  { id: 'resume', name: '定制简历' },
   { id: 'recruiter', name: 'Recruiter' }
 ]
 
@@ -1491,6 +1418,9 @@ const selectJob = async (jobId) => {
 
   // Load saved AI analyses for this job
   await loadSavedAnalyses(jobId)
+
+  // Load customized resume for this job
+  await loadCustomizedResume(jobId)
 }
 
 const loadCompanies = async () => {
@@ -1973,6 +1903,107 @@ const parseAnalysisResult = (analysis) => {
       improvements: []
     }
   }
+}
+
+// ========== Customized Resume Functions ==========
+
+// Load customized resume for current job
+const loadCustomizedResume = async (jobId) => {
+  if (!jobId) return
+
+  loadingCustomizedResume.value = true
+  try {
+    const data = await resumeApi.getResumeByJob(jobId)
+    customizedResume.value = data
+  } catch (error) {
+    console.error('加载定制简历失败:', error)
+    customizedResume.value = null
+  } finally {
+    loadingCustomizedResume.value = false
+  }
+}
+
+// Clone default resume for job
+const cloneResumeForJob = async () => {
+  if (!selectedJobId.value) return
+
+  try {
+    const clonedResume = await resumeApi.cloneResumeForJob(selectedJobId.value)
+    customizedResume.value = clonedResume
+
+    // Navigate to resume management page with suggestions
+    const suggestions = extractImprovementSuggestions()
+    router.push({
+      path: '/job-search/resume',
+      query: {
+        resumeId: clonedResume.id,
+        jobId: selectedJobId.value,
+        suggestions: JSON.stringify(suggestions)
+      }
+    })
+  } catch (error) {
+    console.error('克隆简历失败:', error)
+    alert('创建定制简历失败，请稍后重试')
+  }
+}
+
+// Edit customized resume
+const editCustomizedResume = () => {
+  if (!customizedResume.value) return
+
+  const suggestions = extractImprovementSuggestions()
+  router.push({
+    path: '/job-search/resume',
+    query: {
+      resumeId: customizedResume.value.id,
+      jobId: selectedJobId.value,
+      suggestions: JSON.stringify(suggestions)
+    }
+  })
+}
+
+// Extract improvement suggestions from AI analysis
+const extractImprovementSuggestions = () => {
+  const suggestions = []
+
+  // From resumeAnalysis (built-in analysis)
+  if (resumeAnalysis.value) {
+    if (resumeAnalysis.value.improvements && resumeAnalysis.value.improvements.length > 0) {
+      suggestions.push(...resumeAnalysis.value.improvements)
+    }
+    if (resumeAnalysis.value.customization) {
+      const customization = resumeAnalysis.value.customization
+      if (customization.keywordSuggestions) {
+        customization.keywordSuggestions.forEach(kw => {
+          suggestions.push(`关键词优化: 在${kw.section}添加"${kw.keyword}" - ${kw.reason}`)
+        })
+      }
+      if (customization.projectOptimizations) {
+        customization.projectOptimizations.forEach(proj => {
+          suggestions.push(`项目 "${proj.projectName}": ${proj.suggestions.join('; ')}`)
+        })
+      }
+      if (customization.skillHighlights) {
+        customization.skillHighlights.forEach(skill => {
+          suggestions.push(`技能 "${skill.skill}": ${skill.suggestedMention}`)
+        })
+      }
+      if (customization.structuralSuggestions) {
+        suggestions.push(...customization.structuralSuggestions)
+      }
+    }
+  }
+
+  // From savedAnalyses (AI analysis)
+  if (savedAnalyses.value && savedAnalyses.value.length > 0) {
+    const latestAnalysis = savedAnalyses.value[0]
+    const parsedAnalysis = parseAnalysisResult(latestAnalysis)
+    if (parsedAnalysis.improvements && parsedAnalysis.improvements.length > 0) {
+      suggestions.push(...parsedAnalysis.improvements)
+    }
+  }
+
+  return suggestions
 }
 </script>
 
