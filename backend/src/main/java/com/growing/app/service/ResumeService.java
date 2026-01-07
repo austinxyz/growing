@@ -321,4 +321,120 @@ public class ResumeService {
         dto.setCreatedAt(cert.getCreatedAt());
         return dto;
     }
+
+    // ========== Phase 7 扩展：定制简历功能 ==========
+
+    /**
+     * Clone默认简历并关联到职位
+     * @param userId 用户ID
+     * @param jobApplicationId 职位申请ID
+     * @return 克隆后的简历DTO
+     */
+    @Transactional
+    public ResumeDTO cloneDefaultResumeForJob(Long userId, Long jobApplicationId) {
+        // 检查是否已存在该职位的定制简历
+        Resume existingResume = resumeRepository.findByUserIdAndJobApplicationId(userId, jobApplicationId);
+        if (existingResume != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "该职位已有定制简历");
+        }
+
+        // 获取默认简历
+        Resume defaultResume = resumeRepository.findByUserIdAndIsDefaultTrue(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "未找到默认简历"));
+
+        // Clone简历主体
+        Resume clonedResume = new Resume();
+        clonedResume.setUserId(userId);
+        clonedResume.setVersionName("定制简历 - Job #" + jobApplicationId);
+        clonedResume.setIsDefault(false);
+        clonedResume.setJobApplicationId(jobApplicationId);  // 关联到职位
+        clonedResume.setAbout(defaultResume.getAbout());
+        clonedResume.setCareerObjective(defaultResume.getCareerObjective());
+        clonedResume.setEmail(defaultResume.getEmail());
+        clonedResume.setPhone(defaultResume.getPhone());
+        clonedResume.setAddress(defaultResume.getAddress());
+        clonedResume.setLinkedinUrl(defaultResume.getLinkedinUrl());
+        clonedResume.setGithubUrl(defaultResume.getGithubUrl());
+        clonedResume.setWebsiteUrl(defaultResume.getWebsiteUrl());
+        clonedResume.setOtherLinks(defaultResume.getOtherLinks());
+        clonedResume.setLanguages(defaultResume.getLanguages());
+        clonedResume.setHobbies(defaultResume.getHobbies());
+
+        Resume savedResume = resumeRepository.save(clonedResume);
+
+        // Clone工作经历
+        List<ResumeExperience> experiences = resumeExperienceRepository.findByResumeIdOrderBySortOrder(defaultResume.getId());
+        for (ResumeExperience exp : experiences) {
+            ResumeExperience clonedExp = new ResumeExperience();
+            clonedExp.setResumeId(savedResume.getId());
+            clonedExp.setCompanyName(exp.getCompanyName());
+            clonedExp.setPosition(exp.getPosition());
+            clonedExp.setLocation(exp.getLocation());
+            clonedExp.setStartDate(exp.getStartDate());
+            clonedExp.setEndDate(exp.getEndDate());
+            clonedExp.setIsCurrent(exp.getIsCurrent());
+            clonedExp.setResponsibilities(exp.getResponsibilities());
+            clonedExp.setAchievements(exp.getAchievements());
+            clonedExp.setProjectIds(exp.getProjectIds());
+            clonedExp.setSortOrder(exp.getSortOrder());
+            resumeExperienceRepository.save(clonedExp);
+        }
+
+        // Clone技能
+        List<ResumeSkill> skills = resumeSkillRepository.findByResumeIdOrderBySortOrder(defaultResume.getId());
+        for (ResumeSkill skill : skills) {
+            ResumeSkill clonedSkill = new ResumeSkill();
+            clonedSkill.setResumeId(savedResume.getId());
+            clonedSkill.setSkillName(skill.getSkillName());
+            clonedSkill.setProficiency(skill.getProficiency());
+            clonedSkill.setSortOrder(skill.getSortOrder());
+            resumeSkillRepository.save(clonedSkill);
+        }
+
+        // Clone教育背景
+        List<ResumeEducation> education = resumeEducationRepository.findByResumeIdOrderBySortOrder(defaultResume.getId());
+        for (ResumeEducation edu : education) {
+            ResumeEducation clonedEdu = new ResumeEducation();
+            clonedEdu.setResumeId(savedResume.getId());
+            clonedEdu.setSchoolName(edu.getSchoolName());
+            clonedEdu.setDegree(edu.getDegree());
+            clonedEdu.setMajor(edu.getMajor());
+            clonedEdu.setStartDate(edu.getStartDate());
+            clonedEdu.setEndDate(edu.getEndDate());
+            clonedEdu.setGpa(edu.getGpa());
+            clonedEdu.setCourses(edu.getCourses());
+            clonedEdu.setSortOrder(edu.getSortOrder());
+            resumeEducationRepository.save(clonedEdu);
+        }
+
+        // Clone证书
+        List<ResumeCertification> certifications = resumeCertificationRepository.findByResumeIdOrderBySortOrder(defaultResume.getId());
+        for (ResumeCertification cert : certifications) {
+            ResumeCertification clonedCert = new ResumeCertification();
+            clonedCert.setResumeId(savedResume.getId());
+            clonedCert.setCertName(cert.getCertName());
+            clonedCert.setIssuer(cert.getIssuer());
+            clonedCert.setIssueDate(cert.getIssueDate());
+            clonedCert.setExpiryDate(cert.getExpiryDate());
+            clonedCert.setCertUrl(cert.getCertUrl());
+            clonedCert.setSortOrder(cert.getSortOrder());
+            resumeCertificationRepository.save(clonedCert);
+        }
+
+        return getResumeById(savedResume.getId(), userId);
+    }
+
+    /**
+     * 获取职位的定制简历
+     * @param userId 用户ID
+     * @param jobApplicationId 职位申请ID
+     * @return 定制简历DTO，如果不存在返回null
+     */
+    public ResumeDTO getResumeByJobApplicationId(Long userId, Long jobApplicationId) {
+        Resume resume = resumeRepository.findByUserIdAndJobApplicationId(userId, jobApplicationId);
+        if (resume == null) {
+            return null;
+        }
+        return getResumeById(resume.getId(), userId);
+    }
 }

@@ -328,6 +328,45 @@ public class ResumeController {
         return ResponseEntity.ok(resumeCertificationService.getCertificationsByResumeId(resumeId, userId));
     }
 
+    // ========== Phase 7 扩展：定制简历功能 ==========
+
+    /**
+     * Clone默认简历并关联到职位（创建定制简历）
+     * @param jobApplicationId 职位申请ID
+     * @return 克隆后的简历
+     */
+    @PostMapping("/clone-for-job/{jobApplicationId}")
+    public ResponseEntity<ResumeDTO> cloneResumeForJob(
+            @PathVariable Long jobApplicationId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        ResumeDTO clonedResume = resumeService.cloneDefaultResumeForJob(userId, jobApplicationId);
+        return ResponseEntity.ok(clonedResume);
+    }
+
+    /**
+     * 获取职位的定制简历
+     * @param jobApplicationId 职位申请ID
+     * @return 定制简历，如果不存在返回null
+     */
+    @GetMapping("/by-job/{jobApplicationId}")
+    public ResponseEntity<ResumeDTO> getResumeByJob(
+            @PathVariable Long jobApplicationId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        ResumeDTO resume = resumeService.getResumeByJobApplicationId(userId, jobApplicationId);
+        if (resume == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(resume);
+    }
+
     // 添加证书
     @PostMapping("/{resumeId}/certifications")
     public ResponseEntity<ResumeCertificationDTO> createCertification(

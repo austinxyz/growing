@@ -34,6 +34,9 @@ public class Resume {
     @Column(name = "is_default")
     private Boolean isDefault = false;
 
+    @Column(name = "job_application_id")
+    private Long jobApplicationId; // 关联的职位申请ID，NULL表示通用简历
+
     @Column(name = "about", columnDefinition = "TEXT")
     private String about;
 

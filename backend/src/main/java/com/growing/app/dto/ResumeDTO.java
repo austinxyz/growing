@@ -11,6 +11,7 @@ public class ResumeDTO {
     private Long userId;
     private String versionName;
     private Boolean isDefault;
+    private Long jobApplicationId; // 关联的职位申请ID
 
     private String about;
     private String careerObjective;

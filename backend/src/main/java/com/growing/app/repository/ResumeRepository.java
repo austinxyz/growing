@@ -33,4 +33,9 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
      * 检查版本名称是否存在
      */
     boolean existsByUserIdAndVersionName(Long userId, String versionName);
+
+    /**
+     * 根据用户ID和职位申请ID查找定制简历
+     */
+    Resume findByUserIdAndJobApplicationId(Long userId, Long jobApplicationId);
 }
