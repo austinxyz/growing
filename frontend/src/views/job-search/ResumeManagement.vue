@@ -1326,6 +1326,12 @@ const selectResume = async (resumeId) => {
     editModes.value[key] = false
   })
   await loadResumeDetails()
+
+  // 清除改进建议（除非是从URL跳转过来的对应简历）
+  // 注意：route.query.resumeId是字符串，需要转换后比较
+  if (String(route.query.resumeId) !== String(resumeId)) {
+    improvementSuggestions.value = []
+  }
 }
 
 const loadResumeDetails = async () => {
