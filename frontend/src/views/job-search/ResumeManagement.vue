@@ -94,6 +94,33 @@
 
         <!-- Tab内容 -->
         <div class="flex-1 overflow-y-auto p-4">
+          <!-- AI改进建议卡片 -->
+          <div v-if="improvementSuggestions.length > 0" class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-purple-200 p-4 mb-4">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div class="flex-1">
+                <h3 class="text-sm font-semibold text-gray-900 mb-2">💡 AI分析改进建议</h3>
+                <ul class="space-y-2">
+                  <li v-for="(suggestion, idx) in improvementSuggestions" :key="idx" class="text-sm text-gray-700 flex items-start gap-2">
+                    <span class="text-purple-600 font-bold flex-shrink-0">•</span>
+                    <span>{{ suggestion }}</span>
+                  </li>
+                </ul>
+              </div>
+              <button
+                @click="improvementSuggestions = []"
+                class="text-gray-400 hover:text-gray-600"
+                title="关闭建议"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <!-- Tab 1: 基本信息 -->
           <div v-if="activeTab === 'basic'" class="bg-white rounded-lg shadow p-4 space-y-4 text-sm">
             <!-- 个人简介 -->
@@ -1072,15 +1099,18 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { resumeApi } from '@/api/resumeApi'
 import { projectApi } from '@/api/projectApi'
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt()
+const route = useRoute()
 
 const resumes = ref([])
 const selectedResumeId = ref('')
 const currentResume = ref(null)
+const improvementSuggestions = ref([]) // AI分析改进建议
 const showCreateModal = ref(false)
 const showSkillModal = ref(false)
 const showLinkModal = ref(false)
@@ -1213,6 +1243,21 @@ watch(() => editingExperience.value.isCurrent, (newValue) => {
 onMounted(() => {
   loadResumes()
   loadProjects()
+
+  // 解析URL query参数中的改进建议
+  if (route.query.suggestions) {
+    try {
+      improvementSuggestions.value = JSON.parse(route.query.suggestions)
+    } catch (error) {
+      console.error('解析改进建议失败:', error)
+      improvementSuggestions.value = []
+    }
+  }
+
+  // 如果URL包含resumeId参数，自动选中该简历
+  if (route.query.resumeId) {
+    selectedResumeId.value = route.query.resumeId
+  }
 })
 
 // 加载所有项目（用于关联选择）
