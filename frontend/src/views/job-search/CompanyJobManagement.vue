@@ -1378,8 +1378,13 @@ watch(selectedCompanyId, async (newVal) => {
 watch(selectedJobId, async (newVal) => {
   if (newVal) {
     await loadInterviewStages()
+    // Also load AI analyses and customized resume when job changes
+    await loadSavedAnalyses(newVal)
+    await loadCustomizedResume(newVal)
   } else {
     interviewStages.value = []
+    savedAnalyses.value = []
+    customizedResume.value = null
   }
 })
 
@@ -1415,12 +1420,7 @@ const selectCompany = (companyId) => {
 const selectJob = async (jobId) => {
   selectedJobId.value = jobId
   activeJobDetailTab.value = 'jd'
-
-  // Load saved AI analyses for this job
-  await loadSavedAnalyses(jobId)
-
-  // Load customized resume for this job
-  await loadCustomizedResume(jobId)
+  // Note: watch(selectedJobId) will handle loading data
 }
 
 const loadCompanies = async () => {
