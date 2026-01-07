@@ -385,6 +385,7 @@ public class ResumeService {
         for (ResumeSkill skill : skills) {
             ResumeSkill clonedSkill = new ResumeSkill();
             clonedSkill.setResumeId(savedResume.getId());
+            clonedSkill.setSkillCategory(skill.getSkillCategory());
             clonedSkill.setSkillName(skill.getSkillName());
             clonedSkill.setProficiency(skill.getProficiency());
             clonedSkill.setSortOrder(skill.getSortOrder());
