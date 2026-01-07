@@ -535,16 +535,6 @@
                       </div>
                     </div>
 
-                    <!-- Call to Action -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200 p-6 text-center">
-                      <p class="text-sm text-gray-700 mb-4">点击"编辑简历"可以查看AI分析建议并进行优化</p>
-                      <button
-                        @click="editCustomizedResume"
-                        class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium shadow-md hover:shadow-lg transition-all"
-                      >
-                        立即编辑简历
-                      </button>
-                    </div>
                   </div>
                 </div>
 
