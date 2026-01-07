@@ -702,6 +702,123 @@
                     <p class="text-xs mt-1">点击上方按钮添加招聘人员联系方式</p>
                   </div>
                 </div>
+
+                <!-- Tab 5: AI 简历分析 -->
+                <div v-if="activeJobDetailTab === 'ai-analysis'" class="space-y-6">
+                  <!-- Prompt生成区域（紧凑型） -->
+                  <div v-if="aiPromptData" class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div class="mb-2">
+                      <label class="block text-sm font-semibold text-gray-700 mb-2">复制以下Prompt到Claude Code执行分析</label>
+                      <div class="relative">
+                        <pre class="bg-white p-3 rounded border border-gray-300 text-xs overflow-x-auto whitespace-pre-wrap max-h-32">{{ aiPromptData.prompt }}</pre>
+                        <button
+                          @click="copyToClipboard(aiPromptData.prompt)"
+                          class="absolute top-2 right-2 px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700"
+                        >
+                          复制
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 已保存的AI分析结果 -->
+                  <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        AI分析结果
+                      </h3>
+                      <button
+                        @click="generateAIPrompt"
+                        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm rounded-lg hover:from-purple-700 hover:to-indigo-700 font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        生成AI分析Prompt
+                      </button>
+                    </div>
+
+                    <!-- 分析结果列表 -->
+                    <div v-if="savedAnalyses && savedAnalyses.length > 0" class="space-y-6">
+                      <div v-for="analysis in savedAnalyses" :key="analysis.id" class="border border-gray-200 rounded-lg p-5">
+                        <!-- 头部：分数和时间 -->
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b">
+                          <div class="flex items-center gap-4">
+                            <div class="text-4xl font-bold text-indigo-600">{{ analysis.metadata.overallScore }}</div>
+                            <div>
+                              <div class="text-xl font-semibold text-gray-900">{{ analysis.metadata.recommendation }}</div>
+                              <div class="text-sm text-gray-500">分析于 {{ new Date(analysis.createdAt).toLocaleString('zh-CN') }}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 各维度得分 -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          <div class="text-center p-3 bg-blue-50 rounded-lg">
+                            <div class="text-xs text-gray-600 mb-1">教育匹配</div>
+                            <div class="text-2xl font-bold text-blue-600">{{ parseAnalysisResult(analysis).educationMatch?.score || '-' }}</div>
+                          </div>
+                          <div class="text-center p-3 bg-green-50 rounded-lg">
+                            <div class="text-xs text-gray-600 mb-1">经验匹配</div>
+                            <div class="text-2xl font-bold text-green-600">{{ parseAnalysisResult(analysis).experienceMatch?.score || '-' }}</div>
+                          </div>
+                          <div class="text-center p-3 bg-purple-50 rounded-lg">
+                            <div class="text-xs text-gray-600 mb-1">技能匹配</div>
+                            <div class="text-2xl font-bold text-purple-600">{{ parseAnalysisResult(analysis).skillMatch?.score || '-' }}</div>
+                          </div>
+                          <div class="text-center p-3 bg-pink-50 rounded-lg">
+                            <div class="text-xs text-gray-600 mb-1">软技能</div>
+                            <div class="text-2xl font-bold text-pink-600">{{ parseAnalysisResult(analysis).softSkillMatch?.score || '-' }}</div>
+                          </div>
+                        </div>
+
+                        <!-- 核心优势 -->
+                        <div class="mb-4">
+                          <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            核心优势
+                          </h4>
+                          <ul class="space-y-2">
+                            <li v-for="(strength, idx) in parseAnalysisResult(analysis).strengths" :key="idx" class="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-2 rounded">
+                              <span class="text-green-600 font-bold flex-shrink-0">✓</span>
+                              <span>{{ strength }}</span>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <!-- 改进建议 -->
+                        <div>
+                          <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            改进建议
+                          </h4>
+                          <ul class="space-y-2">
+                            <li v-for="(improvement, idx) in parseAnalysisResult(analysis).improvements" :key="idx" class="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-2 rounded">
+                              <span class="text-blue-600 font-bold flex-shrink-0">💡</span>
+                              <span>{{ improvement }}</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 无分析结果时的提示 -->
+                    <div v-else class="text-center py-12 text-gray-500">
+                      <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p class="text-lg mb-2">暂无AI分析结果</p>
+                      <p class="text-sm">点击右上角"生成AI分析Prompt"按钮开始分析</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1085,6 +1202,7 @@ import { interviewStageApi } from '@/api/interviewStageApi'
 import { getSkills } from '@/api/skillApi'
 import { getFocusAreasBySkillId } from '@/api/focusAreaApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
+import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
 import MarkdownIt from 'markdown-it'
 
 const route = useRoute()
@@ -1101,6 +1219,9 @@ const selectedJobId = ref(null)
 const activeTab = ref('info')
 const activeJobDetailTab = ref('jd')
 const resumeAnalysis = ref(null)
+const aiPromptData = ref(null)
+const savedAnalyses = ref([])
+const selectedAnalysis = ref(null)
 const showCreateCompanyModal = ref(false)
 const showCreateJobModal = ref(false)
 const showCreateContactModal = ref(false)
@@ -1121,6 +1242,7 @@ const jobDetailTabs = [
   { id: 'jd', name: 'JD (Job Description)' },
   { id: 'interview', name: '面试流程' },
   { id: 'resume', name: '定制简历' },
+  { id: 'ai-analysis', name: '简历分析' },
   { id: 'recruiter', name: 'Recruiter' }
 ]
 
@@ -1363,9 +1485,12 @@ const selectCompany = (companyId) => {
   activeTab.value = 'info'
 }
 
-const selectJob = (jobId) => {
+const selectJob = async (jobId) => {
   selectedJobId.value = jobId
   activeJobDetailTab.value = 'jd'
+
+  // Load saved AI analyses for this job
+  await loadSavedAnalyses(jobId)
 }
 
 const loadCompanies = async () => {
@@ -1761,6 +1886,93 @@ const addRecruiterContact = () => {
   }
   editingContact.value = null
   showCreateContactModal.value = true
+}
+
+// ========== AI Job Analysis Functions ==========
+
+// Generate AI analysis prompt
+const generateAIPrompt = async () => {
+  if (!selectedJobId.value) {
+    alert('请先选择一个职位')
+    return
+  }
+
+  try {
+    const data = await aiJobAnalysisApi.generatePrompt(selectedJobId.value)
+    aiPromptData.value = data
+  } catch (error) {
+    console.error('生成AI分析Prompt失败:', error)
+    alert('生成失败，请稍后重试')
+  }
+}
+
+// Load saved AI analyses for a job
+const loadSavedAnalyses = async (jobId) => {
+  try {
+    const data = await aiJobAnalysisApi.getByJobApplication(jobId)
+    savedAnalyses.value = data || []
+  } catch (error) {
+    console.error('加载AI分析结果失败:', error)
+    savedAnalyses.value = []
+  }
+}
+
+// View analysis details
+const viewAnalysisDetails = (analysis) => {
+  selectedAnalysis.value = analysis
+  try {
+    const fullAnalysis = JSON.parse(analysis.aiAnalysisResult)
+    console.log('完整分析结果:', fullAnalysis)
+
+    alert(`
+AI分析详情 (ID: ${analysis.id})
+
+总体匹配度: ${analysis.metadata.overallScore}/100
+推荐等级: ${analysis.metadata.recommendation}
+
+技能匹配: ${analysis.metadata.skillMatchScore}/100
+经验匹配: ${analysis.metadata.experienceMatchScore}/100
+
+核心优势:
+${analysis.metadata.keyStrengths ? analysis.metadata.keyStrengths.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
+
+改进建议:
+${analysis.metadata.keyWeaknesses ? analysis.metadata.keyWeaknesses.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
+
+查看完整JSON分析请打开浏览器控制台
+    `)
+  } catch (error) {
+    console.error('解析分析结果失败:', error)
+    alert('无法显示详细信息')
+  }
+}
+
+// Copy to clipboard
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    alert('已复制到剪贴板！')
+  } catch (error) {
+    console.error('复制失败:', error)
+    alert('复制失败，请手动复制')
+  }
+}
+
+// Parse analysis result safely
+const parseAnalysisResult = (analysis) => {
+  try {
+    return JSON.parse(analysis.aiAnalysisResult)
+  } catch (error) {
+    console.error('解析分析结果失败:', error)
+    return {
+      educationMatch: { score: 0 },
+      experienceMatch: { score: 0 },
+      skillMatch: { score: 0 },
+      softSkillMatch: { score: 0 },
+      strengths: [],
+      improvements: []
+    }
+  }
 }
 </script>
 

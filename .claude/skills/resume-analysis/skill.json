@@ -1,0 +1,5 @@
+{
+  "name": "resume-analysis",
+  "description": "AI-powered resume analysis using Claude to intelligently match resume with job requirements. Analyzes education, experience, skills, responsibilities, and soft skills with semantic understanding.",
+  "instructions": "instructions.md"
+}

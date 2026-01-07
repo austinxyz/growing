@@ -426,6 +426,103 @@
 
           <!-- Tab 3: 简历 -->
           <div v-if="activeTab === 'resume'" class="space-y-6">
+            <!-- AI 分析 Prompt 生成 -->
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow p-6 border border-purple-200">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    AI 深度分析
+                  </h3>
+                  <p class="text-sm text-gray-600 mt-1">使用Claude Code进行专业的AI分析</p>
+                </div>
+                <button
+                  @click="generateAIPrompt"
+                  class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 font-medium transition-all shadow-md hover:shadow-lg"
+                >
+                  生成AI分析Prompt
+                </button>
+              </div>
+
+              <div v-if="aiPromptData" class="bg-white rounded-lg p-4 border border-purple-200">
+                <div class="mb-3">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">步骤1: 复制以下Prompt到Claude Code</label>
+                  <div class="relative">
+                    <pre class="bg-gray-50 p-4 rounded border border-gray-300 text-sm overflow-x-auto whitespace-pre-wrap">{{ aiPromptData.prompt }}</pre>
+                    <button
+                      @click="copyToClipboard(aiPromptData.prompt)"
+                      class="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    >
+                      复制
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="aiPromptData.setupInstructions" class="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">首次使用配置 (只需运行一次)</label>
+                  <pre class="text-xs text-gray-700 whitespace-pre-wrap">{{ aiPromptData.setupInstructions }}</pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- 已保存的AI分析结果 -->
+            <div v-if="savedAnalyses && savedAnalyses.length > 0" class="bg-white rounded-lg shadow p-6 mt-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                已保存的AI分析结果
+              </h3>
+
+              <div v-for="analysis in savedAnalyses" :key="analysis.id" class="mb-4 last:mb-0">
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="text-3xl font-bold text-indigo-600">{{ analysis.metadata.overallScore }}</div>
+                      <div>
+                        <div class="font-semibold text-gray-900">{{ analysis.metadata.recommendation }}</div>
+                        <div class="text-xs text-gray-500">分析于 {{ new Date(analysis.createdAt).toLocaleString('zh-CN') }}</div>
+                      </div>
+                    </div>
+                    <button
+                      @click="viewAnalysisDetails(analysis)"
+                      class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
+                    >
+                      查看详情
+                    </button>
+                  </div>
+
+                  <!-- 简要展示 -->
+                  <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span class="text-gray-600">技能匹配:</span>
+                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.skillMatchScore }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">经验匹配:</span>
+                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.experienceMatchScore }}</span>
+                    </div>
+                  </div>
+
+                  <!-- 优势预览 -->
+                  <div v-if="analysis.metadata.keyStrengths && analysis.metadata.keyStrengths.length > 0" class="mt-3">
+                    <div class="text-xs text-gray-600 mb-1">核心优势:</div>
+                    <ul class="text-sm text-gray-700 space-y-1">
+                      <li v-for="(strength, idx) in analysis.metadata.keyStrengths.slice(0, 2)" :key="idx" class="flex items-start gap-2">
+                        <span class="text-green-600">✓</span>
+                        <span class="flex-1">{{ strength }}</span>
+                      </li>
+                      <li v-if="analysis.metadata.keyStrengths.length > 2" class="text-xs text-indigo-600 ml-6">
+                        还有 {{ analysis.metadata.keyStrengths.length - 2 }} 项优势...
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- 加载简历分析 -->
             <div v-if="!resumeAnalysis" class="bg-white rounded-lg shadow p-6">
               <div class="text-center py-12">
@@ -1092,6 +1189,7 @@ import { interviewStageApi } from '@/api/interviewStageApi'
 import { interviewRecordApi } from '@/api/interviewRecordApi'
 import interviewPreparationChecklistApi from '@/api/interviewPreparationChecklistApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
+import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
 import MarkdownIt from 'markdown-it'
 
 const router = useRouter()
@@ -1144,6 +1242,9 @@ const recruiterInsightsFormData = ref({
 
 const techStackInput = ref('')
 const resumeAnalysis = ref(null)
+const aiPromptData = ref(null)
+const savedAnalyses = ref([])
+const selectedAnalysis = ref(null)
 
 const tabs = [
   { id: 'overview', name: '概览' },
@@ -1233,9 +1334,12 @@ const getPerformanceColor = (score) => {
   return 'text-red-600'
 }
 
-const selectApplication = (appId) => {
+const selectApplication = async (appId) => {
   selectedApplicationId.value = appId
   activeTab.value = 'overview'
+
+  // Load saved AI analyses for this job application
+  await loadSavedAnalyses(appId)
 }
 
 const goToCompanyPage = () => {
@@ -1652,6 +1756,76 @@ const getStageSuggestions = (stage) => {
   }
 
   return suggestions.length > 0 ? suggestions : null
+}
+
+// 生成AI分析Prompt
+const generateAIPrompt = async () => {
+  if (!selectedApplicationId.value) {
+    alert('请先选择一个职位申请')
+    return
+  }
+
+  try {
+    const data = await aiJobAnalysisApi.generatePrompt(selectedApplicationId.value)
+    aiPromptData.value = data
+  } catch (error) {
+    console.error('生成AI分析Prompt失败:', error)
+    alert('生成失败，请稍后重试')
+  }
+}
+
+// 复制到剪贴板
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    alert('已复制到剪贴板！')
+  } catch (error) {
+    console.error('复制失败:', error)
+    alert('复制失败，请手动复制')
+  }
+}
+
+// Load saved AI analyses for a job application
+const loadSavedAnalyses = async (jobAppId) => {
+  try {
+    const data = await aiJobAnalysisApi.getByJobApplication(jobAppId)
+    savedAnalyses.value = data || []
+  } catch (error) {
+    console.error('加载AI分析结果失败:', error)
+    savedAnalyses.value = []
+  }
+}
+
+// View analysis details
+const viewAnalysisDetails = (analysis) => {
+  selectedAnalysis.value = analysis
+  // Parse the full analysis result
+  try {
+    const fullAnalysis = JSON.parse(analysis.aiAnalysisResult)
+    console.log('完整分析结果:', fullAnalysis)
+
+    // Show a detailed modal or expand the view
+    alert(`
+AI分析详情 (ID: ${analysis.id})
+
+总体匹配度: ${analysis.metadata.overallScore}/100
+推荐等级: ${analysis.metadata.recommendation}
+
+技能匹配: ${analysis.metadata.skillMatchScore}/100
+经验匹配: ${analysis.metadata.experienceMatchScore}/100
+
+核心优势:
+${analysis.metadata.keyStrengths ? analysis.metadata.keyStrengths.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
+
+改进建议:
+${analysis.metadata.keyWeaknesses ? analysis.metadata.keyWeaknesses.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
+
+查看完整JSON分析请打开浏览器控制台
+    `)
+  } catch (error) {
+    console.error('解析分析结果失败:', error)
+    alert('无法显示详细信息')
+  }
 }
 
 // 根据Recruiter Insights自动生成准备清单建议
