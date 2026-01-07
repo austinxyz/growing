@@ -1255,10 +1255,7 @@ watch(() => editingExperience.value.isCurrent, (newValue) => {
   }
 })
 
-onMounted(() => {
-  loadResumes()
-  loadProjects()
-
+onMounted(async () => {
   // 解析URL query参数中的改进建议
   if (route.query.suggestions) {
     try {
@@ -1269,9 +1266,13 @@ onMounted(() => {
     }
   }
 
-  // 如果URL包含resumeId参数，自动选中该简历
+  // 先加载简历列表和项目列表
+  await loadResumes()
+  await loadProjects()
+
+  // 如果URL包含resumeId参数，选中该简历并加载详情
   if (route.query.resumeId) {
-    selectedResumeId.value = route.query.resumeId
+    await selectResume(route.query.resumeId)
   }
 })
 
@@ -1308,8 +1309,8 @@ const loadResumes = async () => {
   try {
     const data = await resumeApi.getResumes()
     resumes.value = data || []
-    // 默认选择第一个简历
-    if (resumes.value.length > 0) {
+    // 只有在URL没有指定resumeId时才自动选择默认简历
+    if (resumes.value.length > 0 && !route.query.resumeId) {
       const defaultResume = resumes.value.find(r => r.isDefault) || resumes.value[0]
       selectedResumeId.value = defaultResume.id
       await loadResumeDetails()
