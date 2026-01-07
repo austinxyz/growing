@@ -40,6 +40,12 @@ public class ResumeService {
     @Autowired
     private ProjectExperienceRepository projectExperienceRepository;
 
+    @Autowired
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 获取用户所有简历版本
@@ -342,10 +348,18 @@ public class ResumeService {
         Resume defaultResume = resumeRepository.findByUserIdAndIsDefaultTrue(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "未找到默认简历"));
 
+        // 获取职位和公司信息用于命名
+        JobApplication jobApp = jobApplicationRepository.findById(jobApplicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "职位申请不存在"));
+        Company company = companyRepository.findById(jobApp.getCompanyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "公司不存在"));
+
         // Clone简历主体
         Resume clonedResume = new Resume();
         clonedResume.setUserId(userId);
-        clonedResume.setVersionName("定制简历 - Job #" + jobApplicationId);
+        // 使用公司名和职位名生成友好的版本名
+        String versionName = String.format("%s - %s", company.getCompanyName(), jobApp.getPositionName());
+        clonedResume.setVersionName(versionName);
         clonedResume.setIsDefault(false);
         clonedResume.setJobApplicationId(jobApplicationId);  // 关联到职位
         clonedResume.setAbout(defaultResume.getAbout());
