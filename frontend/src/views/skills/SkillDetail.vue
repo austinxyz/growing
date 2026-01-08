@@ -81,12 +81,29 @@
               <div
                 v-for="fa in focusAreas"
                 :key="fa.id"
-                class="bg-gradient-to-br from-white to-blue-50 border-2 border-blue-200 rounded-xl p-5 hover:shadow-xl hover:border-blue-400 transition-all duration-300"
+                :id="`focus-area-${fa.id}`"
+                :class="[
+                  'rounded-xl p-5 transition-all duration-300',
+                  highlightedFocusAreaId === fa.id
+                    ? 'bg-gradient-to-br from-purple-100 to-blue-100 border-4 border-purple-500 shadow-2xl scale-105'
+                    : 'bg-gradient-to-br from-white to-blue-50 border-2 border-blue-200 hover:shadow-xl hover:border-blue-400'
+                ]"
               >
                 <div class="flex items-center space-x-3 mb-3">
-                  <div class="w-2 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full"></div>
-                  <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                  <div :class="[
+                    'w-2 h-8 rounded-full',
+                    highlightedFocusAreaId === fa.id
+                      ? 'bg-gradient-to-b from-purple-500 to-purple-700'
+                      : 'bg-gradient-to-b from-blue-400 to-blue-600'
+                  ]"></div>
+                  <h3 :class="[
+                    'text-lg font-bold text-transparent bg-clip-text',
+                    highlightedFocusAreaId === fa.id
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-800'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600'
+                  ]">
                     {{ fa.name }}
+                    <span v-if="highlightedFocusAreaId === fa.id" class="ml-2 text-purple-600">📍</span>
                   </h3>
                 </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{{ fa.description }}</p>
@@ -179,6 +196,7 @@ const focusAreas = ref([])
 const resources = ref([])
 const loading = ref(true)
 const activeTab = ref('focus-areas')
+const highlightedFocusAreaId = ref(null)
 
 const goBack = () => {
   router.push('/skills/career-paths')
@@ -215,6 +233,24 @@ const loadSkill = async () => {
     resources.value = data.learningResources || []
     console.log('Focus areas:', focusAreas.value.length)
     console.log('Learning resources:', resources.value.length)
+
+    // 处理focusAreaId参数 - 自动定位到指定的Focus Area
+    const focusAreaId = route.query.focusAreaId
+    if (focusAreaId) {
+      const faId = parseInt(focusAreaId)
+      highlightedFocusAreaId.value = faId
+
+      // 确保focus-areas tab被激活
+      activeTab.value = 'focus-areas'
+
+      // 等待DOM更新后滚动到该Focus Area
+      setTimeout(() => {
+        const element = document.getElementById(`focus-area-${faId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 300)
+    }
   } catch (error) {
     console.error('加载技能详情失败:', error)
     skill.value = null

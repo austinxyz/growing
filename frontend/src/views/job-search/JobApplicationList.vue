@@ -1,7 +1,10 @@
 <template>
   <div class="job-application-list h-full flex bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     <!-- 左侧：职位申请列表 -->
-    <div class="w-96 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+    <div :class="[
+      'bg-white border-r border-gray-200 flex flex-col shadow-lg transition-all duration-300',
+      showApplicationList ? 'w-96' : 'w-0 overflow-hidden'
+    ]">
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 border-b border-purple-700">
         <h2 class="text-lg font-bold text-white mb-3">📋 职位申请列表</h2>
         <div class="flex gap-2">
@@ -70,15 +73,27 @@
               <h1 class="text-xl font-bold text-white">{{ currentApplication.positionName }}</h1>
               <p class="text-sm text-purple-100 mt-1">{{ currentApplication.companyName }}</p>
             </div>
-            <button
-              @click="goToCompanyPage"
-              class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all flex items-center gap-2"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              职位管理
-            </button>
+            <div class="flex gap-2">
+              <button
+                @click="showApplicationList = !showApplicationList"
+                class="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all"
+                :title="showApplicationList ? '隐藏职位列表' : '显示职位列表'"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path v-if="showApplicationList" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+              </button>
+              <button
+                @click="goToCompanyPage"
+                class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all flex items-center gap-2"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                职位管理
+              </button>
+            </div>
           </div>
         </div>
 
@@ -103,6 +118,7 @@
 
         <!-- Tab内容 -->
         <div class="flex-1 overflow-y-auto p-6">
+
           <!-- Tab 1: 概览 -->
           <div v-if="activeTab === 'overview'" class="space-y-6">
             <!-- JD (Job Description) -->
@@ -262,155 +278,292 @@
             </div>
 
             <!-- 右侧：阶段详情 -->
-            <div class="flex-1 overflow-y-auto bg-gray-50">
-              <div v-if="selectedStage" class="p-6 space-y-6">
-                <!-- Recruiter Insights 提示（如果有） -->
-                <div v-if="currentApplication?.recruiterInsights && getStageSuggestions(selectedStage)" class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md border border-purple-200 p-5">
-                  <h4 class="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    💡 根据Recruiter建议，本阶段重点准备
-                  </h4>
-                  <ul class="text-xs text-purple-800 list-disc ml-5 space-y-1">
-                    <li v-for="(suggestion, idx) in getStageSuggestions(selectedStage)" :key="idx">{{ suggestion }}</li>
-                  </ul>
-                </div>
-
-                <!-- 准备笔记 -->
-                <div v-if="selectedStage.preparationNotes" class="bg-white rounded-lg shadow p-5">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">📝 准备笔记</h4>
-                  <div v-html="renderMarkdown(selectedStage.preparationNotes)" class="prose max-w-none text-sm"></div>
-                </div>
-
-                <!-- 重点领域 -->
-                <div v-if="selectedStage.focusAreas && selectedStage.focusAreas.length > 0" class="bg-white rounded-lg shadow p-5">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">🎯 重点领域</h4>
-                  <div class="flex flex-wrap gap-2">
-                    <span
-                      v-for="focusArea in selectedStage.focusAreas"
-                      :key="focusArea.id"
-                      class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium"
-                      :title="focusArea.description"
-                    >
-                      {{ focusArea.skillName }} / {{ focusArea.name }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- 准备清单 -->
-                <div class="bg-white rounded-lg shadow p-5">
-                  <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-sm font-semibold text-gray-900">✅ 准备清单</h4>
-                    <button
-                      @click="showPreparationChecklist(selectedStage.id)"
-                      class="px-3 py-1.5 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 font-medium"
-                    >
-                      管理清单
-                    </button>
-                  </div>
-
-                  <div v-if="selectedStage.checklistItems && selectedStage.checklistItems.length > 0" class="space-y-2">
-                    <div
-                      v-for="item in selectedStage.checklistItems.slice(0, 5)"
-                      :key="item.id"
-                      class="flex items-start gap-2 p-2 bg-gray-50 rounded"
-                    >
-                      <span :class="['px-2 py-0.5 rounded text-xs font-medium', item.isPriority ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-700']">
-                        {{ item.category }}
-                      </span>
-                      <span class="text-xs text-gray-700 flex-1">{{ item.checklistItem }}</span>
-                    </div>
-                    <p v-if="selectedStage.checklistItems.length > 5" class="text-xs text-gray-500 text-center pt-2">
-                      还有 {{ selectedStage.checklistItems.length - 5 }} 项，点击"管理清单"查看全部
-                    </p>
-                  </div>
-                  <p v-else class="text-sm text-gray-500 text-center py-4">暂无清单项，点击"管理清单"添加</p>
-                </div>
-
-                <!-- 面试记录 -->
-                <div class="bg-white rounded-lg shadow p-5">
-                  <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-sm font-semibold text-gray-900">📝 面试记录</h4>
-                    <button
-                      @click="addInterviewRecord(selectedStage.id)"
-                      class="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 font-medium"
-                    >
-                      添加记录
-                    </button>
-                  </div>
-
-                  <div v-if="getRecordsByStage(selectedStage.id).length > 0" class="space-y-4">
-                    <div
-                      v-for="record in getRecordsByStage(selectedStage.id)"
-                      :key="record.id"
-                      class="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                    >
-                      <div class="flex items-start justify-between mb-3">
-                        <div>
-                          <span class="text-sm font-medium text-gray-900">
-                            {{ formatDate(record.interviewDate) }}
-                          </span>
-                          <div v-if="record.interviewerName" class="mt-1 text-xs text-gray-600">
-                            面试官: {{ record.interviewerName }}
-                            <span v-if="record.interviewerPosition" class="text-gray-500 ml-1">
-                              ({{ record.interviewerPosition }})
-                            </span>
-                          </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                          <span v-if="record.interviewFormat" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                            {{ getInterviewFormatText(record.interviewFormat) }}
-                          </span>
-                          <button
-                            @click="editInterviewRecord(record)"
-                            class="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                            title="编辑"
-                          >
-                            编辑
-                          </button>
-                          <button
-                            @click="deleteInterviewRecord(record.id)"
-                            class="text-red-600 hover:text-red-700 text-xs font-medium"
-                            title="删除"
-                          >
-                            删除
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- 评分 -->
-                      <div v-if="record.overallPerformance" class="grid grid-cols-4 gap-3 mb-3 bg-white p-3 rounded">
-                        <div class="text-center">
-                          <label class="block text-xs text-gray-600 mb-1">综合</label>
-                          <p :class="['text-lg font-bold', getPerformanceColor(record.overallPerformance)]">
-                            {{ record.overallPerformance }}
-                          </p>
-                        </div>
-                        <div v-if="record.technicalDepth" class="text-center">
-                          <label class="block text-xs text-gray-600 mb-1">技术</label>
-                          <p class="text-lg font-bold text-gray-700">{{ record.technicalDepth }}</p>
-                        </div>
-                        <div v-if="record.communication" class="text-center">
-                          <label class="block text-xs text-gray-600 mb-1">沟通</label>
-                          <p class="text-lg font-bold text-gray-700">{{ record.communication }}</p>
-                        </div>
-                        <div v-if="record.problemSolving" class="text-center">
-                          <label class="block text-xs text-gray-600 mb-1">问题</label>
-                          <p class="text-lg font-bold text-gray-700">{{ record.problemSolving }}</p>
-                        </div>
-                      </div>
-
-                      <!-- 总结 -->
-                      <div v-if="record.selfSummary" class="border-t border-gray-200 pt-3">
-                        <h5 class="text-xs font-semibold text-gray-700 mb-1">总结与反思</h5>
-                        <p class="text-xs text-gray-600 whitespace-pre-wrap">{{ record.selfSummary }}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <p v-else class="text-sm text-gray-500 text-center py-6">该阶段暂无面试记录</p>
+            <div class="flex-1 flex flex-col bg-gray-50">
+              <!-- Sub-Tab导航 -->
+              <div v-if="selectedStage" class="bg-white border-b border-gray-200">
+                <div class="flex px-4">
+                  <button
+                    v-for="subTab in interviewSubTabs"
+                    :key="subTab.id"
+                    @click="activeInterviewSubTab = subTab.id"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium transition-all duration-200',
+                      activeInterviewSubTab === subTab.id
+                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                        : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
+                    ]"
+                  >
+                    {{ subTab.name }}
+                  </button>
                 </div>
               </div>
+
+              <!-- Sub-Tab内容 -->
+              <div class="flex-1 overflow-y-auto">
+                <div v-if="selectedStage" class="p-6 space-y-6">
+                  <!-- Recruiter Insights 提示（如果有） - 始终显示在tabs上方 -->
+                  <div v-if="currentApplication?.recruiterInsights && getStageSuggestions(selectedStage)" class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md border border-purple-200 p-5">
+                    <h4 class="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      💡 根据Recruiter建议，本阶段重点准备
+                    </h4>
+                    <ul class="text-xs text-purple-800 list-disc ml-5 space-y-1">
+                      <li v-for="(suggestion, idx) in getStageSuggestions(selectedStage)" :key="idx">{{ suggestion }}</li>
+                    </ul>
+                  </div>
+
+                  <!-- Tab 1: 准备笔记 -->
+                  <div v-if="activeInterviewSubTab === 'notes'">
+                    <div class="bg-white rounded-lg shadow p-5">
+                      <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-gray-900">📝 准备笔记</h4>
+                        <div class="flex gap-2">
+                          <button
+                            v-if="!isEditingNotes"
+                            @click="startEditingNotes"
+                            class="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 font-medium"
+                          >
+                            {{ selectedStage.preparationNotes ? '编辑' : '添加' }}笔记
+                          </button>
+                          <template v-else>
+                            <button
+                              @click="cancelEditingNotes"
+                              class="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded-lg hover:bg-gray-50 font-medium"
+                            >
+                              取消
+                            </button>
+                            <button
+                              @click="savePreparationNotes"
+                              class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                              保存
+                            </button>
+                          </template>
+                        </div>
+                      </div>
+
+                      <!-- 编辑模式 -->
+                      <div v-if="isEditingNotes">
+                        <div class="mb-2 text-xs text-gray-500">
+                          支持 Markdown 格式: **粗体**, *斜体*, 列表(- 或 *), ## 标题
+                        </div>
+                        <textarea
+                          v-model="editingNotes"
+                          rows="15"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="输入面试准备笔记...&#10;&#10;示例：&#10;## 技术准备&#10;- 复习算法和数据结构&#10;- 准备项目案例&#10;&#10;## 行为问题&#10;- STAR 方法回答问题"
+                        ></textarea>
+                      </div>
+
+                      <!-- 查看模式 -->
+                      <div v-else>
+                        <div v-if="selectedStage.preparationNotes" v-html="renderMarkdown(selectedStage.preparationNotes)" class="prose max-w-none text-sm"></div>
+                        <div v-else class="text-center text-gray-500 py-8">
+                          <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p class="text-sm">暂无准备笔记</p>
+                          <p class="text-xs mt-1 text-gray-400">点击"添加笔记"按钮开始编辑</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 2: 重点领域 -->
+                  <div v-if="activeInterviewSubTab === 'areas'">
+                    <div class="bg-white rounded-lg shadow p-5">
+                      <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-gray-900">🎯 重点领域</h4>
+                        <button
+                          @click="editFocusAreas"
+                          class="px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600 font-medium"
+                        >
+                          {{ selectedStage.focusAreas && selectedStage.focusAreas.length > 0 ? '编辑' : '添加' }}领域
+                        </button>
+                      </div>
+                      <div v-if="selectedStage.focusAreas && selectedStage.focusAreas.length > 0" class="flex flex-wrap gap-2">
+                        <button
+                          v-for="focusArea in selectedStage.focusAreas"
+                          :key="focusArea.id"
+                          @click="navigateToSkillLearning(focusArea)"
+                          class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 hover:shadow-md transition-all cursor-pointer"
+                          :title="`点击查看 ${focusArea.skillName} - ${focusArea.name} 的学习资料和试题库\n\n${focusArea.description}`"
+                        >
+                          {{ focusArea.skillName }} / {{ focusArea.name }}
+                          <svg class="w-3 h-3 ml-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div v-else class="text-center text-gray-500 py-8">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <p class="text-sm">暂无重点领域</p>
+                        <p class="text-xs mt-1 text-gray-400">点击"添加领域"按钮关联技能和Focus Area</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 3: 准备清单 -->
+                  <div v-if="activeInterviewSubTab === 'checklist'">
+                    <div class="bg-white rounded-lg shadow p-5">
+                      <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-semibold text-gray-900">✅ 准备清单</h4>
+                        <button
+                          @click="showPreparationChecklist(selectedStage.id)"
+                          class="px-3 py-1.5 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 font-medium"
+                        >
+                          管理清单
+                        </button>
+                      </div>
+
+                      <div v-if="selectedStage.checklistItems && selectedStage.checklistItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div
+                          v-for="item in selectedStage.checklistItems"
+                          :key="item.id"
+                          :class="[
+                            'border-2 rounded-lg p-3 transition-all duration-200',
+                            getCategoryStyle(item.category).border,
+                            getCategoryStyle(item.category).bg,
+                            canNavigateToCategory(item.category) ? 'cursor-pointer hover:shadow-md hover:scale-[1.01]' : ''
+                          ]"
+                          @click="navigateToChecklistCategory(item)"
+                        >
+                          <!-- 卡片头部 -->
+                          <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                              <span :class="['px-2 py-0.5 rounded text-xs font-semibold', getCategoryStyle(item.category).badge]">
+                                {{ getCategoryIcon(item.category) }} {{ item.category }}
+                              </span>
+                              <span v-if="item.isPriority" class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                                ⭐ 重点
+                              </span>
+                            </div>
+                            <button
+                              v-if="canNavigateToCategory(item.category)"
+                              class="text-blue-600 hover:text-blue-700 flex-shrink-0"
+                              title="点击查看详情"
+                              @click.stop="navigateToChecklistCategory(item)"
+                            >
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          <!-- 清单项内容 (Markdown渲染) -->
+                          <div class="prose prose-sm max-w-none">
+                            <div v-html="renderMarkdown(item.checklistItem)" class="text-gray-900 text-sm leading-snug"></div>
+                          </div>
+
+                          <!-- 备注（如果有，Markdown渲染） -->
+                          <div v-if="item.notes" class="mt-2 pt-2 border-t border-gray-200 prose prose-xs max-w-none">
+                            <div v-html="renderMarkdown(item.notes)" class="text-gray-600 text-xs leading-snug"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-center text-gray-500 py-8">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-sm">暂无清单项，点击"管理清单"添加</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 4: 面试记录 -->
+                  <div v-if="activeInterviewSubTab === 'records'">
+                    <div class="bg-white rounded-lg shadow p-5">
+                      <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-semibold text-gray-900">📝 面试记录</h4>
+                        <button
+                          @click="addInterviewRecord(selectedStage.id)"
+                          class="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 font-medium"
+                        >
+                          添加记录
+                        </button>
+                      </div>
+
+                      <div v-if="getRecordsByStage(selectedStage.id).length > 0" class="space-y-4">
+                        <div
+                          v-for="record in getRecordsByStage(selectedStage.id)"
+                          :key="record.id"
+                          class="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                        >
+                          <div class="flex items-start justify-between mb-3">
+                            <div>
+                              <span class="text-sm font-medium text-gray-900">
+                                {{ formatDate(record.interviewDate) }}
+                              </span>
+                              <div v-if="record.interviewerName" class="mt-1 text-xs text-gray-600">
+                                面试官: {{ record.interviewerName }}
+                                <span v-if="record.interviewerPosition" class="text-gray-500 ml-1">
+                                  ({{ record.interviewerPosition }})
+                                </span>
+                              </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <span v-if="record.interviewFormat" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                {{ getInterviewFormatText(record.interviewFormat) }}
+                              </span>
+                              <button
+                                @click="editInterviewRecord(record)"
+                                class="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                                title="编辑"
+                              >
+                                编辑
+                              </button>
+                              <button
+                                @click="deleteInterviewRecord(record.id)"
+                                class="text-red-600 hover:text-red-700 text-xs font-medium"
+                                title="删除"
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- 评分 -->
+                          <div v-if="record.overallPerformance" class="grid grid-cols-4 gap-3 mb-3 bg-white p-3 rounded">
+                            <div class="text-center">
+                              <label class="block text-xs text-gray-600 mb-1">综合</label>
+                              <p :class="['text-lg font-bold', getPerformanceColor(record.overallPerformance)]">
+                                {{ record.overallPerformance }}
+                              </p>
+                            </div>
+                            <div v-if="record.technicalDepth" class="text-center">
+                              <label class="block text-xs text-gray-600 mb-1">技术</label>
+                              <p class="text-lg font-bold text-gray-700">{{ record.technicalDepth }}</p>
+                            </div>
+                            <div v-if="record.communication" class="text-center">
+                              <label class="block text-xs text-gray-600 mb-1">沟通</label>
+                              <p class="text-lg font-bold text-gray-700">{{ record.communication }}</p>
+                            </div>
+                            <div v-if="record.problemSolving" class="text-center">
+                              <label class="block text-xs text-gray-600 mb-1">问题</label>
+                              <p class="text-lg font-bold text-gray-700">{{ record.problemSolving }}</p>
+                            </div>
+                          </div>
+
+                          <!-- 总结 -->
+                          <div v-if="record.selfSummary" class="border-t border-gray-200 pt-3">
+                            <h5 class="text-xs font-semibold text-gray-700 mb-1">总结与反思</h5>
+                            <p class="text-xs text-gray-600 whitespace-pre-wrap">{{ record.selfSummary }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-center text-gray-500 py-8">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="text-sm">该阶段暂无面试记录</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
               <!-- 未选中阶段时的占位符 -->
               <div v-else class="flex items-center justify-center h-full">
@@ -423,318 +576,12 @@
               </div>
             </div>
           </div>
+          </div>
 
           <!-- Tab 3: 简历 -->
           <div v-if="activeTab === 'resume'" class="space-y-6">
-            <!-- AI 分析 Prompt 生成 -->
-            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow p-6 border border-purple-200">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    AI 深度分析
-                  </h3>
-                  <p class="text-sm text-gray-600 mt-1">使用Claude Code进行专业的AI分析</p>
-                </div>
-                <button
-                  @click="generateAIPrompt"
-                  class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 font-medium transition-all shadow-md hover:shadow-lg"
-                >
-                  生成AI分析Prompt
-                </button>
-              </div>
-
-              <div v-if="aiPromptData" class="bg-white rounded-lg p-4 border border-purple-200">
-                <div class="mb-3">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">步骤1: 复制以下Prompt到Claude Code</label>
-                  <div class="relative">
-                    <pre class="bg-gray-50 p-4 rounded border border-gray-300 text-sm overflow-x-auto whitespace-pre-wrap">{{ aiPromptData.prompt }}</pre>
-                    <button
-                      @click="copyToClipboard(aiPromptData.prompt)"
-                      class="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                    >
-                      复制
-                    </button>
-                  </div>
-                </div>
-
-                <div v-if="aiPromptData.setupInstructions" class="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">首次使用配置 (只需运行一次)</label>
-                  <pre class="text-xs text-gray-700 whitespace-pre-wrap">{{ aiPromptData.setupInstructions }}</pre>
-                </div>
-              </div>
-            </div>
-
-            <!-- 已保存的AI分析结果 -->
-            <div v-if="savedAnalyses && savedAnalyses.length > 0" class="bg-white rounded-lg shadow p-6 mt-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                已保存的AI分析结果
-              </h3>
-
-              <div v-for="analysis in savedAnalyses" :key="analysis.id" class="mb-4 last:mb-0">
-                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                      <div class="text-3xl font-bold text-indigo-600">{{ analysis.metadata.overallScore }}</div>
-                      <div>
-                        <div class="font-semibold text-gray-900">{{ analysis.metadata.recommendation }}</div>
-                        <div class="text-xs text-gray-500">分析于 {{ new Date(analysis.createdAt).toLocaleString('zh-CN') }}</div>
-                      </div>
-                    </div>
-                    <button
-                      @click="viewAnalysisDetails(analysis)"
-                      class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
-                    >
-                      查看详情
-                    </button>
-                  </div>
-
-                  <!-- 简要展示 -->
-                  <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span class="text-gray-600">技能匹配:</span>
-                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.skillMatchScore }}</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">经验匹配:</span>
-                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.experienceMatchScore }}</span>
-                    </div>
-                  </div>
-
-                  <!-- 优势预览 -->
-                  <div v-if="analysis.metadata.keyStrengths && analysis.metadata.keyStrengths.length > 0" class="mt-3">
-                    <div class="text-xs text-gray-600 mb-1">核心优势:</div>
-                    <ul class="text-sm text-gray-700 space-y-1">
-                      <li v-for="(strength, idx) in analysis.metadata.keyStrengths.slice(0, 2)" :key="idx" class="flex items-start gap-2">
-                        <span class="text-green-600">✓</span>
-                        <span class="flex-1">{{ strength }}</span>
-                      </li>
-                      <li v-if="analysis.metadata.keyStrengths.length > 2" class="text-xs text-indigo-600 ml-6">
-                        还有 {{ analysis.metadata.keyStrengths.length - 2 }} 项优势...
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 加载简历分析 -->
-            <div v-if="!resumeAnalysis" class="bg-white rounded-lg shadow p-6">
-              <div class="text-center py-12">
-                <button
-                  @click="loadResumeAnalysis"
-                  class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
-                >
-                  分析简历匹配度
-                </button>
-                <p class="text-sm text-gray-500 mt-3">分析您的简历与此职位的匹配程度，并提供定制化建议</p>
-              </div>
-            </div>
-
-            <!-- 简历分析结果 -->
-            <div v-if="resumeAnalysis" class="space-y-6">
-              <!-- 匹配度概览 -->
-              <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg font-semibold text-gray-900">匹配度分析</h3>
-                  <button
-                    @click="loadResumeAnalysis"
-                    class="text-sm text-indigo-600 hover:text-indigo-700"
-                  >
-                    重新分析
-                  </button>
-                </div>
-
-                <div class="flex items-center gap-6">
-                  <!-- 匹配度圆环 -->
-                  <div class="relative w-32 h-32">
-                    <svg class="w-full h-full transform -rotate-90">
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="#e5e7eb"
-                        stroke-width="12"
-                        fill="none"
-                      />
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        :stroke="getMatchScoreColor(resumeAnalysis.matchScore)"
-                        stroke-width="12"
-                        fill="none"
-                        :stroke-dasharray="`${(resumeAnalysis.matchScore / 100) * 351.86} 351.86`"
-                        stroke-linecap="round"
-                      />
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                      <div class="text-center">
-                        <p class="text-2xl font-bold" :class="getMatchScoreColor(resumeAnalysis.matchScore)">
-                          {{ resumeAnalysis.matchScore }}%
-                        </p>
-                        <p class="text-xs text-gray-500">匹配度</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 匹配详情 -->
-                  <div class="flex-1">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">匹配技能</label>
-                        <p class="text-2xl font-bold text-green-600">{{ resumeAnalysis.matchedSkills.length }}</p>
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">缺失技能</label>
-                        <p class="text-2xl font-bold text-red-600">{{ resumeAnalysis.missingSkills.length }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 匹配的技能 -->
-              <div v-if="resumeAnalysis.matchedSkills.length > 0" class="bg-white rounded-lg shadow p-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3">✅ 已匹配技能</h4>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="skill in resumeAnalysis.matchedSkills"
-                    :key="skill"
-                    class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium"
-                  >
-                    {{ skill }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- 缺失的技能 -->
-              <div v-if="resumeAnalysis.missingSkills.length > 0" class="bg-white rounded-lg shadow p-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3">⚠️ 需要补充的技能</h4>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="skill in resumeAnalysis.missingSkills"
-                    :key="skill"
-                    class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium"
-                  >
-                    {{ skill }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- 优势分析 -->
-              <div v-if="resumeAnalysis.strengths.length > 0" class="bg-white rounded-lg shadow p-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3">💪 您的优势</h4>
-                <ul class="space-y-2">
-                  <li v-for="(strength, idx) in resumeAnalysis.strengths" :key="idx" class="flex items-start gap-2">
-                    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm text-gray-700">{{ strength }}</span>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- 改进建议 -->
-              <div v-if="resumeAnalysis.improvements.length > 0" class="bg-white rounded-lg shadow p-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3">📈 改进建议</h4>
-                <ul class="space-y-2">
-                  <li v-for="(improvement, idx) in resumeAnalysis.improvements" :key="idx" class="flex items-start gap-2">
-                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm text-gray-700">{{ improvement }}</span>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- 定制化建议 (仅在匹配度>70%时显示) -->
-              <div v-if="resumeAnalysis.customization" class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md border border-purple-200 p-6">
-                <h3 class="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                  定制化建议
-                </h3>
-
-                <!-- 关键词优化 -->
-                <div v-if="resumeAnalysis.customization.keywordSuggestions?.length > 0" class="mb-6">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">🔑 关键词优化</h4>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(kw, idx) in resumeAnalysis.customization.keywordSuggestions"
-                      :key="idx"
-                      class="bg-white rounded-lg p-3 border border-purple-100"
-                    >
-                      <p class="font-medium text-sm text-purple-900">{{ kw.keyword }}</p>
-                      <p class="text-xs text-gray-600 mt-1">{{ kw.reason }}</p>
-                      <p class="text-xs text-purple-600 mt-1">建议位置: {{ kw.section }}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 项目优化 -->
-                <div v-if="resumeAnalysis.customization.projectOptimizations?.length > 0" class="mb-6">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">📁 项目经验优化</h4>
-                  <div class="space-y-3">
-                    <div
-                      v-for="project in resumeAnalysis.customization.projectOptimizations"
-                      :key="project.projectId"
-                      class="bg-white rounded-lg p-3 border border-purple-100"
-                    >
-                      <p class="font-medium text-sm text-purple-900 mb-2">{{ project.projectName }}</p>
-                      <ul class="space-y-1">
-                        <li v-for="(suggestion, idx) in project.suggestions" :key="idx" class="text-xs text-gray-700 flex items-start gap-1">
-                          <span class="text-purple-600 flex-shrink-0">•</span>
-                          <span>{{ suggestion }}</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 技能突出建议 -->
-                <div v-if="resumeAnalysis.customization.skillHighlights?.length > 0" class="mb-6">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">⭐ 技能突出建议</h4>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(highlight, idx) in resumeAnalysis.customization.skillHighlights"
-                      :key="idx"
-                      class="bg-white rounded-lg p-3 border border-purple-100"
-                    >
-                      <p class="font-medium text-sm text-purple-900">{{ highlight.skill }}</p>
-                      <p class="text-xs text-gray-600 mt-1">
-                        <span class="text-gray-500">当前:</span> {{ highlight.currentMention }}
-                      </p>
-                      <p class="text-xs text-purple-700 mt-1">
-                        <span class="font-medium">建议:</span> {{ highlight.suggestedMention }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 结构建议 -->
-                <div v-if="resumeAnalysis.customization.structuralSuggestions?.length > 0">
-                  <h4 class="text-sm font-semibold text-gray-900 mb-3">📐 整体结构建议</h4>
-                  <ul class="space-y-2">
-                    <li v-for="(suggestion, idx) in resumeAnalysis.customization.structuralSuggestions" :key="idx" class="flex items-start gap-2">
-                      <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                      </svg>
-                      <span class="text-sm text-gray-700">{{ suggestion }}</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
             <!-- 定制简历部分 -->
-            <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <div class="bg-white rounded-lg shadow p-6">
               <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -794,21 +641,222 @@
 
                 <div v-if="customizedResume.about" class="mb-4">
                   <label class="block text-xs font-medium text-gray-600 mb-1">关于我</label>
-                  <p class="text-sm text-gray-700 line-clamp-3">{{ customizedResume.about }}</p>
+                  <p class="text-sm text-gray-700">{{ customizedResume.about }}</p>
                 </div>
 
-                <div class="grid grid-cols-3 gap-3 text-center">
-                  <div class="p-3 bg-blue-50 rounded-lg">
-                    <p class="text-xs text-gray-600 mb-1">工作经历</p>
-                    <p class="text-lg font-bold text-blue-600">{{ customizedResume.experiences?.length || 0 }}</p>
+                <!-- 工作经历（每个条目可展开） -->
+                <div v-if="customizedResume.experiences && customizedResume.experiences.length > 0" class="mb-4">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    工作经历 ({{ customizedResume.experiences.length }})
+                  </h4>
+                  <div class="space-y-2">
+                    <div
+                      v-for="exp in customizedResume.experiences"
+                      :key="exp.id"
+                      class="bg-blue-50 rounded-lg border border-blue-200 overflow-hidden"
+                    >
+                      <!-- 标题栏（可点击展开/折叠） -->
+                      <button
+                        @click="toggleExperience(exp.id)"
+                        class="w-full p-3 hover:bg-blue-100 transition-colors text-left"
+                      >
+                        <div class="flex items-start justify-between">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                              <h5 class="font-semibold text-gray-900 text-sm">{{ exp.companyName }}</h5>
+                              <svg
+                                class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0"
+                                :class="{ 'rotate-180': expandedExperiences.has(exp.id) }"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                            <p class="text-xs text-gray-700">{{ exp.position }}</p>
+                          </div>
+                          <span class="text-xs text-gray-600 whitespace-nowrap ml-2">
+                            {{ formatDate(exp.startDate) }} - {{ exp.isCurrent ? '至今' : formatDate(exp.endDate) }}
+                          </span>
+                        </div>
+                      </button>
+
+                      <!-- 详细描述（折叠内容） -->
+                      <div
+                        v-show="expandedExperiences.has(exp.id)"
+                        class="px-3 pb-3 border-t border-blue-200 pt-2 space-y-2"
+                      >
+                        <div v-if="exp.responsibilities">
+                          <p class="text-xs font-semibold text-gray-700 mb-1">职责描述:</p>
+                          <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{{ exp.responsibilities }}</p>
+                        </div>
+                        <div v-if="exp.achievements">
+                          <p class="text-xs font-semibold text-gray-700 mb-1">主要成就:</p>
+                          <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{{ exp.achievements }}</p>
+                        </div>
+                        <p v-if="!exp.responsibilities && !exp.achievements" class="text-xs text-gray-400 italic">
+                          暂无详细描述
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div class="p-3 bg-purple-50 rounded-lg">
-                    <p class="text-xs text-gray-600 mb-1">技能</p>
-                    <p class="text-lg font-bold text-purple-600">{{ customizedResume.skills?.length || 0 }}</p>
+                </div>
+
+                <!-- 技能 -->
+                <div v-if="customizedResume.skills && customizedResume.skills.length > 0" class="mb-4">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    技能 ({{ customizedResume.skills.length }})
+                  </h4>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="skill in customizedResume.skills"
+                      :key="skill.id"
+                      class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
+                    >
+                      {{ skill.skillName }}
+                      <span v-if="skill.proficiencyLevel" class="text-purple-500 ml-1">
+                        ({{ skill.proficiencyLevel }})
+                      </span>
+                    </span>
                   </div>
-                  <div class="p-3 bg-green-50 rounded-lg">
-                    <p class="text-xs text-gray-600 mb-1">项目</p>
-                    <p class="text-lg font-bold text-green-600">{{ customizedResume.projects?.length || 0 }}</p>
+                </div>
+
+                <!-- 教育背景 & 培训证书（两列布局） -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <!-- 教育背景 -->
+                  <div v-if="customizedResume.education && customizedResume.education.length > 0">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      教育背景 ({{ customizedResume.education.length }})
+                    </h4>
+                    <div class="space-y-2">
+                      <div
+                        v-for="edu in customizedResume.education"
+                        :key="edu.id"
+                        class="p-2 bg-green-50 rounded-lg border border-green-200"
+                      >
+                        <h5 class="font-semibold text-gray-900 text-xs mb-1">{{ edu.schoolName }}</h5>
+                        <p class="text-xs text-gray-700 mb-0.5">{{ edu.degree }} - {{ edu.major }}</p>
+                        <div class="flex items-center justify-between text-xs text-gray-600">
+                          <span v-if="edu.gpa">GPA: {{ edu.gpa }}</span>
+                          <span class="text-xs">{{ formatDate(edu.startDate) }} - {{ formatDate(edu.endDate) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 培训证书 -->
+                  <div v-if="customizedResume.certifications && customizedResume.certifications.length > 0">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                      培训证书 ({{ customizedResume.certifications.length }})
+                    </h4>
+                    <div class="flex flex-wrap gap-2">
+                      <div
+                        v-for="cert in customizedResume.certifications"
+                        :key="cert.id"
+                        class="inline-flex flex-col px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-xs"
+                      >
+                        <span class="font-semibold text-yellow-900">{{ cert.certName }}</span>
+                        <span v-if="cert.issuer" class="text-yellow-700 mt-0.5">{{ cert.issuer }}</span>
+                        <span v-if="cert.issueDate" class="text-yellow-600 text-xs mt-0.5">{{ formatDate(cert.issueDate) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 业余爱好（支持markdown） -->
+                <div v-if="customizedResume.hobbies" class="mb-4">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    业余爱好
+                  </h4>
+                  <div
+                    v-html="renderMarkdown(customizedResume.hobbies)"
+                    class="prose prose-sm max-w-none p-3 bg-pink-50 rounded-lg border border-pink-200"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 已保存的AI分析结果 (可折叠) -->
+            <div v-if="savedAnalyses && savedAnalyses.length > 0" class="bg-white rounded-lg shadow p-6">
+              <button
+                @click="showAIAnalysis = !showAIAnalysis"
+                class="w-full flex items-center justify-between mb-4 hover:bg-gray-50 -m-2 p-2 rounded-lg transition-colors"
+              >
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  AI分析结果
+                  <span class="text-sm font-normal text-gray-500">({{ savedAnalyses.length }})</span>
+                </h3>
+                <svg
+                  :class="['w-5 h-5 text-gray-400 transition-transform', showAIAnalysis ? 'rotate-180' : '']"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div v-show="showAIAnalysis" v-for="analysis in savedAnalyses" :key="analysis.id" class="mb-4 last:mb-0">
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="text-3xl font-bold text-indigo-600">{{ analysis.metadata.overallScore }}</div>
+                      <div>
+                        <div class="font-semibold text-gray-900">{{ analysis.metadata.recommendation }}</div>
+                        <div class="text-xs text-gray-500">分析于 {{ new Date(analysis.createdAt).toLocaleString('zh-CN') }}</div>
+                      </div>
+                    </div>
+                    <button
+                      @click="viewAnalysisDetails(analysis)"
+                      class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
+                    >
+                      查看详情
+                    </button>
+                  </div>
+
+                  <!-- 简要展示 -->
+                  <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span class="text-gray-600">技能匹配:</span>
+                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.skillMatchScore }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">经验匹配:</span>
+                      <span class="ml-2 font-semibold text-gray-900">{{ analysis.metadata.experienceMatchScore }}</span>
+                    </div>
+                  </div>
+
+                  <!-- 优势预览 -->
+                  <div v-if="analysis.metadata.keyStrengths && analysis.metadata.keyStrengths.length > 0" class="mt-3">
+                    <div class="text-xs text-gray-600 mb-1">核心优势:</div>
+                    <ul class="text-sm text-gray-700 space-y-1">
+                      <li v-for="(strength, idx) in analysis.metadata.keyStrengths.slice(0, 2)" :key="idx" class="flex items-start gap-2">
+                        <span class="text-green-600">✓</span>
+                        <span class="flex-1">{{ strength }}</span>
+                      </li>
+                      <li v-if="analysis.metadata.keyStrengths.length > 2" class="text-xs text-indigo-600 ml-6">
+                        还有 {{ analysis.metadata.keyStrengths.length - 2 }} 项优势...
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -1259,6 +1307,210 @@
         </div>
       </div>
     </div>
+
+    <!-- 编辑重点领域 Modal -->
+    <div v-if="showEditAreasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[800px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">编辑重点领域</h3>
+        <p class="text-sm text-gray-600 mb-4">
+          选择本阶段需要重点准备的Focus Area（可多选）
+        </p>
+
+        <!-- 按技能分组的Focus Area选择 -->
+        <div class="space-y-4 mb-4">
+          <div v-for="skill in availableSkills" :key="skill.id" class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <input
+                :id="`skill-${skill.id}`"
+                type="checkbox"
+                :checked="isSkillSelected(skill.id)"
+                @change="toggleSkill(skill.id)"
+                class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mr-2"
+              />
+              <label :for="`skill-${skill.id}`" class="font-semibold text-gray-900 cursor-pointer">
+                {{ skill.name }}
+              </label>
+              <span class="ml-2 text-xs text-gray-500">({{ skill.focusAreas?.length || 0 }} 个领域)</span>
+            </div>
+            <div v-if="skill.focusAreas && skill.focusAreas.length > 0" class="ml-6 grid grid-cols-2 gap-2">
+              <label
+                v-for="fa in skill.focusAreas"
+                :key="fa.id"
+                class="flex items-start p-2 hover:bg-purple-50 rounded cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  :value="fa.id"
+                  v-model="selectedFocusAreaIds"
+                  class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 mr-2"
+                />
+                <div class="flex-1">
+                  <div class="font-medium text-sm text-gray-900">{{ fa.name }}</div>
+                  <div class="text-xs text-gray-500 mt-0.5">{{ fa.description }}</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div v-if="availableSkills.length === 0" class="text-center text-gray-500 py-8">
+            <p class="text-sm">暂无可用技能，请先在"职位管理"中添加面试阶段的技能</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-4">
+          <button
+            @click="showEditAreasModal = false"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </button>
+          <button
+            @click="saveFocusAreas"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            保存 (已选 {{ selectedFocusAreaIds.length }} 个)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI分析详情 Modal -->
+    <div v-if="showAnalysisDetailsModal && selectedAnalysis" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg w-[900px] max-h-[90vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-t-lg flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-bold text-white">AI分析详情</h3>
+            <p class="text-sm text-purple-100 mt-1">分析于 {{ new Date(selectedAnalysis.createdAt).toLocaleString('zh-CN') }}</p>
+          </div>
+          <button
+            @click="showAnalysisDetailsModal = false"
+            class="text-white hover:text-gray-200 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <!-- 总体评分卡片 -->
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-sm font-medium text-gray-600 mb-2">总体匹配度</h4>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-5xl font-bold text-indigo-600">{{ selectedAnalysis.metadata.overallScore }}</span>
+                  <span class="text-2xl text-gray-500">/100</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <h4 class="text-sm font-medium text-gray-600 mb-2">推荐等级</h4>
+                <span :class="[
+                  'px-4 py-2 rounded-full text-lg font-semibold',
+                  selectedAnalysis.metadata.recommendation === '强烈推荐' ? 'bg-green-100 text-green-700' :
+                  selectedAnalysis.metadata.recommendation === '推荐' ? 'bg-blue-100 text-blue-700' :
+                  selectedAnalysis.metadata.recommendation === '一般' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-gray-100 text-gray-700'
+                ]">
+                  {{ selectedAnalysis.metadata.recommendation }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 细分评分 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white border border-gray-200 rounded-lg p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </div>
+                <h4 class="font-semibold text-gray-900">技能匹配</h4>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-blue-600">{{ selectedAnalysis.metadata.skillMatchScore }}</span>
+                <span class="text-lg text-gray-500">/100</span>
+              </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-purple-100 rounded-lg">
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h4 class="font-semibold text-gray-900">经验匹配</h4>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-purple-600">{{ selectedAnalysis.metadata.experienceMatchScore }}</span>
+                <span class="text-lg text-gray-500">/100</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 核心优势 -->
+          <div class="bg-white border border-gray-200 rounded-lg p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h4 class="font-semibold text-gray-900">核心优势</h4>
+            </div>
+            <ul v-if="selectedAnalysis.metadata.keyStrengths && selectedAnalysis.metadata.keyStrengths.length > 0" class="space-y-2">
+              <li
+                v-for="(strength, idx) in selectedAnalysis.metadata.keyStrengths"
+                :key="idx"
+                class="flex items-start gap-3 p-3 bg-green-50 rounded-lg"
+              >
+                <span class="flex-shrink-0 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                  {{ idx + 1 }}
+                </span>
+                <span class="text-gray-700 flex-1">{{ strength }}</span>
+              </li>
+            </ul>
+            <p v-else class="text-gray-500 text-sm italic">暂无核心优势信息</p>
+          </div>
+
+          <!-- 改进建议 -->
+          <div class="bg-white border border-gray-200 rounded-lg p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h4 class="font-semibold text-gray-900">改进建议</h4>
+            </div>
+            <ul v-if="selectedAnalysis.metadata.keyWeaknesses && selectedAnalysis.metadata.keyWeaknesses.length > 0" class="space-y-2">
+              <li
+                v-for="(weakness, idx) in selectedAnalysis.metadata.keyWeaknesses"
+                :key="idx"
+                class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg"
+              >
+                <span class="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                  {{ idx + 1 }}
+                </span>
+                <span class="text-gray-700 flex-1">{{ weakness }}</span>
+              </li>
+            </ul>
+            <p v-else class="text-gray-500 text-sm italic">暂无改进建议</p>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-gray-200 p-4 flex justify-end">
+          <button
+            @click="showAnalysisDetailsModal = false"
+            class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1272,6 +1524,7 @@ import interviewPreparationChecklistApi from '@/api/interviewPreparationChecklis
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
 import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
 import { resumeApi } from '@/api/resumeApi'
+import { getSkills } from '@/api/skillApi'
 import MarkdownIt from 'markdown-it'
 
 const router = useRouter()
@@ -1284,12 +1537,20 @@ const selectedApplicationId = ref(null)
 const activeTab = ref('overview')
 const filterStatus = ref('')
 const selectedStageId = ref(null) // 选中的面试阶段ID
+const showApplicationList = ref(true) // 控制职位申请列表显示/隐藏
+const activeInterviewSubTab = ref('notes') // 面试详情子Tab: notes, areas, checklist, records
 
 const showChecklistModal = ref(false)
 const showEditChecklistModal = ref(false)
 const showRecruiterInsightsModal = ref(false)
 const showInterviewRecordModal = ref(false)
+const showAnalysisDetailsModal = ref(false)
+const showEditAreasModal = ref(false)
 const currentStageId = ref(null)
+const isEditingNotes = ref(false)
+const editingNotes = ref('')
+const selectedFocusAreaIds = ref([])
+const availableSkills = ref([])
 const allChecklistItems = ref([])
 const priorityItems = ref([])
 const editingChecklistItem = ref(null)
@@ -1329,11 +1590,20 @@ const savedAnalyses = ref([])
 const selectedAnalysis = ref(null)
 const customizedResume = ref(null)
 const loadingCustomizedResume = ref(false)
+const showAIAnalysis = ref(false) // 控制AI分析结果的显示/隐藏
+const expandedExperiences = ref(new Set()) // 存储展开的工作经历ID集合
 
 const tabs = [
   { id: 'overview', name: '概览' },
   { id: 'interviews', name: '面试' },
   { id: 'resume', name: '简历' }
+]
+
+const interviewSubTabs = [
+  { id: 'notes', name: '准备笔记' },
+  { id: 'areas', name: '重点领域' },
+  { id: 'checklist', name: '准备清单' },
+  { id: 'records', name: '面试记录' }
 ]
 
 const currentApplication = computed(() =>
@@ -1436,6 +1706,17 @@ const goToCompanyPage = () => {
       jobId: currentApplication.value.id
     }
   })
+}
+
+// 切换工作经历的展开/折叠状态
+const toggleExperience = (expId) => {
+  if (expandedExperiences.value.has(expId)) {
+    expandedExperiences.value.delete(expId)
+  } else {
+    expandedExperiences.value.add(expId)
+  }
+  // 触发响应式更新
+  expandedExperiences.value = new Set(expandedExperiences.value)
 }
 
 const showPreparationChecklist = async (stageId) => {
@@ -1651,7 +1932,8 @@ const loadApplications = async () => {
     const data = await jobApplicationApi.getAllJobApplications()
     applications.value = data || []
     if (applications.value.length > 0 && !selectedApplicationId.value) {
-      selectedApplicationId.value = applications.value[0].id
+      // 调用 selectApplication 以加载所有相关数据（AI分析、定制简历等）
+      await selectApplication(applications.value[0].id)
     }
   } catch (error) {
     console.error('加载职位申请失败:', error)
@@ -1883,14 +2165,32 @@ const loadSavedAnalyses = async (jobAppId) => {
 
 // Load customized resume for current job
 const loadCustomizedResume = async (jobId) => {
-  if (!jobId) return
+  if (!jobId) {
+    console.warn('⚠️ loadCustomizedResume: jobId is empty')
+    return
+  }
 
+  console.log('📄 Loading customized resume for job:', jobId)
   loadingCustomizedResume.value = true
   try {
     const data = await resumeApi.getResumeByJob(jobId)
-    customizedResume.value = data
+    console.log('📄 Resume API response:', data)
+    // 处理后端返回204 No Content的情况（data可能是undefined, null, 空字符串或空对象）
+    if (!data || (typeof data === 'object' && Object.keys(data).length === 0) || data === '') {
+      console.log('📄 No customized resume found, showing create button')
+      customizedResume.value = null
+    } else {
+      console.log('✅ Customized resume loaded successfully:', {
+        id: data.id,
+        versionName: data.versionName,
+        experiencesCount: data.experiences?.length || 0,
+        skillsCount: data.skills?.length || 0,
+        educationCount: data.education?.length || 0
+      })
+      customizedResume.value = data
+    }
   } catch (error) {
-    console.error('加载定制简历失败:', error)
+    console.error('❌ 加载定制简历失败:', error)
     customizedResume.value = null
   } finally {
     loadingCustomizedResume.value = false
@@ -1933,32 +2233,232 @@ const editCustomizedResume = () => {
 // View analysis details
 const viewAnalysisDetails = (analysis) => {
   selectedAnalysis.value = analysis
-  // Parse the full analysis result
+  showAnalysisDetailsModal.value = true
+}
+
+// 开始编辑准备笔记
+const startEditingNotes = () => {
+  if (!selectedStage.value) return
+  editingNotes.value = selectedStage.value.preparationNotes || ''
+  isEditingNotes.value = true
+}
+
+// 取消编辑准备笔记
+const cancelEditingNotes = () => {
+  isEditingNotes.value = false
+  editingNotes.value = ''
+}
+
+// 保存准备笔记
+const savePreparationNotes = async () => {
+  if (!selectedStage.value) return
+
   try {
-    const fullAnalysis = JSON.parse(analysis.aiAnalysisResult)
-    console.log('完整分析结果:', fullAnalysis)
+    const payload = {
+      ...selectedStage.value,
+      preparationNotes: editingNotes.value
+    }
+    await interviewStageApi.update(selectedStage.value.id, payload)
 
-    // Show a detailed modal or expand the view
-    alert(`
-AI分析详情 (ID: ${analysis.id})
-
-总体匹配度: ${analysis.metadata.overallScore}/100
-推荐等级: ${analysis.metadata.recommendation}
-
-技能匹配: ${analysis.metadata.skillMatchScore}/100
-经验匹配: ${analysis.metadata.experienceMatchScore}/100
-
-核心优势:
-${analysis.metadata.keyStrengths ? analysis.metadata.keyStrengths.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
-
-改进建议:
-${analysis.metadata.keyWeaknesses ? analysis.metadata.keyWeaknesses.map((s, i) => `${i + 1}. ${s}`).join('\n') : '无'}
-
-查看完整JSON分析请打开浏览器控制台
-    `)
+    // 刷新面试阶段列表
+    await loadInterviewStages(selectedApplicationId.value)
+    isEditingNotes.value = false
   } catch (error) {
-    console.error('解析分析结果失败:', error)
-    alert('无法显示详细信息')
+    console.error('保存准备笔记失败:', error)
+    alert('保存失败，请稍后重试')
+  }
+}
+
+// 编辑重点领域
+const editFocusAreas = async () => {
+  if (!selectedStage.value) return
+
+  // 加载所有技能和它们的Focus Areas
+  try {
+    const skills = await getSkills()
+    availableSkills.value = skills || []
+
+    // 预选当前阶段已选中的Focus Areas (深拷贝数组)
+    const currentFocusAreaIds = selectedStage.value.focusAreaIds || []
+    selectedFocusAreaIds.value = [...currentFocusAreaIds]
+
+    showEditAreasModal.value = true
+  } catch (error) {
+    console.error('加载技能列表失败:', error)
+    alert('加载失败，请稍后重试')
+  }
+}
+
+// 保存重点领域
+const saveFocusAreas = async () => {
+  if (!selectedStage.value) return
+
+  try {
+    const payload = {
+      ...selectedStage.value,
+      focusAreaIds: selectedFocusAreaIds.value
+    }
+    await interviewStageApi.update(selectedStage.value.id, payload)
+
+    // 刷新面试阶段列表
+    await loadInterviewStages(selectedApplicationId.value)
+    showEditAreasModal.value = false
+  } catch (error) {
+    console.error('保存重点领域失败:', error)
+    alert('保存失败，请稍后重试')
+  }
+}
+
+// 检查某个技能是否被选中（其下任意Focus Area被选中）
+const isSkillSelected = (skillId) => {
+  const skill = availableSkills.value.find(s => s.id === skillId)
+  if (!skill || !skill.focusAreas) return false
+
+  return skill.focusAreas.some(fa => selectedFocusAreaIds.value.includes(fa.id))
+}
+
+// 切换整个技能的选中状态
+const toggleSkill = (skillId) => {
+  const skill = availableSkills.value.find(s => s.id === skillId)
+  if (!skill || !skill.focusAreas) return
+
+  const allFocusAreaIds = skill.focusAreas.map(fa => fa.id)
+  const isAllSelected = allFocusAreaIds.every(id => selectedFocusAreaIds.value.includes(id))
+
+  if (isAllSelected) {
+    // 取消选中该技能的所有Focus Areas
+    selectedFocusAreaIds.value = selectedFocusAreaIds.value.filter(
+      id => !allFocusAreaIds.includes(id)
+    )
+  } else {
+    // 选中该技能的所有Focus Areas
+    allFocusAreaIds.forEach(id => {
+      if (!selectedFocusAreaIds.value.includes(id)) {
+        selectedFocusAreaIds.value.push(id)
+      }
+    })
+  }
+}
+
+// 跳转到技能学习页面
+const navigateToSkillLearning = (focusArea) => {
+  if (!focusArea || !focusArea.skillId) {
+    console.error('Focus Area缺少skillId:', focusArea)
+    return
+  }
+
+  // 跳转到技能详情页面，通过query参数传递focusAreaId以便自动定位
+  router.push({
+    path: `/skills/${focusArea.skillId}`,
+    query: {
+      focusAreaId: focusArea.id
+    }
+  })
+}
+
+// 获取分类样式
+const getCategoryStyle = (category) => {
+  const styles = {
+    'Project': {
+      border: 'border-blue-300',
+      bg: 'bg-blue-50 hover:bg-blue-100',
+      badge: 'bg-blue-500 text-white'
+    },
+    'People Management': {
+      border: 'border-purple-300',
+      bg: 'bg-purple-50 hover:bg-purple-100',
+      badge: 'bg-purple-500 text-white'
+    },
+    'Skill': {
+      border: 'border-green-300',
+      bg: 'bg-green-50 hover:bg-green-100',
+      badge: 'bg-green-500 text-white'
+    },
+    'Focus Area': {
+      border: 'border-emerald-300',
+      bg: 'bg-emerald-50 hover:bg-emerald-100',
+      badge: 'bg-emerald-500 text-white'
+    },
+    'Study': {
+      border: 'border-indigo-300',
+      bg: 'bg-indigo-50',
+      badge: 'bg-indigo-500 text-white'
+    },
+    'Practice': {
+      border: 'border-orange-300',
+      bg: 'bg-orange-50',
+      badge: 'bg-orange-500 text-white'
+    },
+    'Research': {
+      border: 'border-pink-300',
+      bg: 'bg-pink-50',
+      badge: 'bg-pink-500 text-white'
+    },
+    'Review': {
+      border: 'border-teal-300',
+      bg: 'bg-teal-50',
+      badge: 'bg-teal-500 text-white'
+    },
+    'Other': {
+      border: 'border-gray-300',
+      bg: 'bg-gray-50',
+      badge: 'bg-gray-500 text-white'
+    }
+  }
+  return styles[category] || styles['Other']
+}
+
+// 获取分类图标
+const getCategoryIcon = (category) => {
+  const icons = {
+    'Project': '📁',
+    'People Management': '👥',
+    'Skill': '⚡',
+    'Focus Area': '🎯',
+    'Study': '📚',
+    'Practice': '💪',
+    'Research': '🔍',
+    'Review': '📝',
+    'Other': '📌'
+  }
+  return icons[category] || '📌'
+}
+
+// 检查分类是否可以跳转
+const canNavigateToCategory = (category) => {
+  return ['Project', 'People Management', 'Skill', 'Focus Area'].includes(category)
+}
+
+// 跳转到清单分类对应的页面
+const navigateToChecklistCategory = (item) => {
+  if (!canNavigateToCategory(item.category)) return
+
+  switch (item.category) {
+    case 'Project':
+      router.push('/job-search/projects')
+      break
+    case 'People Management':
+      router.push('/job-search/management')
+      break
+    case 'Skill':
+    case 'Focus Area':
+      // 需要从notes中解析skillId和focusAreaId
+      // 假设notes格式为: "Skill ID: 5, Focus Area ID: 10"
+      const skillMatch = item.notes?.match(/Skill ID:\s*(\d+)/)
+      const focusAreaMatch = item.notes?.match(/Focus Area ID:\s*(\d+)/)
+
+      if (skillMatch && focusAreaMatch) {
+        const skillId = skillMatch[1]
+        const focusAreaId = focusAreaMatch[1]
+        router.push({
+          path: `/skills/${skillId}`,
+          query: { focusAreaId }
+        })
+      } else if (skillMatch) {
+        // 只有skillId，跳转到技能页面
+        router.push(`/skills/${skillMatch[1]}`)
+      }
+      break
   }
 }
 

@@ -59,6 +59,10 @@ public class SkillService {
                                 return new SkillDTO.CareerPathInfo(cp.getId(), cp.getName());
                             })
                             .collect(Collectors.toList()));
+                    // DTO Completeness Checklist: 添加Focus Areas列表（用于编辑重点领域modal）
+                    dto.setFocusAreas(focusAreaRepository.findBySkillIdOrderByDisplayOrderAsc(skill.getId()).stream()
+                            .map(this::convertToDTO)
+                            .collect(Collectors.toList()));
                     return dto;
                 })
                 .collect(Collectors.toList());

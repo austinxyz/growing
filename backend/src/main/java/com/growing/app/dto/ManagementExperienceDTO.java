@@ -21,10 +21,6 @@ public class ManagementExperienceDTO {
     private String results;
     private String lessonsLearned;
 
-    // Team Growth specific fields
-    private Integer hiringCount;
-    private String improvementResult;  // Improved, Terminated (only for LowPerformer)
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

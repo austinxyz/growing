@@ -614,6 +614,69 @@
                     <p class="text-sm">暂无Recruiter信息</p>
                     <p class="text-xs mt-1">点击上方按钮添加招聘人员联系方式</p>
                   </div>
+
+                  <!-- Recruiter Insights Section -->
+                  <div class="mt-6 bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        💡 Recruiter Insights
+                      </h3>
+                      <button
+                        @click="openRecruiterInsightsModal"
+                        class="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600"
+                      >
+                        {{ selectedJob?.recruiterInsights ? '编辑' : '添加' }}
+                      </button>
+                    </div>
+
+                    <div v-if="selectedJob?.recruiterInsights" class="space-y-4">
+                      <div v-if="selectedJob.recruiterInsights.teamSize">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">团队规模</label>
+                        <p class="text-gray-900">{{ selectedJob.recruiterInsights.teamSize }}</p>
+                      </div>
+
+                      <div v-if="selectedJob.recruiterInsights.teamCulture">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">团队文化</label>
+                        <p class="text-gray-900 text-sm">{{ selectedJob.recruiterInsights.teamCulture }}</p>
+                      </div>
+
+                      <div v-if="selectedJob.recruiterInsights.techStackPreference && selectedJob.recruiterInsights.techStackPreference.length > 0">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">技术栈偏好</label>
+                        <div class="flex flex-wrap gap-2">
+                          <span
+                            v-for="tech in selectedJob.recruiterInsights.techStackPreference"
+                            :key="tech"
+                            class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+                          >
+                            {{ tech }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div v-if="selectedJob.recruiterInsights.interviewFocus">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">面试重点</label>
+                        <p class="text-gray-900 text-sm">{{ selectedJob.recruiterInsights.interviewFocus }}</p>
+                      </div>
+
+                      <div v-if="selectedJob.recruiterInsights.processTips">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">流程Tips</label>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                          <p class="text-sm text-yellow-800">{{ selectedJob.recruiterInsights.processTips }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-else class="text-center text-gray-500 py-8">
+                      <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p class="text-sm">暂无Recruiter Insights</p>
+                      <p class="text-xs mt-1 text-gray-400">点击"添加"按钮记录Recruiter提供的信息</p>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Tab 5: AI 简历分析 -->
@@ -1208,6 +1271,99 @@
         </div>
       </div>
     </div>
+
+    <!-- Recruiter Insights Modal -->
+    <div v-if="showRecruiterInsightsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">{{ selectedJob?.recruiterInsights ? '编辑' : '添加' }} Recruiter Insights</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">团队规模</label>
+            <input
+              v-model="recruiterInsightsFormData.teamSize"
+              type="text"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="例如: 10-15人"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">团队文化</label>
+            <textarea
+              v-model="recruiterInsightsFormData.teamCulture"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="例如: 扁平化管理，鼓励创新，工作氛围轻松"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              技术栈偏好
+              <span class="text-xs text-gray-500 ml-2">(按Enter或逗号分隔)</span>
+            </label>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span
+                v-for="(tech, index) in recruiterInsightsFormData.techStackPreference"
+                :key="index"
+                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-2"
+              >
+                {{ tech }}
+                <button
+                  @click="removeTechStack(index)"
+                  class="text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            </div>
+            <input
+              v-model="techStackInput"
+              @keydown.enter.prevent="addTechStack"
+              @keydown.comma.prevent="addTechStack"
+              type="text"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="输入技术栈后按Enter，例如: Java, Spring Boot, Redis"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">面试重点</label>
+            <textarea
+              v-model="recruiterInsightsFormData.interviewFocus"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="例如: 系统设计和编程基础，特别关注分布式系统经验"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">流程Tips</label>
+            <textarea
+              v-model="recruiterInsightsFormData.processTips"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="例如: 第一轮技术面试会很深入，建议准备常见算法题。系统设计轮会问实际项目经验。"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+          <button
+            @click="showRecruiterInsightsModal = false"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </button>
+          <button
+            @click="saveRecruiterInsights"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1252,6 +1408,7 @@ const showCreateJobModal = ref(false)
 const showCreateContactModal = ref(false)
 const showCreateLinkModal = ref(false)
 const showCreateStageModal = ref(false)
+const showRecruiterInsightsModal = ref(false)
 
 const editModes = ref({
   info: false
@@ -1328,6 +1485,16 @@ const stageFormData = ref({
 })
 
 const editingStage = ref(null)
+
+const recruiterInsightsFormData = ref({
+  teamSize: '',
+  teamCulture: '',
+  techStackPreference: [],
+  interviewFocus: '',
+  processTips: ''
+})
+
+const techStackInput = ref('')
 
 const currentCompany = computed(() =>
   companies.value.find(c => c.id === selectedCompanyId.value)
@@ -2132,6 +2299,76 @@ const extractImprovementSuggestions = () => {
   }
 
   return suggestions
+}
+
+// ========== Recruiter Insights Functions ==========
+
+const openRecruiterInsightsModal = () => {
+  if (selectedJob.value?.recruiterInsights) {
+    // 编辑模式 - 加载现有数据
+    recruiterInsightsFormData.value = {
+      teamSize: selectedJob.value.recruiterInsights.teamSize || '',
+      teamCulture: selectedJob.value.recruiterInsights.teamCulture || '',
+      techStackPreference: selectedJob.value.recruiterInsights.techStackPreference || [],
+      interviewFocus: selectedJob.value.recruiterInsights.interviewFocus || '',
+      processTips: selectedJob.value.recruiterInsights.processTips || ''
+    }
+  } else {
+    // 新建模式
+    recruiterInsightsFormData.value = {
+      teamSize: '',
+      teamCulture: '',
+      techStackPreference: [],
+      interviewFocus: '',
+      processTips: ''
+    }
+  }
+  techStackInput.value = ''
+  showRecruiterInsightsModal.value = true
+}
+
+const addTechStack = () => {
+  const tech = techStackInput.value.trim().replace(/,$/, '') // 移除末尾逗号
+  if (tech && !recruiterInsightsFormData.value.techStackPreference.includes(tech)) {
+    recruiterInsightsFormData.value.techStackPreference.push(tech)
+    techStackInput.value = ''
+  }
+}
+
+const removeTechStack = (index) => {
+  recruiterInsightsFormData.value.techStackPreference.splice(index, 1)
+}
+
+const saveRecruiterInsights = async () => {
+  if (!selectedJobId.value) {
+    alert('请先选择一个职位')
+    return
+  }
+
+  try {
+    // 合并现有数据，只更新recruiterInsights字段
+    const payload = {
+      ...currentJob.value,  // 保留所有现有字段
+      recruiterInsights: recruiterInsightsFormData.value  // 只更新recruiterInsights
+    }
+
+    await jobApplicationApi.updateJobApplication(selectedJobId.value, payload)
+
+    showRecruiterInsightsModal.value = false
+    await loadJobs()
+
+    // 重新选中当前职位以刷新数据
+    const currentId = selectedJobId.value
+    selectedJobId.value = null
+    setTimeout(() => {
+      selectedJobId.value = currentId
+    }, 100)
+
+    alert('保存成功')
+  } catch (error) {
+    console.error('保存Recruiter Insights失败:', error)
+    alert('保存失败，请稍后重试')
+  }
 }
 </script>
 

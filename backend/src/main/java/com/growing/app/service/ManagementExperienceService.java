@@ -48,8 +48,6 @@ public class ManagementExperienceService {
         experience.setActionsTaken(dto.getActionsTaken());
         experience.setResults(dto.getResults());
         experience.setLessonsLearned(dto.getLessonsLearned());
-        experience.setHiringCount(dto.getHiringCount());
-        experience.setImprovementResult(dto.getImprovementResult());
 
         experience = managementExperienceRepository.save(experience);
         return convertToDTO(experience);
@@ -73,8 +71,6 @@ public class ManagementExperienceService {
         experience.setActionsTaken(dto.getActionsTaken());
         experience.setResults(dto.getResults());
         experience.setLessonsLearned(dto.getLessonsLearned());
-        experience.setHiringCount(dto.getHiringCount());
-        experience.setImprovementResult(dto.getImprovementResult());
 
         experience = managementExperienceRepository.save(experience);
         return convertToDTO(experience);
@@ -105,8 +101,6 @@ public class ManagementExperienceService {
         dto.setActionsTaken(experience.getActionsTaken());
         dto.setResults(experience.getResults());
         dto.setLessonsLearned(experience.getLessonsLearned());
-        dto.setHiringCount(experience.getHiringCount());
-        dto.setImprovementResult(experience.getImprovementResult());
         dto.setCreatedAt(experience.getCreatedAt());
         dto.setUpdatedAt(experience.getUpdatedAt());
         return dto;
