@@ -55,12 +55,6 @@ public class ManagementExperience {
     @Column(name = "lessons_learned", columnDefinition = "TEXT")
     private String lessonsLearned;
 
-    @Column(name = "hiring_count")
-    private Integer hiringCount;
-
-    @Column(name = "improvement_result", length = 50)
-    private String improvementResult;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

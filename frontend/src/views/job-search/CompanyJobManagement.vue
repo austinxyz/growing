@@ -732,6 +732,112 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Tab 6: 面试准备 -->
+                <div v-if="activeJobDetailTab === 'interview-prep'" class="space-y-6">
+                  <!-- Prompt生成区域（紧凑型） -->
+                  <div v-if="interviewPrepPromptData" class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 border border-teal-200">
+                    <div class="mb-2">
+                      <label class="block text-sm font-semibold text-gray-700 mb-2">复制以下Prompt到Claude Code执行面试准备分析</label>
+                      <div class="relative">
+                        <pre class="bg-white p-3 rounded border border-gray-300 text-xs overflow-x-auto whitespace-pre-wrap max-h-32">{{ interviewPrepPromptData.prompt }}</pre>
+                        <button
+                          @click="copyToClipboard(interviewPrepPromptData.prompt)"
+                          class="absolute top-2 right-2 px-3 py-1 bg-teal-600 text-white text-xs rounded hover:bg-teal-700"
+                        >
+                          复制
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 面试准备计划结果 -->
+                  <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        面试准备计划
+                      </h3>
+                      <button
+                        @click="generateInterviewPrepPrompt"
+                        class="px-4 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white text-sm rounded-lg hover:from-teal-700 hover:to-green-700 font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        生成面试准备Prompt
+                      </button>
+                    </div>
+
+                    <!-- 面试阶段列表 -->
+                    <div v-if="interviewStages && interviewStages.length > 0" class="space-y-4">
+                      <div v-for="stage in interviewStages" :key="stage.id" class="border border-gray-200 rounded-lg p-5">
+                        <!-- 头部：阶段名称 -->
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b">
+                          <div>
+                            <div class="text-xl font-semibold text-gray-900">{{ stage.stageName }}</div>
+                            <div class="text-sm text-gray-500 mt-1">阶段 {{ stage.stageOrder }}</div>
+                          </div>
+                          <div class="text-sm text-gray-600">
+                            {{ stage.skillIds ? stage.skillIds.length : 0 }} 个技能 ·
+                            {{ stage.focusAreaIds ? stage.focusAreaIds.length : 0 }} 个Focus Area
+                          </div>
+                        </div>
+
+                        <!-- 准备笔记 -->
+                        <div v-if="stage.preparationNotes" class="mb-4 p-4 bg-teal-50 rounded-lg">
+                          <h4 class="text-sm font-semibold text-gray-900 mb-2">准备笔记</h4>
+                          <div class="text-sm text-gray-700 whitespace-pre-wrap">{{ stage.preparationNotes }}</div>
+                        </div>
+
+                        <!-- 准备清单 -->
+                        <div v-if="stage.checklistItems && stage.checklistItems.length > 0">
+                          <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            准备清单 ({{ stage.checklistItems.length }} 项)
+                          </h4>
+                          <div class="space-y-2">
+                            <div
+                              v-for="item in stage.checklistItems"
+                              :key="item.id"
+                              :class="[
+                                'p-3 rounded-lg border-l-4',
+                                item.isPriority ? 'bg-yellow-50 border-yellow-500' : 'bg-gray-50 border-gray-300'
+                              ]"
+                            >
+                              <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 mt-0.5">
+                                  <span v-if="item.isPriority" class="inline-block px-2 py-0.5 bg-yellow-500 text-white text-xs rounded font-medium">高优先级</span>
+                                  <span v-else class="inline-block px-2 py-0.5 bg-gray-400 text-white text-xs rounded">普通</span>
+                                </div>
+                                <div class="flex-1">
+                                  <div class="font-medium text-gray-900 mb-1">{{ item.checklistItem }}</div>
+                                  <div v-if="item.category" class="text-xs text-gray-600 mb-2">
+                                    分类: <span class="px-2 py-0.5 bg-gray-200 rounded">{{ item.category }}</span>
+                                  </div>
+                                  <div v-if="item.notes" class="text-sm text-gray-700 whitespace-pre-wrap bg-white p-2 rounded border border-gray-200">{{ item.notes }}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 无准备计划时的提示 -->
+                    <div v-else class="text-center py-12 text-gray-500">
+                      <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      <p class="text-lg mb-2">暂无面试准备计划</p>
+                      <p class="text-sm">点击右上角"生成面试准备Prompt"按钮开始创建准备计划</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1112,6 +1218,7 @@ import { companyApi } from '@/api/companyApi'
 import { jobApplicationApi } from '@/api/jobApplicationApi'
 import { referralApi } from '@/api/referralApi'
 import { interviewStageApi } from '@/api/interviewStageApi'
+import { interviewChecklistApi } from '@/api/interviewChecklistApi'
 import { getSkills } from '@/api/skillApi'
 import { getFocusAreasBySkillId } from '@/api/focusAreaApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
@@ -1136,6 +1243,7 @@ const activeJobDetailTab = ref('jd')
 const resumeAnalysis = ref(null)
 const aiPromptData = ref(null)
 const savedAnalyses = ref([])
+const interviewPrepPromptData = ref(null)
 const selectedAnalysis = ref(null)
 const customizedResume = ref(null) // 定制简历
 const loadingCustomizedResume = ref(false) // 加载状态
@@ -1159,6 +1267,7 @@ const jobDetailTabs = [
   { id: 'jd', name: 'JD (Job Description)' },
   { id: 'interview', name: '面试流程' },
   { id: 'ai-analysis', name: '简历分析' },
+  { id: 'interview-prep', name: '面试准备' },
   { id: 'resume', name: '定制简历' },
   { id: 'recruiter', name: 'Recruiter' }
 ]
@@ -1721,10 +1830,25 @@ const loadInterviewStages = async () => {
   if (!selectedJobId.value) return
 
   try {
-    const data = await interviewStageApi.getStagesByJob(selectedJobId.value)
-    interviewStages.value = data || []
+    const data = await interviewStageApi.getByJobApplication(selectedJobId.value)
+    // Also load checklist items for each stage
+    if (data && data.length > 0) {
+      const stagesWithChecklists = await Promise.all(
+        data.map(async (stage) => {
+          const checklist = await interviewChecklistApi.getByStage(stage.id)
+          return {
+            ...stage,
+            checklistItems: checklist || []
+          }
+        })
+      )
+      interviewStages.value = stagesWithChecklists
+    } else {
+      interviewStages.value = []
+    }
   } catch (error) {
     console.error('加载面试阶段失败:', error)
+    interviewStages.value = []
   }
 }
 
@@ -1878,6 +2002,25 @@ const copyToClipboard = async (text) => {
   }
 }
 
+// ========== Interview Preparation Functions ==========
+
+// Generate interview preparation prompt
+const generateInterviewPrepPrompt = async () => {
+  if (!selectedJobId.value) {
+    alert('请先选择一个职位')
+    return
+  }
+
+  const userId = 3 // TODO: Get from auth context
+  const prompt = `Prepare for interview job ${selectedJobId.value} user ${userId}`
+
+  interviewPrepPromptData.value = {
+    jobId: selectedJobId.value,
+    userId: userId,
+    prompt: prompt
+  }
+}
+
 // Parse analysis result safely
 const parseAnalysisResult = (analysis) => {
   try {
@@ -1921,14 +2064,11 @@ const cloneResumeForJob = async () => {
     const clonedResume = await resumeApi.cloneResumeForJob(selectedJobId.value)
     customizedResume.value = clonedResume
 
-    // Navigate to resume management page with suggestions
-    const suggestions = extractImprovementSuggestions()
+    // Navigate to resume management - AI suggestions will auto-load based on jobApplicationId
     router.push({
       path: '/job-search/resume',
       query: {
-        resumeId: clonedResume.id,
-        jobId: selectedJobId.value,
-        suggestions: JSON.stringify(suggestions)
+        resumeId: clonedResume.id
       }
     })
   } catch (error) {
@@ -1941,13 +2081,11 @@ const cloneResumeForJob = async () => {
 const editCustomizedResume = () => {
   if (!customizedResume.value) return
 
-  const suggestions = extractImprovementSuggestions()
+  // Navigate to resume management - AI suggestions will auto-load based on jobApplicationId
   router.push({
     path: '/job-search/resume',
     query: {
-      resumeId: customizedResume.value.id,
-      jobId: selectedJobId.value,
-      suggestions: JSON.stringify(suggestions)
+      resumeId: customizedResume.value.id
     }
   })
 }

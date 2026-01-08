@@ -1117,6 +1117,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { resumeApi } from '@/api/resumeApi'
 import { projectApi } from '@/api/projectApi'
+import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt()
@@ -1255,24 +1256,39 @@ watch(() => editingExperience.value.isCurrent, (newValue) => {
   }
 })
 
-onMounted(async () => {
-  // 解析URL query参数中的改进建议
-  if (route.query.suggestions) {
+// Watch for currentResume changes to auto-load AI suggestions
+watch(() => currentResume.value?.jobApplicationId, async (jobApplicationId) => {
+  if (jobApplicationId) {
+    // This is a customized resume for a specific job - load AI analysis
     try {
-      improvementSuggestions.value = JSON.parse(route.query.suggestions)
+      const analyses = await aiJobAnalysisApi.getByJobApplication(jobApplicationId)
+      if (analyses && analyses.length > 0) {
+        // Extract improvement suggestions from the latest analysis
+        const latestAnalysis = analyses[0]
+        const parsedAnalysis = JSON.parse(latestAnalysis.aiAnalysisResult)
+        improvementSuggestions.value = parsedAnalysis.improvements || []
+      } else {
+        improvementSuggestions.value = []
+      }
     } catch (error) {
-      console.error('解析改进建议失败:', error)
+      console.error('加载AI分析失败:', error)
       improvementSuggestions.value = []
     }
+  } else {
+    // This is a general resume (not customized for a job) - clear suggestions
+    improvementSuggestions.value = []
   }
+})
 
+onMounted(async () => {
   // 先加载简历列表和项目列表
   await loadResumes()
   await loadProjects()
 
   // 如果URL包含resumeId参数，选中该简历并加载详情
   if (route.query.resumeId) {
-    await selectResume(route.query.resumeId)
+    // Convert string to number for proper comparison with resume.id
+    await selectResume(parseInt(route.query.resumeId))
   }
 })
 
@@ -1327,12 +1343,7 @@ const selectResume = async (resumeId) => {
     editModes.value[key] = false
   })
   await loadResumeDetails()
-
-  // 清除改进建议（除非是从URL跳转过来的对应简历）
-  // 注意：route.query.resumeId是字符串，需要转换后比较
-  if (String(route.query.resumeId) !== String(resumeId)) {
-    improvementSuggestions.value = []
-  }
+  // Note: watch on currentResume.jobApplicationId will auto-load AI suggestions
 }
 
 const loadResumeDetails = async () => {

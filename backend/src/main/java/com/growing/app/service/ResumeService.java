@@ -219,6 +219,7 @@ public class ResumeService {
         dto.setUserId(resume.getUserId());
         dto.setVersionName(resume.getVersionName());
         dto.setIsDefault(resume.getIsDefault());
+        dto.setJobApplicationId(resume.getJobApplicationId());  // DTO Completeness: populate jobApplicationId
         dto.setAbout(resume.getAbout());
         dto.setCareerObjective(resume.getCareerObjective());
         dto.setEmail(resume.getEmail());

@@ -24,7 +24,7 @@ public class InterviewStageController {
     private AuthService authService;
 
     /**
-     * 获取职位的所有面试阶段
+     * 获取职位的所有面试阶段（旧路径，保留兼容性）
      */
     @GetMapping("/api/job-applications/{jobId}/stages")
     public ResponseEntity<List<InterviewStageDTO>> getStagesByJob(
@@ -32,6 +32,17 @@ public class InterviewStageController {
             @RequestHeader("Authorization") String token) {
         Long userId = authService.getUserIdFromToken(token);
         return ResponseEntity.ok(interviewStageService.getStagesByApplicationId(jobId, userId));
+    }
+
+    /**
+     * 获取Job Application的所有面试阶段（新路径）
+     */
+    @GetMapping("/api/interview-stages/job-application/{jobApplicationId}")
+    public ResponseEntity<List<InterviewStageDTO>> getByJobApplication(
+            @PathVariable Long jobApplicationId,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        return ResponseEntity.ok(interviewStageService.getStagesByApplicationId(jobApplicationId, userId));
     }
 
     /**

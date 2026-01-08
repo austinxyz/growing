@@ -1575,7 +1575,7 @@ const loadApplications = async () => {
 
 const loadInterviewStages = async (jobId) => {
   try {
-    const data = await interviewStageApi.getStagesByJob(jobId)
+    const data = await interviewStageApi.getByJobApplication(jobId)
     interviewStages.value = data || []
   } catch (error) {
     console.error('加载面试阶段失败:', error)

@@ -1,0 +1,5 @@
+{
+  "name": "job-prepare",
+  "description": "AI-powered interview preparation planner. Analyzes job requirements and user's resume/experiences to create detailed interview preparation plan with skill focus areas, key projects, and management experiences to prepare.",
+  "instructions": "instructions.md"
+}
