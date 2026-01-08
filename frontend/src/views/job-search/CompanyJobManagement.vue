@@ -1421,11 +1421,11 @@ const tabs = [
 ]
 
 const jobDetailTabs = [
-  { id: 'jd', name: 'JD (Job Description)' },
+  { id: 'jd', name: '职位描述' },
   { id: 'ai-analysis', name: '简历分析' },
   { id: 'resume', name: '定制简历' },
   { id: 'interview-prep', name: '面试准备' },
-  { id: 'recruiter', name: 'Recruiter' },
+  { id: 'recruiter', name: '招聘人员' },
   { id: 'interview', name: '面试流程' }
 ]
 
