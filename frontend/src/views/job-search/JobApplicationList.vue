@@ -137,9 +137,45 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-600 mb-1">申请状态</label>
-                  <span :class="['px-3 py-1 rounded-full text-sm font-medium inline-block', getStatusColor(currentApplication.applicationStatus)]">
-                    {{ getStatusText(currentApplication.applicationStatus) }}
-                  </span>
+                  <div class="flex items-center gap-3">
+                    <span v-if="!isEditingStatus" :class="['px-3 py-1 rounded-full text-sm font-medium inline-block', getStatusColor(currentApplication.applicationStatus)]">
+                      {{ getStatusText(currentApplication.applicationStatus) }}
+                    </span>
+                    <select
+                      v-else
+                      v-model="editingStatusValue"
+                      class="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                    >
+                      <option value="未申请">未申请</option>
+                      <option value="已投递">已投递</option>
+                      <option value="筛选中">筛选中</option>
+                      <option value="面试中">面试中</option>
+                      <option value="Offer">Offer</option>
+                      <option value="已拒绝">已拒绝</option>
+                      <option value="已撤回">已撤回</option>
+                    </select>
+                    <button
+                      v-if="!isEditingStatus"
+                      @click="startEditingStatus"
+                      class="text-blue-600 hover:text-blue-700 text-sm"
+                    >
+                      编辑
+                    </button>
+                    <template v-else>
+                      <button
+                        @click="saveApplicationStatus"
+                        class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                      >
+                        保存
+                      </button>
+                      <button
+                        @click="cancelEditingStatus"
+                        class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                      >
+                        取消
+                      </button>
+                    </template>
+                  </div>
                 </div>
               </div>
 
@@ -232,8 +268,16 @@
             <!-- 左侧：面试阶段列表 -->
             <div class="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
               <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4">
-                <h3 class="text-lg font-bold text-white">面试阶段</h3>
-                <p class="text-sm text-purple-100 mt-1">{{ interviewStages.length }} 个阶段</p>
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-lg font-bold text-white">面试阶段</h3>
+                  <button
+                    @click="addStage"
+                    class="px-3 py-1 bg-white text-indigo-600 text-sm rounded-lg hover:bg-indigo-50 font-medium"
+                  >
+                    + 添加
+                  </button>
+                </div>
+                <p class="text-sm text-purple-100">{{ interviewStages.length }} 个阶段</p>
               </div>
 
               <div class="flex-1 overflow-y-auto p-2">
@@ -257,6 +301,15 @@
                       </div>
                       <h4 class="font-bold text-gray-900 text-sm">{{ stage.stageName }}</h4>
                     </div>
+                    <button
+                      @click.stop="editStage(stage)"
+                      class="text-blue-600 hover:text-blue-700 text-sm"
+                      title="编辑阶段"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
                   </div>
                   <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
                     <span v-if="stage.focusAreas?.length > 0">{{ stage.focusAreas.length }} 个领域</span>
@@ -1511,6 +1564,97 @@
         </div>
       </div>
     </div>
+
+    <!-- 添加/编辑面试阶段 Modal -->
+    <div v-if="showAddStageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[800px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">{{ editingStage?.id ? '编辑面试阶段' : '添加面试阶段' }}</h3>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">阶段名称 *</label>
+              <input
+                v-model="stageFormData.stageName"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                placeholder="例如: 第一轮技术面试"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">阶段顺序 *</label>
+              <input
+                v-model.number="stageFormData.stageOrder"
+                type="number"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                min="1"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              关联重点领域
+              <span class="text-xs text-gray-500 ml-2">(可多选)</span>
+            </label>
+            <div v-if="availableSkills.length > 0" class="space-y-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <div v-for="skill in availableSkills" :key="skill.id" class="border-b border-gray-100 last:border-0 pb-2">
+                <div class="flex items-center mb-2">
+                  <input
+                    :id="`stage-skill-${skill.id}`"
+                    type="checkbox"
+                    :checked="isSkillSelectedForStage(skill.id)"
+                    @change="toggleSkillForStage(skill.id)"
+                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mr-2"
+                  />
+                  <label :for="`stage-skill-${skill.id}`" class="font-semibold text-gray-900 cursor-pointer">
+                    {{ skill.name }}
+                  </label>
+                  <span class="ml-2 text-xs text-gray-500">({{ skill.focusAreas?.length || 0 }} 个领域)</span>
+                </div>
+                <div v-if="skill.focusAreas && skill.focusAreas.length > 0" class="ml-6 grid grid-cols-2 gap-2">
+                  <label
+                    v-for="fa in skill.focusAreas"
+                    :key="fa.id"
+                    class="flex items-start p-2 hover:bg-purple-50 rounded cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      :value="fa.id"
+                      v-model="stageFormData.focusAreaIds"
+                      class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 mr-2"
+                    />
+                    <div class="flex-1">
+                      <div class="font-medium text-sm text-gray-900">{{ fa.name }}</div>
+                      <div class="text-xs text-gray-500 mt-0.5">{{ fa.description }}</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center text-gray-500 py-8 border border-gray-200 rounded-lg">
+              <p class="text-sm">暂无可用技能，请先在"职位管理"中添加</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6 border-t pt-4">
+          <button
+            @click="cancelAddStage"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </button>
+          <button
+            @click="saveStage"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1592,6 +1736,15 @@ const customizedResume = ref(null)
 const loadingCustomizedResume = ref(false)
 const showAIAnalysis = ref(false) // 控制AI分析结果的显示/隐藏
 const expandedExperiences = ref(new Set()) // 存储展开的工作经历ID集合
+const showAddStageModal = ref(false) // 控制添加/编辑面试阶段模态框
+const editingStage = ref(null) // 当前编辑的面试阶段
+const stageFormData = ref({
+  stageName: '',
+  stageOrder: 1,
+  focusAreaIds: []
+})
+const isEditingStatus = ref(false) // 控制申请状态编辑模式
+const editingStatusValue = ref('') // 编辑中的申请状态值
 
 const tabs = [
   { id: 'overview', name: '概览' },
@@ -2590,6 +2743,158 @@ const generateSuggestedChecklist = async () => {
   } catch (error) {
     console.error('生成建议清单失败:', error)
     alert('生成失败，请稍后重试')
+  }
+}
+
+// 添加面试阶段
+const addStage = async () => {
+  editingStage.value = null
+  stageFormData.value = {
+    stageName: '',
+    stageOrder: interviewStages.value.length + 1,
+    focusAreaIds: []
+  }
+
+  // 加载所有可用技能和Focus Areas
+  try {
+    const skills = await getSkills()
+    availableSkills.value = skills || []
+    showAddStageModal.value = true
+  } catch (error) {
+    console.error('加载技能列表失败:', error)
+    alert('加载失败，请稍后重试')
+  }
+}
+
+// 编辑面试阶段
+const editStage = async (stage) => {
+  editingStage.value = stage
+  stageFormData.value = {
+    stageName: stage.stageName || '',
+    stageOrder: stage.stageOrder || 1,
+    focusAreaIds: stage.focusAreaIds ? [...stage.focusAreaIds] : []
+  }
+
+  // 加载所有可用技能和Focus Areas
+  try {
+    const skills = await getSkills()
+    availableSkills.value = skills || []
+    showAddStageModal.value = true
+  } catch (error) {
+    console.error('加载技能列表失败:', error)
+    alert('加载失败，请稍后重试')
+  }
+}
+
+// 取消添加/编辑面试阶段
+const cancelAddStage = () => {
+  showAddStageModal.value = false
+  editingStage.value = null
+  stageFormData.value = {
+    stageName: '',
+    stageOrder: 1,
+    focusAreaIds: []
+  }
+  availableSkills.value = []
+}
+
+// 保存面试阶段
+const saveStage = async () => {
+  if (!stageFormData.value.stageName.trim()) {
+    alert('请输入阶段名称')
+    return
+  }
+
+  try {
+    const payload = {
+      ...stageFormData.value,
+      jobApplicationId: selectedApplicationId.value
+    }
+
+    if (editingStage.value?.id) {
+      // 编辑模式
+      await interviewStageApi.update(editingStage.value.id, payload)
+    } else {
+      // 新建模式
+      await interviewStageApi.create(payload)
+    }
+
+    showAddStageModal.value = false
+    editingStage.value = null
+    await loadInterviewStages(selectedApplicationId.value)
+  } catch (error) {
+    console.error('保存面试阶段失败:', error)
+    alert('保存失败，请稍后重试')
+  }
+}
+
+// 检查某个技能是否被选中（为面试阶段选择）
+const isSkillSelectedForStage = (skillId) => {
+  const skill = availableSkills.value.find(s => s.id === skillId)
+  if (!skill || !skill.focusAreas) return false
+
+  return skill.focusAreas.some(fa => stageFormData.value.focusAreaIds.includes(fa.id))
+}
+
+// 切换整个技能的选中状态（为面试阶段选择）
+const toggleSkillForStage = (skillId) => {
+  const skill = availableSkills.value.find(s => s.id === skillId)
+  if (!skill || !skill.focusAreas) return
+
+  const allFocusAreaIds = skill.focusAreas.map(fa => fa.id)
+  const isAllSelected = allFocusAreaIds.every(id => stageFormData.value.focusAreaIds.includes(id))
+
+  if (isAllSelected) {
+    // 取消选中该技能的所有Focus Areas
+    stageFormData.value.focusAreaIds = stageFormData.value.focusAreaIds.filter(
+      id => !allFocusAreaIds.includes(id)
+    )
+  } else {
+    // 选中该技能的所有Focus Areas
+    allFocusAreaIds.forEach(id => {
+      if (!stageFormData.value.focusAreaIds.includes(id)) {
+        stageFormData.value.focusAreaIds.push(id)
+      }
+    })
+  }
+}
+
+// 开始编辑申请状态
+const startEditingStatus = () => {
+  if (!currentApplication.value) return
+  editingStatusValue.value = currentApplication.value.applicationStatus || '未申请'
+  isEditingStatus.value = true
+}
+
+// 取消编辑申请状态
+const cancelEditingStatus = () => {
+  isEditingStatus.value = false
+  editingStatusValue.value = ''
+}
+
+// 保存申请状态
+const saveApplicationStatus = async () => {
+  if (!currentApplication.value || !selectedApplicationId.value) return
+
+  try {
+    const payload = {
+      ...currentApplication.value,
+      applicationStatus: editingStatusValue.value
+    }
+    await jobApplicationApi.updateJobApplication(selectedApplicationId.value, payload)
+
+    isEditingStatus.value = false
+    await loadApplications()
+
+    // 重新选中当前申请以刷新数据
+    const currentId = selectedApplicationId.value
+    selectedApplicationId.value = null
+    setTimeout(() => {
+      selectedApplicationId.value = currentId
+    }, 100)
+  } catch (error) {
+    console.error('保存申请状态失败:', error)
+    alert('保存失败，请稍后重试')
   }
 }
 </script>
