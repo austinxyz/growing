@@ -1422,11 +1422,11 @@ const tabs = [
 
 const jobDetailTabs = [
   { id: 'jd', name: 'JD (Job Description)' },
-  { id: 'interview', name: '面试流程' },
   { id: 'ai-analysis', name: '简历分析' },
-  { id: 'interview-prep', name: '面试准备' },
   { id: 'resume', name: '定制简历' },
-  { id: 'recruiter', name: 'Recruiter' }
+  { id: 'interview-prep', name: '面试准备' },
+  { id: 'recruiter', name: 'Recruiter' },
+  { id: 'interview', name: '面试流程' }
 ]
 
 const companyFormData = ref({
