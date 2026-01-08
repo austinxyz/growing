@@ -46,6 +46,9 @@ public class JobApplication {
     @Column(name = "job_url", length = 500)
     private String jobUrl;
 
+    @Column(name = "job_status", length = 50)
+    private String jobStatus = "Open";
+
     // JD Core Content
     @Column(name = "qualifications", columnDefinition = "TEXT")
     private String qualifications;

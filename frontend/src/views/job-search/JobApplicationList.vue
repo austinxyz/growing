@@ -7,12 +7,12 @@
     ]">
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 border-b border-purple-700">
         <h2 class="text-lg font-bold text-white mb-3">📋 职位申请列表</h2>
-        <div class="flex gap-2">
+        <div class="space-y-2">
           <select
             v-model="filterStatus"
-            class="flex-1 px-3 py-2 bg-white text-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-300"
+            class="w-full px-3 py-2 bg-white text-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-300"
           >
-            <option value="">全部状态</option>
+            <option value="">全部申请状态</option>
             <option value="NotApplied">未申请</option>
             <option value="Applied">已投递</option>
             <option value="Screening">筛选中</option>
@@ -20,6 +20,15 @@
             <option value="Offer">Offer</option>
             <option value="Rejected">已拒绝</option>
             <option value="Withdrawn">已撤回</option>
+          </select>
+          <select
+            v-model="filterJobStatus"
+            class="w-full px-3 py-2 bg-white text-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-300"
+          >
+            <option value="">全部招聘状态</option>
+            <option value="Open">开放招聘</option>
+            <option value="ActivelyHiring">积极招聘</option>
+            <option value="Closed">已关闭</option>
           </select>
         </div>
       </div>
@@ -130,10 +139,16 @@
                 Job Description
               </h3>
 
-              <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-600 mb-1">职位级别</label>
                   <p class="text-gray-900">{{ currentApplication.positionLevel || '未设置' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">招聘状态</label>
+                  <span :class="['px-3 py-1 rounded-full text-sm font-medium inline-block', getJobStatusColor(currentApplication.jobStatus)]">
+                    {{ getJobStatusLabel(currentApplication.jobStatus) }}
+                  </span>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-600 mb-1">申请状态</label>
@@ -1680,6 +1695,7 @@ const interviewRecords = ref([])
 const selectedApplicationId = ref(null)
 const activeTab = ref('overview')
 const filterStatus = ref('')
+const filterJobStatus = ref('')
 const selectedStageId = ref(null) // 选中的面试阶段ID
 const showApplicationList = ref(true) // 控制职位申请列表显示/隐藏
 const activeInterviewSubTab = ref('notes') // 面试详情子Tab: notes, areas, checklist, records
@@ -1773,8 +1789,19 @@ const selectedStage = computed(() =>
 )
 
 const filteredApplications = computed(() => {
-  if (!filterStatus.value) return applications.value
-  return applications.value.filter(app => app.applicationStatus === filterStatus.value)
+  let filtered = applications.value
+
+  // 按申请状态筛选
+  if (filterStatus.value) {
+    filtered = filtered.filter(app => app.applicationStatus === filterStatus.value)
+  }
+
+  // 按职位招聘状态筛选
+  if (filterJobStatus.value) {
+    filtered = filtered.filter(app => app.jobStatus === filterJobStatus.value)
+  }
+
+  return filtered
 })
 
 const formatDate = (dateStr) => {
@@ -1824,6 +1851,24 @@ const getStatusText = (status) => {
     'Withdrawn': '已撤回'
   }
   return texts[status] || status
+}
+
+const getJobStatusColor = (status) => {
+  const colors = {
+    'Open': 'bg-blue-100 text-blue-700',
+    'ActivelyHiring': 'bg-green-100 text-green-700',
+    'Closed': 'bg-gray-100 text-gray-700'
+  }
+  return colors[status] || 'bg-blue-100 text-blue-700'
+}
+
+const getJobStatusLabel = (status) => {
+  const labels = {
+    'Open': '开放招聘',
+    'ActivelyHiring': '积极招聘',
+    'Closed': '已关闭'
+  }
+  return labels[status] || '开放招聘'
 }
 
 const getInterviewFormatText = (format) => {
@@ -2500,13 +2545,9 @@ const navigateToSkillLearning = (focusArea) => {
     return
   }
 
-  // 跳转到技能详情页面，通过query参数传递focusAreaId以便自动定位
-  router.push({
-    path: `/skills/${focusArea.skillId}`,
-    query: {
-      focusAreaId: focusArea.id
-    }
-  })
+  // 在新标签页打开通用技能学习页面，通过query参数传递focusAreaId以便自动定位
+  const url = `/general-skills/learning/${focusArea.skillId}?focusAreaId=${focusArea.id}`
+  window.open(url, '_blank')
 }
 
 // 获取分类样式

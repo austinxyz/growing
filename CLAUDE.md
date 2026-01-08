@@ -174,28 +174,138 @@
 
 ---
 
+**💼 Category 6: Phase 7 Job Search Module Error Patterns**
+
+**Mistake #11 (Phase 7)**: Missing required fields when cloning objects
+- **Problem**: `Column 'skill_category' cannot be null` error when cloning resume (commit a69469b)
+- **What Happened**: `cloneDefaultResumeForJob()` copied all fields EXCEPT `skill_category`
+- **Root Cause**: Incomplete field copying in clone logic, didn't review all non-nullable fields
+- **Fix**: Added `clonedSkill.setSkillCategory(skill.getSkillCategory())`
+- **🛡️ Prevention Checklist** (for any clone/copy operation):
+  1. [ ] List ALL fields in source entity (check Entity class definition)
+  2. [ ] Mark which fields are nullable vs non-nullable (check `@Column(nullable=false)`)
+  3. [ ] Copy ALL non-nullable fields in clone logic
+  4. [ ] Add test: clone then save, verify no null constraint violations
+  5. [ ] Use IDE "Compare with..." to diff source and cloned object
+  6. [ ] Code review template:
+     ```java
+     // Clone Completeness Checklist:
+     // [ ] All @NotNull fields copied?
+     // [ ] All foreign keys copied?
+     // [ ] Updated foreign keys (e.g., resume_id)?
+     ```
+
+**Mistake #12 (Phase 7)**: API method name mismatch
+- **Problem**: Called `interviewStageApi.getStagesByJob(jobId)` which doesn't exist (commit 0cc41eb)
+- **Actual**: Should be `interviewStageApi.getByJobApplication(jobId)`
+- **Root Cause**: Guessed API method name without reading API file definition
+- **Fix**: Changed to correct method name from `interviewStageApi.js`
+- **🛡️ Prevention Checklist** (before calling ANY API method):
+  1. [ ] Open API file (e.g., `/frontend/src/api/interviewStageApi.js`)
+  2. [ ] Read ALL exported method names
+  3. [ ] Copy-paste method name (don't hand-type)
+  4. [ ] Check method parameters match what you're passing
+  5. [ ] Use IDE autocomplete (Ctrl+Space) to verify method exists
+  6. [ ] Add comment:
+     ```javascript
+     // From interviewStageApi.js:15 - getByJobApplication(jobApplicationId)
+     const data = await interviewStageApi.getByJobApplication(jobId)
+     ```
+
+**Mistake #13 (Phase 7)**: Route path mismatch
+- **Problem**: Navigated to `/job-search/resume-management` but route is `/job-search/resume` (commit 76717c1)
+- **Error**: Vue Router "No match found for location with path '/job-search/resume-management'"
+- **Root Cause**: Hardcoded path without checking router definition
+- **Fix**: Updated to correct path from `router/index.js`
+- **🛡️ Prevention Checklist** (before any router.push() call):
+  1. [ ] Open `/frontend/src/router/index.js`
+  2. [ ] Search for target route definition (e.g., "resume")
+  3. [ ] Copy exact path from route definition
+  4. [ ] BETTER: Use named routes instead:
+     ```javascript
+     // ❌ WRONG - hardcoded path
+     router.push('/job-search/resume-management')
+
+     // ✅ CORRECT - use route name
+     router.push({ name: 'ResumeManagement' })
+     ```
+  5. [ ] Create route constants file if project grows large
+
+**Mistake #14 (Phase 7)**: Auto-select interference with URL parameters
+- **Problem**: `loadResumes()` auto-selected default resume even when URL had `resumeId` parameter (commits bca3b18, cf776aa)
+- **What Happened**: User clicked "Edit resume X" → page loaded but showed default resume instead
+- **Root Cause**: Auto-select logic didn't check URL state first
+- **Fix**: Conditional auto-select only when no `resumeId` in URL
+- **🛡️ Prevention Checklist** (before any auto-select/auto-action):
+  1. [ ] Check: "Can user arrive here with context (URL params, query, route state)?"
+  2. [ ] If YES: Parse URL state FIRST, then conditionally auto-select
+  3. [ ] Pattern:
+     ```javascript
+     // ✅ CORRECT - check URL first
+     const loadData = async () => {
+       const urlResumeId = route.query.resumeId
+       if (urlResumeId) {
+         // User has explicit selection from URL
+         selectResume(urlResumeId)
+       } else {
+         // No URL context, auto-select default
+         const defaultResume = resumes.value.find(r => r.isDefault)
+         if (defaultResume) selectResume(defaultResume.id)
+       }
+     }
+     ```
+  4. [ ] Test: Navigate with URL param, verify it takes precedence
+  5. [ ] Comment explaining auto-select logic:
+     ```javascript
+     // Auto-select logic: URL > Default > First item
+     ```
+
+---
+
 **📊 Quality Metrics (Updated)**:
-| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
-|--------|---------|---------|---------|---------|
-| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ |
-| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ |
-| **Backend API bugs** | 0 | 0 | 0 | **1** ⚠️ |
-| **Field name bugs** | 0 | 0 | 0 | **1** ⚠️ |
-| **Logic bugs** | 0 | 0 | 0 | **1** ⚠️ |
-| Code reuse | 30% | 50% | 70% | **80%** |
+| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 | Phase 7 |
+|--------|---------|---------|---------|---------|---------|
+| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
+| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
+| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| Field name bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| Logic bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| **Clone/copy bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| **API method bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| **Route bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| **Auto-select bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| Code reuse | 30% | 50% | 70% | 80% | **85%** |
+| Development efficiency | - | - | - | - | **+24-32%** ⚡ |
 
 **Phase 6 Lessons**:
 - ✅ Axios/DTO bugs成功避免（预防性检查清单有效）
 - ⚠️ 出现3个新类型错误（后端API路径、字段名、业务逻辑）
 - **教训**: 检查清单需要扩展到后端API和业务逻辑
 
-**🚨 UPDATED Pre-Development Checklist**:
+**Phase 7 Lessons**:
+- ✅ Phase 6的3类错误全部避免（后端API、字段名、逻辑）
+- ⚠️ 出现4个新类型错误（clone、API method、route、auto-select）
+- ✅ 开发效率显著提升（比预估节省24-32%时间）
+- **教训**:
+  1. Clone操作需要完整性检查清单
+  2. API调用必须先读API文件定义
+  3. 路由导航应优先使用named routes
+  4. 所有auto-action需要检查URL状态
+
+**🚨 UPDATED Pre-Development Checklist** (with Phase 7 patterns):
 ```
-Frontend:
+Frontend API Calls:
 [ ] Read /frontend/src/api/index.js (lines 4, 27-29)?
 [ ] Review existing API file as pattern?
 [ ] Endpoints start with "/" WITHOUT "/api" prefix?
 [ ] Response: "const data = await api.method()" pattern?
+[ ] Open target API file and READ method names before calling?
+[ ] Copy-paste API method names, don't hand-type?
+
+Frontend Router:
+[ ] Open router/index.js and check exact route path?
+[ ] Use named routes (router.push({ name: 'X' })) instead of hardcoded paths?
+[ ] Check URL params/query before any auto-select/auto-action?
 
 Backend:
 [ ] Check Controller @RequestMapping annotation exists?
@@ -211,6 +321,13 @@ Business Logic:
 [ ] List ALL conditions that should affect this logic?
 [ ] Test reverse case: what SHOULDN'T trigger this logic?
 [ ] Check related entity boolean fields that may affect logic?
+
+Clone/Copy Operations:
+[ ] List ALL fields in source entity (check Entity class)?
+[ ] Mark nullable vs non-nullable fields (@Column(nullable=false))?
+[ ] Copy ALL non-nullable fields?
+[ ] Update foreign key fields to point to new parent?
+[ ] Test: clone then save, verify no null constraint violations?
 ```
 
 ## Quick Start
@@ -303,17 +420,22 @@ Role: admin
 
 ## Current Status
 
-**已完成Phases**: 1-6 (用户管理 → 技能学习 → 试题库 → 算法学习 → 系统设计 → 通用技能)
+**已完成Phases**: 1-7 (用户管理 → 技能学习 → 试题库 → 算法学习 → 系统设计 → 通用技能 → 求职管理)
 
 **详细信息**: 查看各Phase设计文档 (`/docs/Phase{N}-设计文档.md`)
 
-**Phase 6 Quality Metrics** (最新):
-| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
-|--------|---------|---------|---------|---------|
-| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ |
-| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ |
-| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ |
-| Code reuse | 30% | 50% | 70% | **80%** |
+**Phase 7 Quality Metrics** (最新):
+| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 | Phase 7 |
+|--------|---------|---------|---------|---------|---------|
+| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
+| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
+| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| Clone/copy bugs | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| API method bugs | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| Route bugs | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| Auto-select bugs | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| Code reuse | 30% | 50% | 70% | 80% | **85%** |
+| Dev efficiency | - | - | - | - | **+24-32%** ⚡ |
 
 ## Documentation
 
@@ -333,6 +455,9 @@ Role: admin
 - `/requirement/Phase4-详细需求.md`
 - `/requirement/Phase5-详细需求.md`
 - `/requirement/Phase6-详细需求.md`
+- `/requirement/Phase7-详细需求.md` - Job search management (resumes, projects, companies, interviews)
+**Delivery Summary**:
+- `/docs/Phase7-交付总结.md` - Phase 7 delivery summary with lessons learned
 
 ## Prompt Writing Tips for User
 

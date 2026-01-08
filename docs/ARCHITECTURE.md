@@ -88,6 +88,31 @@ skills (云计算、Behavioral、DevOps等)
        └─ skill_templates (多对多关联, is_default标记)
 ```
 
+**Phase 7 Job Search Management** (求职管理: 简历、项目经验、公司职位、面试跟踪):
+```
+users
+  ├─ resumes (简历多版本管理)
+  │    ├─ job_application_id (外键 → job_applications, 定制简历关联职位)
+  │    ├─ resume_skills (技能列表)
+  │    ├─ resume_experiences (工作经历)
+  │    │    └─ project_ids (JSON, 关联 → project_experiences)
+  │    ├─ resume_education (教育背景)
+  │    └─ resume_certifications (证书)
+  ├─ project_experiences (项目经验库, STAR框架)
+  │    └─ focus_area_ids (JSON, 关联 → focus_areas)
+  ├─ companies (公司档案)
+  │    ├─ company_links (公司相关链接)
+  │    ├─ job_applications (职位申请)
+  │    │    ├─ status_history (JSON, 状态变更时间线)
+  │    │    ├─ interview_stages (面试流程阶段)
+  │    │    │    ├─ skill_ids (JSON, 关联 → skills)
+  │    │    │    └─ focus_area_ids (JSON, 关联 → focus_areas)
+  │    │    ├─ interview_records (面试记录)
+  │    │    └─ ai_job_analysis (AI简历分析, 通过agent生成prompt方式)
+  │    └─ referrals (人脉管理, 内推状态跟踪)
+  └─ management_experiences (人员管理经验, 待UI集成)
+```
+
 **Key Constraints**:
 - username, email: unique indexes
 - career_path_skills: unique(career_path_id, skill_id)
@@ -688,6 +713,262 @@ UNIQUE KEY unique_user_content ON user_learning_content_notes(learning_content_i
 
 ---
 
-**Document Version**: v4.0
-**Last Updated**: 2025-12-28 (added Phase 6 architecture)
+## Phase 7: Job Search Management Architecture
+
+### 7.1 Core Design Principles
+
+**Principle 1: Multi-Version Resume Management**
+- One user → multiple resume versions (base resume + customized resumes)
+- Customized resume linked to job application via `job_application_id` foreign key
+- Automatic naming: `{Company Name} - {Position Name}`
+
+**Principle 2: Deep Integration with Learning Modules (Phase 2-6)**
+- `project_experiences.focus_area_ids` → Phase 2-6 Focus Areas
+- `interview_stages.skill_ids` + `focus_area_ids` → Phase 2-6 Skills/Focus Areas
+- `resume_experiences.project_ids` → Project Experience Library
+- Learning成果直接应用到面试准备
+
+**Principle 3: JSON Fields for Flexible Data Modeling**
+- Avoid table explosion with JSON fields:
+  - `project_ids`, `skill_ids`, `focus_area_ids`: Arrays of IDs
+  - `status_history`: Timeline of status changes with timestamps
+  - `rejection_reasons`: Multiple rejection reasons
+  - `ai_analysis_result`: AI analysis results (multi-dimensional scoring)
+- Trade-off: No foreign key constraints, application-layer data integrity
+
+**Principle 4: AI Integration via Agent + Prompt Generation**
+- System generates prompt (JD + resume content)
+- User runs prompt in Claude Code
+- User submits AI result via API
+- Frontend Watch auto-loads suggestions (no refresh needed)
+- Benefits: Flexible, transparent, easy to debug, no API key management
+
+### 7.2 Data Model Details
+
+**resumes** (简历主表):
+```sql
+CREATE TABLE resumes (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  version_name VARCHAR(100) NOT NULL,          -- 简历版本名称
+  is_default TINYINT(1) DEFAULT 0,             -- 是否默认简历
+  job_application_id BIGINT,                   -- ⭐ 关联职位（定制简历）
+  about TEXT,                                  -- 个人简介
+  career_objective TEXT,                       -- 职业目标
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  linkedin_url VARCHAR(500),
+  github_url VARCHAR(500),
+  website_url VARCHAR(500),
+  other_links JSON,                            -- 其他社交链接
+  languages TEXT,                              -- 语言能力（Markdown）
+  hobbies TEXT,                                -- 兴趣爱好
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE SET NULL
+);
+```
+
+**project_experiences** (项目经验库, STAR框架):
+```sql
+CREATE TABLE project_experiences (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  project_name VARCHAR(255) NOT NULL,
+  project_type VARCHAR(50),                    -- Work/Personal/Academic
+  -- What/When/Who/Why
+  what_description TEXT,
+  start_date DATE,
+  end_date DATE,
+  team_size INT,
+  my_role VARCHAR(255),
+  background TEXT,
+  -- Problem Section
+  problem_statement TEXT,
+  challenges TEXT,
+  constraints TEXT,
+  -- How Section
+  tech_stack TEXT,
+  architecture TEXT,
+  innovation TEXT,
+  my_contribution TEXT,
+  -- Result Section
+  quantitative_results TEXT,
+  business_impact TEXT,
+  personal_growth TEXT,
+  lessons_learned TEXT,
+  -- Metadata
+  tech_tags JSON,                              -- 技术标签
+  difficulty VARCHAR(50),                      -- Low/Medium/High/Critical
+  focus_area_ids JSON,                         -- ⭐ 关联Focus Areas
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+**job_applications** (职位申请):
+```sql
+CREATE TABLE job_applications (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  company_id BIGINT NOT NULL,
+  position_name VARCHAR(255) NOT NULL,
+  position_level VARCHAR(50),
+  posted_date DATE,
+  job_url VARCHAR(500),
+  qualifications TEXT,                         -- JD技能要求（Markdown）
+  responsibilities TEXT,                       -- JD岗位职责（Markdown）
+  -- 申请状态
+  application_status VARCHAR(50) DEFAULT 'NotApplied',
+  status_updated_at TIMESTAMP,
+  status_history JSON,                         -- ⭐ 状态变更时间线
+  -- Offer信息
+  offer_received_at TIMESTAMP,
+  base_salary DECIMAL(12,2),
+  bonus DECIMAL(12,2),
+  stock_value DECIMAL(12,2),
+  total_compensation DECIMAL(12,2),
+  offer_deadline DATE,
+  offer_decision VARCHAR(50),
+  offer_notes TEXT,
+  -- 拒绝信息
+  rejected_at TIMESTAMP,
+  rejected_stage VARCHAR(50),
+  rejection_reasons JSON,                      -- ⭐ 拒绝原因列表
+  improvement_plan TEXT,
+  -- 其他
+  notes TEXT,
+  recruiter_insights JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+);
+```
+
+**interview_stages** (面试流程阶段):
+```sql
+CREATE TABLE interview_stages (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  job_application_id BIGINT NOT NULL,
+  stage_name VARCHAR(255) NOT NULL,
+  stage_order INT NOT NULL,
+  skill_ids JSON,                              -- ⭐ 关联Skills
+  focus_area_ids JSON,                         -- ⭐ 关联Focus Areas
+  preparation_notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE CASCADE
+);
+```
+
+**ai_job_analysis** (AI简历分析):
+```sql
+CREATE TABLE ai_job_analysis (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  job_application_id BIGINT NOT NULL,
+  resume_id BIGINT NOT NULL,
+  generated_prompt TEXT NOT NULL,              -- ⭐ 生成的Prompt
+  ai_analysis_result TEXT,                     -- ⭐ AI返回的分析结果（JSON）
+  analysis_metadata JSON,                      -- 元数据（评分、推荐等）
+  status VARCHAR(50) DEFAULT 'prompt_generated',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE CASCADE,
+  FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE
+);
+```
+
+### 7.3 Frontend Architecture Highlights
+
+**Vue Watch API for Auto-Loading**:
+```javascript
+// ResumeManagement.vue
+watch(() => currentResume.value?.jobApplicationId, async (jobApplicationId) => {
+  if (jobApplicationId) {
+    // This is a customized resume - auto-load AI suggestions
+    const analyses = await aiJobAnalysisApi.getByJobApplication(jobApplicationId)
+    if (analyses && analyses.length > 0) {
+      const latestAnalysis = analyses[0]
+      const parsedAnalysis = JSON.parse(latestAnalysis.aiAnalysisResult)
+      improvementSuggestions.value = parsedAnalysis.improvements || []
+    }
+  } else {
+    // This is a general resume - clear suggestions
+    improvementSuggestions.value = []
+  }
+})
+```
+
+**Multi-Layer Tab Structure**:
+```
+公司职位管理页面 (CompanyJobManagement.vue)
+├── Tab 1: 公司信息
+├── Tab 2: 职位管理
+│   ├── Sub-Tab 1: JD
+│   ├── Sub-Tab 2: 面试流程
+│   ├── Sub-Tab 3: 简历分析
+│   ├── Sub-Tab 4: 定制简历
+│   └── Sub-Tab 5: Recruiter
+└── Tab 3: 人脉管理
+```
+
+### 7.4 Common Pitfalls & Solutions
+
+**Pitfall #1: Missing Required Fields When Cloning**
+- **Issue**: `skill_category` field missing when cloning resume skills
+- **Error**: "Column 'skill_category' cannot be null"
+- **Root Cause**: Forgot to copy all required fields in `cloneDefaultResumeForJob()`
+- **Solution**: Always copy ALL fields, including non-nullable ones
+- **Prevention**: Code review checklist for clone/copy operations
+
+**Pitfall #2: API Method Name Mismatch**
+- **Issue**: Called `interviewStageApi.getStagesByJob()` which doesn't exist
+- **Actual**: Should be `interviewStageApi.getByJobApplication()`
+- **Root Cause**: Guessed API method name without checking API file
+- **Solution**: Always read API file before calling methods
+- **Prevention**: IDE autocomplete, TypeScript type checking
+
+**Pitfall #3: Route Path Mismatch**
+- **Issue**: Navigated to `/job-search/resume-management` but route is `/job-search/resume`
+- **Error**: Vue Router "No match found"
+- **Root Cause**: Didn't check `router/index.js` for actual route path
+- **Solution**: Search router file before hardcoding paths
+- **Prevention**: Use route name constants instead of hardcoded paths
+
+**Pitfall #4: Auto-Select Interference**
+- **Issue**: `loadResumes()` auto-selected default resume even when URL had `resumeId` parameter
+- **Root Cause**: Didn't check URL parameters before auto-selecting
+- **Solution**: Conditionally auto-select only when no URL parameter
+- **Prevention**: Always check URL state before auto-actions
+
+### 7.5 Performance Optimizations
+
+**JSON Field Indexing**:
+- Cannot index JSON fields directly in MySQL
+- Use virtual columns for frequently queried JSON fields:
+```sql
+ALTER TABLE job_applications ADD COLUMN
+  rejection_count INT GENERATED ALWAYS AS (JSON_LENGTH(rejection_reasons)) STORED;
+CREATE INDEX idx_rejection_count ON job_applications(rejection_count);
+```
+
+**Cascade Delete Strategy**:
+- `resumes.job_application_id` → `ON DELETE SET NULL` (preserve resume when job deleted)
+- `resume_experiences.resume_id` → `ON DELETE CASCADE` (delete child resources)
+- `interview_stages.job_application_id` → `ON DELETE CASCADE`
+
+**Query Patterns**:
+- Fetch customized resume: `WHERE job_application_id = ?`
+- Fetch all job's AI analyses: `WHERE job_application_id = ? ORDER BY created_at DESC LIMIT 1`
+- Status timeline: `JSON_EXTRACT(status_history, '$[*].status')`
+
+---
+
+**Document Version**: v5.0
+**Last Updated**: 2026-01-07 (added Phase 7 architecture)
 **Maintainer**: Austin Xu

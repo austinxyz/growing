@@ -183,7 +183,7 @@
             <router-link
               v-for="fa in systemDesign.focusAreas"
               :key="fa.id"
-              :to="{ name: 'GeneralSkillLearningWithId', params: { skillId: 2 }, query: { focusAreaId: fa.id } }"
+              :to="`/general-skills/learning/2?focusAreaId=${fa.id}`"
               class="px-3 py-1 bg-white text-gray-700 rounded-full text-xs border border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer"
             >
               {{ fa.name }}
@@ -193,7 +193,7 @@
             </span>
           </div>
           <router-link
-            :to="{ name: 'GeneralSkillLearningWithId', params: { skillId: 2 } }"
+            to="/general-skills/learning/2"
             class="mt-4 inline-block text-sm text-orange-600 hover:text-orange-700 font-semibold"
           >
             查看全部 →

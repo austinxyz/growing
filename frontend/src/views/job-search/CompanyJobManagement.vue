@@ -332,6 +332,13 @@
                     </a>
                   </div>
 
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">职位招聘状态</label>
+                    <span :class="['px-3 py-1 rounded-full text-sm font-medium inline-block', getJobStatusColor(currentJob.jobStatus)]">
+                      {{ getJobStatusLabel(currentJob.jobStatus) }}
+                    </span>
+                  </div>
+
                   <div class="border-t pt-6">
                     <label class="block text-lg font-semibold text-gray-900 mb-3">📋 Qualifications（技能要求）</label>
                     <div v-if="currentJob.qualifications" v-html="renderMarkdown(currentJob.qualifications)" class="prose max-w-none"></div>
@@ -1080,6 +1087,14 @@
             <input v-model="jobFormData.jobUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://" />
           </div>
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">职位招聘状态</label>
+            <select v-model="jobFormData.jobStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <option value="Open">开放招聘 (Open)</option>
+              <option value="ActivelyHiring">积极招聘 (Actively Hiring)</option>
+              <option value="Closed">已关闭 (Closed)</option>
+            </select>
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">职位要求 (支持 Markdown)</label>
             <textarea v-model="jobFormData.qualifications" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"></textarea>
           </div>
@@ -1447,6 +1462,7 @@ const jobFormData = ref({
   positionName: '',
   positionLevel: '',
   jobUrl: '',
+  jobStatus: 'Open',
   qualifications: '',
   responsibilities: '',
   applicationStatus: '未申请',
@@ -1572,6 +1588,24 @@ const getStatusColor = (status) => {
     '已撤回': 'bg-gray-100 text-gray-700'
   }
   return colors[status] || 'bg-gray-100 text-gray-700'
+}
+
+const getJobStatusColor = (status) => {
+  const colors = {
+    'Open': 'bg-blue-100 text-blue-700',
+    'ActivelyHiring': 'bg-green-100 text-green-700',
+    'Closed': 'bg-gray-100 text-gray-700'
+  }
+  return colors[status] || 'bg-blue-100 text-blue-700'
+}
+
+const getJobStatusLabel = (status) => {
+  const labels = {
+    'Open': '开放招聘',
+    'ActivelyHiring': '积极招聘',
+    'Closed': '已关闭'
+  }
+  return labels[status] || '开放招聘'
 }
 
 const getReferralStatusColor = (status) => {
@@ -1798,6 +1832,7 @@ const openJobModal = (job = null) => {
       positionName: job.positionName || '',
       positionLevel: job.positionLevel || '',
       jobUrl: job.jobUrl || '',
+      jobStatus: job.jobStatus || 'Open',
       qualifications: job.qualifications || '',
       responsibilities: job.responsibilities || '',
       applicationStatus: job.applicationStatus || '未申请',
@@ -1809,6 +1844,7 @@ const openJobModal = (job = null) => {
       positionName: '',
       positionLevel: '',
       jobUrl: '',
+      jobStatus: 'Open',
       qualifications: '',
       responsibilities: '',
       applicationStatus: '未申请',

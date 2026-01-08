@@ -17,6 +17,7 @@ public class JobApplicationDTO {
     private String positionLevel;
     private LocalDate postedDate;
     private String jobUrl;
+    private String jobStatus;  // Open, ActivelyHiring, Closed
 
     // JD Core Content
     private String qualifications;

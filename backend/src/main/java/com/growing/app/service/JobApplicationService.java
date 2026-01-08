@@ -103,6 +103,7 @@ public class JobApplicationService {
         application.setPositionLevel(dto.getPositionLevel());
         application.setPostedDate(dto.getPostedDate());
         application.setJobUrl(dto.getJobUrl());
+        application.setJobStatus(dto.getJobStatus() != null ? dto.getJobStatus() : "Open");
         application.setQualifications(dto.getQualifications());
         application.setResponsibilities(dto.getResponsibilities());
         application.setApplicationStatus(dto.getApplicationStatus() != null ? dto.getApplicationStatus() : "NotApplied");
@@ -163,6 +164,7 @@ public class JobApplicationService {
         application.setPositionLevel(dto.getPositionLevel());
         application.setPostedDate(dto.getPostedDate());
         application.setJobUrl(dto.getJobUrl());
+        application.setJobStatus(dto.getJobStatus() != null ? dto.getJobStatus() : "Open");
         application.setQualifications(dto.getQualifications());
         application.setResponsibilities(dto.getResponsibilities());
         application.setApplicationStatus(dto.getApplicationStatus());
@@ -228,6 +230,7 @@ public class JobApplicationService {
         dto.setPositionLevel(application.getPositionLevel());
         dto.setPostedDate(application.getPostedDate());
         dto.setJobUrl(application.getJobUrl());
+        dto.setJobStatus(application.getJobStatus());
         dto.setQualifications(application.getQualifications());
         dto.setResponsibilities(application.getResponsibilities());
         dto.setApplicationStatus(application.getApplicationStatus());
