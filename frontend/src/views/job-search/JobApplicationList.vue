@@ -732,6 +732,87 @@
                 </div>
               </div>
             </div>
+
+            <!-- 定制简历部分 -->
+            <div class="bg-white rounded-lg shadow p-6 mt-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                定制简历
+              </h3>
+
+              <!-- Loading State -->
+              <div v-if="loadingCustomizedResume" class="text-center py-8">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm text-gray-500">加载定制简历...</p>
+              </div>
+
+              <!-- No Customized Resume Yet -->
+              <div v-else-if="!customizedResume" class="text-center py-8">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-sm text-gray-600 mb-4">还没有为此职位创建定制简历</p>
+                <button
+                  @click="cloneResumeForJob"
+                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all"
+                >
+                  创建定制简历
+                </button>
+                <p class="text-xs text-gray-400 mt-2">将克隆您的默认简历，并可根据AI分析建议进行优化</p>
+              </div>
+
+              <!-- Customized Resume Exists -->
+              <div v-else>
+                <div class="flex items-center justify-between mb-4 pb-4 border-b">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">{{ customizedResume.versionName }}</p>
+                    <p class="text-xs text-gray-500 mt-1">最后更新: {{ new Date(customizedResume.updatedAt).toLocaleString('zh-CN') }}</p>
+                  </div>
+                  <button
+                    @click="editCustomizedResume"
+                    class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 font-medium transition-all"
+                  >
+                    编辑简历
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">邮箱</label>
+                    <p class="text-sm text-gray-900">{{ customizedResume.email || '未设置' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">电话</label>
+                    <p class="text-sm text-gray-900">{{ customizedResume.phone || '未设置' }}</p>
+                  </div>
+                </div>
+
+                <div v-if="customizedResume.about" class="mb-4">
+                  <label class="block text-xs font-medium text-gray-600 mb-1">关于我</label>
+                  <p class="text-sm text-gray-700 line-clamp-3">{{ customizedResume.about }}</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 text-center">
+                  <div class="p-3 bg-blue-50 rounded-lg">
+                    <p class="text-xs text-gray-600 mb-1">工作经历</p>
+                    <p class="text-lg font-bold text-blue-600">{{ customizedResume.experiences?.length || 0 }}</p>
+                  </div>
+                  <div class="p-3 bg-purple-50 rounded-lg">
+                    <p class="text-xs text-gray-600 mb-1">技能</p>
+                    <p class="text-lg font-bold text-purple-600">{{ customizedResume.skills?.length || 0 }}</p>
+                  </div>
+                  <div class="p-3 bg-green-50 rounded-lg">
+                    <p class="text-xs text-gray-600 mb-1">项目</p>
+                    <p class="text-lg font-bold text-green-600">{{ customizedResume.projects?.length || 0 }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1190,6 +1271,7 @@ import { interviewRecordApi } from '@/api/interviewRecordApi'
 import interviewPreparationChecklistApi from '@/api/interviewPreparationChecklistApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
 import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
+import { resumeApi } from '@/api/resumeApi'
 import MarkdownIt from 'markdown-it'
 
 const router = useRouter()
@@ -1245,6 +1327,8 @@ const resumeAnalysis = ref(null)
 const aiPromptData = ref(null)
 const savedAnalyses = ref([])
 const selectedAnalysis = ref(null)
+const customizedResume = ref(null)
+const loadingCustomizedResume = ref(false)
 
 const tabs = [
   { id: 'overview', name: '概览' },
@@ -1338,8 +1422,9 @@ const selectApplication = async (appId) => {
   selectedApplicationId.value = appId
   activeTab.value = 'overview'
 
-  // Load saved AI analyses for this job application
+  // Load saved AI analyses and customized resume for this job application
   await loadSavedAnalyses(appId)
+  await loadCustomizedResume(appId)
 }
 
 const goToCompanyPage = () => {
@@ -1796,6 +1881,55 @@ const loadSavedAnalyses = async (jobAppId) => {
   }
 }
 
+// Load customized resume for current job
+const loadCustomizedResume = async (jobId) => {
+  if (!jobId) return
+
+  loadingCustomizedResume.value = true
+  try {
+    const data = await resumeApi.getResumeByJob(jobId)
+    customizedResume.value = data
+  } catch (error) {
+    console.error('加载定制简历失败:', error)
+    customizedResume.value = null
+  } finally {
+    loadingCustomizedResume.value = false
+  }
+}
+
+// Clone default resume for job
+const cloneResumeForJob = async () => {
+  if (!selectedApplicationId.value) return
+
+  try {
+    const clonedResume = await resumeApi.cloneResumeForJob(selectedApplicationId.value)
+    customizedResume.value = clonedResume
+
+    // Navigate to resume management
+    router.push({
+      path: '/job-search/resume',
+      query: {
+        resumeId: clonedResume.id
+      }
+    })
+  } catch (error) {
+    console.error('克隆简历失败:', error)
+    alert('创建定制简历失败，请稍后重试')
+  }
+}
+
+// Edit customized resume
+const editCustomizedResume = () => {
+  if (!customizedResume.value) return
+
+  router.push({
+    path: '/job-search/resume',
+    query: {
+      resumeId: customizedResume.value.id
+    }
+  })
+}
+
 // View analysis details
 const viewAnalysisDetails = (analysis) => {
   selectedAnalysis.value = analysis
@@ -2029,5 +2163,13 @@ const generateSuggestedChecklist = async () => {
 
 .prose-sm :deep(p) {
   @apply mb-1;
+}
+
+/* 文本截断样式 */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
