@@ -951,6 +951,17 @@
           <h3 class="text-lg font-bold text-white">{{ currentStage?.stageName }} - 准备清单</h3>
           <div class="flex gap-2">
             <button
+              v-if="selectedChecklistIds.length > 0"
+              @click="showMoveChecklistModal = true"
+              class="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-1"
+              title="移动选中的清单项到其他阶段"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              移动 ({{ selectedChecklistIds.length }})
+            </button>
+            <button
               v-if="currentApplication?.recruiterInsights"
               @click="generateSuggestedChecklist"
               class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-1"
@@ -996,32 +1007,42 @@
                 :key="item.id"
                 class="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded"
               >
-                <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    :value="item.id"
+                    v-model="selectedChecklistIds"
+                    class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
                   <div class="flex-1">
-                    <span class="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-medium mr-2">
-                      {{ item.category }}
-                    </span>
-                    <span class="text-gray-900">{{ item.checklistItem }}</span>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <span class="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-medium mr-2">
+                          {{ item.category }}
+                        </span>
+                        <span class="text-gray-900">{{ item.checklistItem }}</span>
+                      </div>
+                      <div class="flex gap-2">
+                        <button
+                          @click="editChecklistItem(item)"
+                          class="text-blue-600 hover:text-blue-700 text-sm"
+                          title="编辑"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          @click="deleteChecklistItem(item.id)"
+                          class="text-red-600 hover:text-red-700 text-sm"
+                          title="删除"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    </div>
+                    <div v-if="item.notes" class="mt-2 text-sm text-gray-600 pl-2">
+                      <div v-html="renderMarkdownWithLinks(item.notes)" class="prose-sm"></div>
+                    </div>
                   </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="editChecklistItem(item)"
-                      class="text-blue-600 hover:text-blue-700 text-sm"
-                      title="编辑"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      @click="deleteChecklistItem(item.id)"
-                      class="text-red-600 hover:text-red-700 text-sm"
-                      title="删除"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-                <div v-if="item.notes" class="mt-2 text-sm text-gray-600 pl-2">
-                  <div v-html="renderMarkdownWithLinks(item.notes)" class="prose-sm"></div>
                 </div>
               </div>
             </div>
@@ -1041,32 +1062,42 @@
                     : 'bg-gray-50 border-gray-200'
                 ]"
               >
-                <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    :value="item.id"
+                    v-model="selectedChecklistIds"
+                    class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
                   <div class="flex-1">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium mr-2">
-                      {{ item.category }}
-                    </span>
-                    <span class="text-gray-900">{{ item.checklistItem }}</span>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium mr-2">
+                          {{ item.category }}
+                        </span>
+                        <span class="text-gray-900">{{ item.checklistItem }}</span>
+                      </div>
+                      <div class="flex gap-2">
+                        <button
+                          @click="editChecklistItem(item)"
+                          class="text-blue-600 hover:text-blue-700 text-sm"
+                          title="编辑"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          @click="deleteChecklistItem(item.id)"
+                          class="text-red-600 hover:text-red-700 text-sm"
+                          title="删除"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    </div>
+                    <div v-if="item.notes" class="mt-2 text-sm text-gray-600 pl-2">
+                      <div v-html="renderMarkdownWithLinks(item.notes)" class="prose-sm"></div>
+                    </div>
                   </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="editChecklistItem(item)"
-                      class="text-blue-600 hover:text-blue-700 text-sm"
-                      title="编辑"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      @click="deleteChecklistItem(item.id)"
-                      class="text-red-600 hover:text-red-700 text-sm"
-                      title="删除"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-                <div v-if="item.notes" class="mt-2 text-sm text-gray-600 pl-2">
-                  <div v-html="renderMarkdownWithLinks(item.notes)" class="prose-sm"></div>
                 </div>
               </div>
 
@@ -1076,6 +1107,46 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动清单项 Modal -->
+    <div v-if="showMoveChecklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+      <div class="bg-white rounded-lg p-6 w-[500px]">
+        <h3 class="text-lg font-semibold mb-4">移动清单项到其他阶段</h3>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600 mb-2">
+            将选中的 <span class="font-bold text-indigo-600">{{ selectedChecklistIds.length }}</span> 项清单移动到：
+          </p>
+          <select
+            v-model="targetStageId"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>请选择目标阶段</option>
+            <option
+              v-for="stage in availableStagesForMove"
+              :key="stage.id"
+              :value="stage.id"
+            >
+              阶段 {{ stage.stageOrder }}: {{ stage.stageName }}
+            </option>
+          </select>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button
+            @click="showMoveChecklistModal = false; targetStageId = ''"
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </button>
+          <button
+            @click="confirmMoveChecklists"
+            :disabled="!targetStageId"
+            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            确认移动
+          </button>
         </div>
       </div>
     </div>
@@ -1706,6 +1777,7 @@ const showRecruiterInsightsModal = ref(false)
 const showInterviewRecordModal = ref(false)
 const showAnalysisDetailsModal = ref(false)
 const showEditAreasModal = ref(false)
+const showMoveChecklistModal = ref(false)
 const currentStageId = ref(null)
 const isEditingNotes = ref(false)
 const editingNotes = ref('')
@@ -1715,6 +1787,8 @@ const allChecklistItems = ref([])
 const priorityItems = ref([])
 const editingChecklistItem = ref(null)
 const editingInterviewRecord = ref(null)
+const selectedChecklistIds = ref([])
+const targetStageId = ref('')
 const checklistFormData = ref({
   checklistItem: '',
   category: '算法',
@@ -1802,6 +1876,11 @@ const filteredApplications = computed(() => {
   }
 
   return filtered
+})
+
+// 可移动到的阶段列表（排除当前阶段）
+const availableStagesForMove = computed(() => {
+  return interviewStages.value.filter(stage => stage.id !== currentStageId.value)
 })
 
 const formatDate = (dateStr) => {
@@ -1919,6 +1998,7 @@ const toggleExperience = (expId) => {
 
 const showPreparationChecklist = async (stageId) => {
   currentStageId.value = stageId
+  selectedChecklistIds.value = []  // 重置选中的清单项
   showChecklistModal.value = true
   await loadChecklistItems(stageId)
 }
@@ -1996,6 +2076,37 @@ const deleteChecklistItem = async (id) => {
   } catch (error) {
     console.error('删除清单项失败:', error)
     alert('删除失败')
+  }
+}
+
+const confirmMoveChecklists = async () => {
+  if (!targetStageId.value || selectedChecklistIds.value.length === 0) {
+    alert('请选择目标阶段')
+    return
+  }
+
+  try {
+    // From interviewPreparationChecklistApi.js - batchMoveChecklists(checklistIds, targetStageId)
+    await interviewPreparationChecklistApi.batchMoveChecklists(
+      selectedChecklistIds.value,
+      targetStageId.value
+    )
+
+    // 关闭模态框
+    showMoveChecklistModal.value = false
+    targetStageId.value = ''
+    selectedChecklistIds.value = []
+
+    // 重新加载当前阶段的清单
+    await loadChecklistItems(currentStageId.value)
+
+    // 刷新面试阶段数据（更新清单数量）
+    await loadInterviewStages(selectedApplicationId.value)
+
+    alert('清单项移动成功')
+  } catch (error) {
+    console.error('移动清单项失败:', error)
+    alert('移动失败')
   }
 }
 

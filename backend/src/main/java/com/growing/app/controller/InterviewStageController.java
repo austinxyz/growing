@@ -46,7 +46,7 @@ public class InterviewStageController {
     }
 
     /**
-     * 创建面试阶段
+     * 创建面试阶段（旧路径，保留兼容性）
      */
     @PostMapping("/api/job-applications/{jobId}/stages")
     public ResponseEntity<InterviewStageDTO> createStage(
@@ -56,6 +56,18 @@ public class InterviewStageController {
         Long userId = authService.getUserIdFromToken(token);
         // Set jobApplicationId from path variable
         dto.setJobApplicationId(jobId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(interviewStageService.createStage(userId, dto));
+    }
+
+    /**
+     * 创建面试阶段（新路径）
+     */
+    @PostMapping("/api/interview-stages")
+    public ResponseEntity<InterviewStageDTO> createStageNew(
+            @RequestBody InterviewStageDTO dto,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(interviewStageService.createStage(userId, dto));
     }

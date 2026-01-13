@@ -53,5 +53,27 @@ export default {
    */
   deleteChecklist(id) {
     return apiClient.delete(`/interview-preparation-checklist/${id}`)
+  },
+
+  /**
+   * 移动准备清单项到另一个面试阶段
+   * @param {number} id - 清单项ID
+   * @param {number} targetStageId - 目标面试阶段ID
+   */
+  moveChecklist(id, targetStageId) {
+    return apiClient.put(`/interview-preparation-checklist/${id}/move`, null, {
+      params: { targetStageId }
+    })
+  },
+
+  /**
+   * 批量移动准备清单项到另一个面试阶段
+   * @param {Array} checklistIds - 清单项ID数组
+   * @param {number} targetStageId - 目标面试阶段ID
+   */
+  batchMoveChecklists(checklistIds, targetStageId) {
+    return apiClient.put('/interview-preparation-checklist/batch-move', checklistIds, {
+      params: { targetStageId }
+    })
   }
 }

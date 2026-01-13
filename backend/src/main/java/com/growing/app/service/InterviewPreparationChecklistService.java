@@ -187,6 +187,98 @@ public class InterviewPreparationChecklistService {
         checklistRepository.delete(checklist);
     }
 
+    /**
+     * 移动准备清单项到另一个面试阶段
+     */
+    @Transactional
+    public InterviewPreparationChecklistDTO moveChecklistToStage(Long checklistId, Long targetStageId, Long userId) {
+        // 验证清单项存在
+        InterviewPreparationChecklist checklist = checklistRepository.findById(checklistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "准备清单项不存在"));
+
+        // 验证源阶段归属
+        InterviewStage sourceStage = interviewStageRepository.findById(checklist.getInterviewStageId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "源面试阶段不存在"));
+
+        JobApplication sourceApp = jobApplicationRepository.findById(sourceStage.getJobApplicationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "求职申请不存在"));
+
+        if (!sourceApp.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权移动此准备清单项");
+        }
+
+        // 验证目标阶段归属
+        InterviewStage targetStage = interviewStageRepository.findById(targetStageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "目标面试阶段不存在"));
+
+        JobApplication targetApp = jobApplicationRepository.findById(targetStage.getJobApplicationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "目标求职申请不存在"));
+
+        if (!targetApp.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问目标面试阶段");
+        }
+
+        // 确保源阶段和目标阶段属于同一个求职申请
+        if (!sourceStage.getJobApplicationId().equals(targetStage.getJobApplicationId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "只能在同一个求职申请的面试阶段之间移动清单项");
+        }
+
+        // 移动清单项
+        checklist.setInterviewStageId(targetStageId);
+        checklist = checklistRepository.save(checklist);
+
+        return convertToDTO(checklist);
+    }
+
+    /**
+     * 批量移动准备清单项到另一个面试阶段
+     */
+    @Transactional
+    public List<InterviewPreparationChecklistDTO> batchMoveChecklistsToStage(List<Long> checklistIds, Long targetStageId, Long userId) {
+        if (checklistIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "准备清单列表不能为空");
+        }
+
+        // 验证目标阶段归属
+        InterviewStage targetStage = interviewStageRepository.findById(targetStageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "目标面试阶段不存在"));
+
+        JobApplication targetApp = jobApplicationRepository.findById(targetStage.getJobApplicationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "目标求职申请不存在"));
+
+        if (!targetApp.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问目标面试阶段");
+        }
+
+        // 批量移动
+        return checklistIds.stream()
+                .map(id -> {
+                    InterviewPreparationChecklist checklist = checklistRepository.findById(id)
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "准备清单项不存在: " + id));
+
+                    // 验证源阶段归属
+                    InterviewStage sourceStage = interviewStageRepository.findById(checklist.getInterviewStageId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "源面试阶段不存在"));
+
+                    JobApplication sourceApp = jobApplicationRepository.findById(sourceStage.getJobApplicationId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "求职申请不存在"));
+
+                    if (!sourceApp.getUserId().equals(userId)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权移动此准备清单项");
+                    }
+
+                    // 确保源阶段和目标阶段属于同一个求职申请
+                    if (!sourceStage.getJobApplicationId().equals(targetStage.getJobApplicationId())) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "只能在同一个求职申请的面试阶段之间移动清单项");
+                    }
+
+                    // 移动清单项
+                    checklist.setInterviewStageId(targetStageId);
+                    return convertToDTO(checklistRepository.save(checklist));
+                })
+                .collect(Collectors.toList());
+    }
+
     private InterviewPreparationChecklistDTO convertToDTO(InterviewPreparationChecklist checklist) {
         InterviewPreparationChecklistDTO dto = new InterviewPreparationChecklistDTO();
         dto.setId(checklist.getId());

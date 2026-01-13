@@ -90,4 +90,28 @@ public class InterviewPreparationChecklistController {
         checklistService.deleteChecklist(id, userId);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 移动准备清单项到另一个面试阶段
+     */
+    @PutMapping("/{id}/move")
+    public ResponseEntity<InterviewPreparationChecklistDTO> moveChecklist(
+            @PathVariable Long id,
+            @RequestParam Long targetStageId,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        return ResponseEntity.ok(checklistService.moveChecklistToStage(id, targetStageId, userId));
+    }
+
+    /**
+     * 批量移动准备清单项到另一个面试阶段
+     */
+    @PutMapping("/batch-move")
+    public ResponseEntity<List<InterviewPreparationChecklistDTO>> batchMoveChecklists(
+            @RequestBody List<Long> checklistIds,
+            @RequestParam Long targetStageId,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        return ResponseEntity.ok(checklistService.batchMoveChecklistsToStage(checklistIds, targetStageId, userId));
+    }
 }
