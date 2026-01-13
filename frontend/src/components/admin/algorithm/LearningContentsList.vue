@@ -180,14 +180,12 @@ function loadContents() {
 
 // 编辑内容
 function editContent(content) {
-  console.log('编辑内容:', content)
   // TODO: 打开编辑Modal
 }
 
 // 删除内容
 function deleteContent(content) {
   if (confirm(`确定要删除"${content.title}"吗?`)) {
-    console.log('删除内容:', content)
     // TODO: 调用API删除
   }
 }

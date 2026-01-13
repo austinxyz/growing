@@ -653,7 +653,6 @@ const closeQuestionModal = () => {
 
 const handleNoteSaved = () => {
   // 笔记保存成功后的处理（如果需要）
-  console.log('笔记已保存')
 }
 
 const selectContentItem = (content) => {

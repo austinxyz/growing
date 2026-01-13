@@ -39,8 +39,6 @@
             <p class="text-xs mb-2">测试拖拽 (应该可以拖动下面的项目):</p>
             <draggable
               v-model="testItems"
-              @start="() => console.log('测试拖拽开始', testItems)"
-              @end="() => console.log('测试拖拽结束', testItems)"
               item-key="index"
               class="space-y-1"
             >
@@ -213,8 +211,6 @@
               <draggable
                 v-model="focusAreas"
                 @update:model-value="handleSecondTypeFocusAreaReorder"
-                @start="() => console.log('开始拖拽第二类技能Focus Area')"
-                @end="() => console.log('结束拖拽第二类技能Focus Area')"
                 item-key="id"
                 class="space-y-1"
                 :animation="200"
@@ -276,8 +272,6 @@
                     <draggable
                       :model-value="getFocusAreasByCategory(category.id)"
                       @update:model-value="(newList) => handleFocusAreaReorder(category.id, newList)"
-                      @start="() => console.log('开始拖拽Focus Area')"
-                      @end="() => console.log('结束拖拽Focus Area')"
                       item-key="id"
                       :animation="200"
                       class="space-y-1"
@@ -972,8 +966,6 @@ export default {
     }
   },
   async mounted() {
-    console.log('GeneralSkillContentManagement mounted')
-    console.log('draggable component:', this.$options.components.draggable)
     await this.loadCareerPaths()
   },
   watch: {
@@ -1142,7 +1134,6 @@ export default {
 
     // ===== Focus Area拖拽排序 =====
     async handleFocusAreaReorder(categoryId, newList) {
-      console.log('handleFocusAreaReorder被调用了', categoryId, newList)
       try {
         // 批量更新displayOrder
         const updates = newList.map((fa, index) => ({
@@ -1150,9 +1141,7 @@ export default {
           displayOrder: index
         }))
 
-        console.log('发送更新请求:', updates)
         await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-        console.log('更新成功')
 
         // 刷新Focus Areas
         await this.loadCategoriesAndFocusAreas()
@@ -1170,7 +1159,6 @@ export default {
       }
 
       try {
-        console.log('拖拽结束，分类ID:', categoryId, '从', evt.oldIndex, '到', evt.newIndex)
 
         // 获取该分类下的所有Focus Areas
         const focusAreasInCategory = this.getFocusAreasByCategory(categoryId)
@@ -1180,7 +1168,6 @@ export default {
         focusAreasInCategory.splice(evt.oldIndex, 1)
         focusAreasInCategory.splice(evt.newIndex, 0, movedItem)
 
-        console.log('新顺序:', focusAreasInCategory.map(fa => fa.name))
 
         // 批量更新displayOrder
         const updates = focusAreasInCategory.map((fa, index) => ({
@@ -1188,9 +1175,7 @@ export default {
           displayOrder: index
         }))
 
-        console.log('发送更新请求:', updates)
         await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-        console.log('更新成功')
 
         // 刷新Focus Areas以获取最新顺序
         await this.loadFocusAreas()
@@ -1204,7 +1189,6 @@ export default {
 
     // 处理第二类技能（无分类）的拖拽 - 使用v-model
     async handleSecondTypeFocusAreaReorder(newList) {
-      console.log('handleSecondTypeFocusAreaReorder被调用了', newList)
       try {
         // 批量更新displayOrder（按新顺序）
         const updates = newList.map((fa, index) => ({
@@ -1212,9 +1196,7 @@ export default {
           displayOrder: index
         }))
 
-        console.log('发送更新请求:', updates)
         await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-        console.log('更新成功')
 
         // 刷新Focus Areas
         await this.loadCategoriesAndFocusAreas()
@@ -1232,7 +1214,6 @@ export default {
       }
 
       try {
-        console.log('第二类技能拖拽结束，从', evt.oldIndex, '到', evt.newIndex)
 
         // 批量更新displayOrder（按当前数组顺序）
         const updates = this.focusAreas.map((fa, index) => ({
@@ -1240,9 +1221,7 @@ export default {
           displayOrder: index
         }))
 
-        console.log('发送更新请求:', updates)
         await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-        console.log('更新成功')
 
         // 刷新Focus Areas
         await this.loadFocusAreas()
@@ -1506,11 +1485,9 @@ export default {
         let aiNote = null
         try {
           aiNote = await adminQuestionApi.getAINote(this.viewingQuestion.id)
-          console.log('🔍 [AI答题] 获取到AI笔记:', aiNote)
         } catch (error) {
           // 404是正常的，表示还没有AI笔记
           if (error.response && error.response.status === 404) {
-            console.log('ℹ️ [AI答题] 该题目还没有AI笔记')
             aiNote = null
           } else {
             throw error
@@ -1521,38 +1498,28 @@ export default {
         // 首先从viewingQuestion的focusAreaId获取对应的skill_id
 
         let skillId = null
-        console.log('🔍 [AI答题] viewingQuestion.focusAreaId:', this.viewingQuestion.focusAreaId)
-        console.log('🔍 [AI答题] focusAreas数量:', this.focusAreas.length)
 
         if (this.viewingQuestion.focusAreaId) {
           const focusArea = this.focusAreas.find(fa => fa.id === this.viewingQuestion.focusAreaId)
-          console.log('🔍 [AI答题] 找到focusArea:', focusArea)
           if (focusArea && focusArea.skillId) {
             skillId = focusArea.skillId
-            console.log('✅ [AI答题] 从focusArea获取到skillId:', skillId)
           } else {
-            console.log('⚠️ [AI答题] focusArea没有skillId')
           }
         } else {
-          console.log('⚠️ [AI答题] viewingQuestion没有focusAreaId')
         }
 
         // 如果没有从Focus Area获取到skill_id，尝试使用selectedSkillId
         if (!skillId && this.selectedSkillId) {
           skillId = this.selectedSkillId
-          console.log('✅ [AI答题] 使用selectedSkillId:', skillId)
         }
 
-        console.log('🎯 [AI答题] 最终skillId:', skillId)
         if (skillId) {
           try {
             const template = await api.get(`/skills/${skillId}/templates/default`)
-            console.log('📋 [AI答题] 获取到模板:', template)
 
             if (template && template.templateFields && template.templateFields.length > 0) {
               this.aiAnswerTemplate = template
               this.aiAnswerMode = 'template'
-              console.log('✅ [AI答题] 成功设置模板,模式:', this.aiAnswerMode)
 
               // 解析AI笔记到模版字段
               if (aiNote && aiNote.noteContent) {
@@ -1561,8 +1528,6 @@ export default {
                 let isTemplateFormat = true
                 const parsedValues = {}
 
-                console.log('🔍 [AI答题] 开始解析模板字段，总共', templateFields.length, '个字段')
-                console.log('📝 [AI答题] AI笔记内容前500字符:', aiNote.noteContent.substring(0, 500))
 
                 // 尝试解析模版格式
                 for (const field of templateFields) {
@@ -1571,25 +1536,20 @@ export default {
                   const pattern = new RegExp(`## ${escapedLabel}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i')
                   const match = aiNote.noteContent.match(pattern)
 
-                  console.log(`🔍 [AI答题] 尝试匹配字段 "${field.label}":`, match ? '✅ 成功' : '❌ 失败')
 
                   if (match) {
                     parsedValues[field.key] = match[1].trim()
-                    console.log(`  ✅ 提取内容前100字符:`, match[1].trim().substring(0, 100))
                   } else {
-                    console.log(`  ❌ 匹配失败，使用的正则:`, pattern)
                     isTemplateFormat = false
                     break
                   }
                 }
 
-                console.log('🎯 [AI答题] 是否为模板格式:', isTemplateFormat)
 
                 if (isTemplateFormat) {
                   // 是模版格式，填充到模版字段
                   this.aiAnswerData = { ...parsedValues, coreStrategy: aiNote.coreStrategy || '' }
                   this.aiAnswerMode = 'template'
-                  console.log('✅ [AI答题] 使用模板模式，解析后的数据:', Object.keys(parsedValues))
                 } else {
                   // 不是模版格式，作为自由文本
                   this.aiAnswerData = {
@@ -1597,7 +1557,6 @@ export default {
                     coreStrategy: aiNote.coreStrategy || ''
                   }
                   this.aiAnswerMode = 'free'
-                  console.log('⚠️ [AI答题] 切换到自由答题模式')
                 }
               } else {
                 // 初始化空对象

@@ -49,9 +49,6 @@ public class LearningStageController {
         try {
             // 验证用户身份
             String token = authHeader.replace("Bearer ", "");
-            System.out.println("Received Authorization header: " + authHeader.substring(0, Math.min(50, authHeader.length())) + "...");
-            System.out.println("Extracted token: " + token.substring(0, Math.min(50, token.length())) + "...");
-
             String username = jwtUtil.getUsernameFromToken(token);
             userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录"));

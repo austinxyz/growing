@@ -2696,8 +2696,7 @@ const saveUserNote = async (contentId) => {
     if (!content || !content.userNote) return
 
     // Note: interceptor returns response.data already
-    const savedNote = await learningContentApi.saveOrUpdateNote(contentId, content.userNote.noteContent)
-    console.log('User note saved:', savedNote)
+    await learningContentApi.saveOrUpdateNote(contentId, content.userNote.noteContent)
   } catch (error) {
     console.error('Failed to save user note:', error)
     alert('保存笔记失败: ' + (error.message || '未知错误'))
@@ -2729,7 +2728,6 @@ const saveKnowledgePoint = async (contentId, kp) => {
     if (!kp.id && savedKp.id) {
       kp.id = savedKp.id
     }
-    console.log('Knowledge point saved:', savedKp)
   } catch (error) {
     console.error('Failed to save knowledge point:', error)
     alert('保存知识点失败: ' + (error.message || '未知错误'))
@@ -2757,7 +2755,6 @@ const deleteKnowledgePoint = async (contentId, kpId) => {
     if (content) {
       content.userKnowledgePoints = content.userKnowledgePoints.filter(kp => kp.id !== kpId)
     }
-    console.log('Knowledge point deleted:', kpId)
   } catch (error) {
     console.error('Failed to delete knowledge point:', error)
     alert('删除知识点失败: ' + (error.message || '未知错误'))

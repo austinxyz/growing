@@ -226,13 +226,10 @@ const loadSkill = async () => {
   loading.value = true
   try {
     const data = await getSkillById(skillId)
-    console.log('Loaded skill data:', data)
     skill.value = data
     focusAreas.value = data.focusAreas || []
     // 后端返回的字段名是 learningResources
     resources.value = data.learningResources || []
-    console.log('Focus areas:', focusAreas.value.length)
-    console.log('Learning resources:', resources.value.length)
 
     // 处理focusAreaId参数 - 自动定位到指定的Focus Area
     const focusAreaId = route.query.focusAreaId

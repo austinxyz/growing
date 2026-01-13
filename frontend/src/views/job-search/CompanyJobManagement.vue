@@ -2169,7 +2169,6 @@ const viewAnalysisDetails = (analysis) => {
   selectedAnalysis.value = analysis
   try {
     const fullAnalysis = JSON.parse(analysis.aiAnalysisResult)
-    console.log('完整分析结果:', fullAnalysis)
 
     alert(`
 AI分析详情 (ID: ${analysis.id})

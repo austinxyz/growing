@@ -7,8 +7,10 @@
 
 ### 🚨 NEVER Do This
 
-1. **NEVER commit `backend/.env`** - Contains DB credentials, already in `.gitignore`
+1. **NEVER commit `backend/.env` or `.env`** - Contains DB credentials, already in `.gitignore`
 2. **NEVER run backend without sourcing `.env`** - Use `./backend/start.sh`, not `mvn spring-boot:run` directly
+2a. **NEVER use dev config in production** - Local: `./start.sh prod`, Docker: `./deploy.sh` (auto-uses prod mode)
+2b. **NEVER deploy without verifying prod mode** - Check logs for "profiles are active: prod"
 3. **NEVER store plaintext passwords** - Always use `passwordEncoder.encode()` (BCrypt strength 10)
 4. **NEVER skip admin role check on `/api/users/*`** - Use `authService.isAdminByToken()`
 5. **NEVER modify user resources without ownership check** - Users can only delete their own resources
@@ -340,8 +342,11 @@ Clone/Copy Operations:
 ### Backend
 ```bash
 cd backend
-./start.sh  # Sources .env and runs Spring Boot
+./start.sh       # Development mode (default, verbose SQL logs)
+./start.sh dev   # Development mode (explicit)
+./start.sh prod  # Production mode (minimal logs, better performance)
 # Runs on http://localhost:8082
+# See backend/DEPLOYMENT.md for environment details
 ```
 
 ### Frontend
@@ -351,6 +356,25 @@ npm install
 npm run dev
 # Runs on http://localhost:3001
 # Proxies /api → http://localhost:8082
+```
+
+### Docker部署（生产环境，推荐）
+```bash
+# 1. 创建环境变量文件
+cp .env.production.example .env
+vim .env  # 填入实际的数据库凭据和JWT密钥
+
+# 2. 运行部署脚本（自动使用生产模式）
+./deploy.sh
+
+# 或手动启动
+docker-compose up -d
+
+# 验证生产模式
+docker-compose logs backend | grep "profiles are active"
+# 应显示: The following profiles are active: prod
+
+# 详见 DOCKER_DEPLOYMENT.md
 ```
 
 ### Database

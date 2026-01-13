@@ -357,8 +357,6 @@
             v-if="focusAreas.length > 0"
             v-model="focusAreas"
             @update:model-value="handleFocusAreaReorder"
-            @start="() => console.log('开始拖拽Focus Area排序')"
-            @end="() => console.log('结束拖拽Focus Area排序')"
             item-key="id"
             class="space-y-2"
             :animation="200"
@@ -925,7 +923,6 @@ export default {
 
     // ===== Focus Area排序（新增） =====
     async handleFocusAreaReorder(newList) {
-      console.log('handleFocusAreaReorder被调用了', newList)
       try {
         // 批量更新displayOrder
         const updates = newList.map((fa, index) => ({
@@ -933,9 +930,7 @@ export default {
           displayOrder: index
         }))
 
-        console.log('发送更新请求:', updates)
         await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-        console.log('更新成功')
 
         // 刷新Focus Areas
         await this.loadFocusAreas()

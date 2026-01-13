@@ -15,6 +15,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       # JWT Secret
       JWT_SECRET: ${JWT_SECRET}
+      # Spring Profile - Production mode (minimal logs, optimized performance)
+      SPRING_PROFILES_ACTIVE: prod
       # Spring configuration
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
       JAVA_OPTS: -Xms512m -Xmx1024m

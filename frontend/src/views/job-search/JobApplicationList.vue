@@ -2479,23 +2479,13 @@ const loadCustomizedResume = async (jobId) => {
     return
   }
 
-  console.log('📄 Loading customized resume for job:', jobId)
   loadingCustomizedResume.value = true
   try {
     const data = await resumeApi.getResumeByJob(jobId)
-    console.log('📄 Resume API response:', data)
     // 处理后端返回204 No Content的情况（data可能是undefined, null, 空字符串或空对象）
     if (!data || (typeof data === 'object' && Object.keys(data).length === 0) || data === '') {
-      console.log('📄 No customized resume found, showing create button')
       customizedResume.value = null
     } else {
-      console.log('✅ Customized resume loaded successfully:', {
-        id: data.id,
-        versionName: data.versionName,
-        experiencesCount: data.experiences?.length || 0,
-        skillsCount: data.skills?.length || 0,
-        educationCount: data.education?.length || 0
-      })
       customizedResume.value = data
     }
   } catch (error) {

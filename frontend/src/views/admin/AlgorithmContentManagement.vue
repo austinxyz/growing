@@ -56,8 +56,6 @@
               v-else
               :model-value="filteredFocusAreas"
               @update:model-value="handleFocusAreaReorder"
-              @start="() => console.log('开始拖拽算法Focus Area')"
-              @end="() => console.log('结束拖拽算法Focus Area')"
               item-key="id"
               class="space-y-1"
               :animation="200"
@@ -773,7 +771,6 @@ const saveQuestion = async (formData) => {
 
 // ===== Focus Area拖拽排序 =====
 const handleFocusAreaReorder = async (newList) => {
-  console.log('handleFocusAreaReorder被调用了', newList)
   try {
     // 批量更新displayOrder
     const updates = newList.map((fa, index) => ({
@@ -781,9 +778,7 @@ const handleFocusAreaReorder = async (newList) => {
       displayOrder: index
     }))
 
-    console.log('发送更新请求:', updates)
     await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-    console.log('更新成功')
 
     // 刷新Focus Areas以获取最新顺序
     await loadData()
@@ -800,8 +795,6 @@ const handleFocusAreaDragEnd = async (evt) => {
   }
 
   try {
-    console.log('算法页面拖拽结束，从', evt.oldIndex, '到', evt.newIndex)
-
     // 获取当前分类下的Focus Areas
     const focusAreasInCategory = filteredFocusAreas.value
 
@@ -810,17 +803,13 @@ const handleFocusAreaDragEnd = async (evt) => {
     focusAreasInCategory.splice(evt.oldIndex, 1)
     focusAreasInCategory.splice(evt.newIndex, 0, movedItem)
 
-    console.log('新顺序:', focusAreasInCategory.map(fa => fa.name))
-
     // 批量更新displayOrder
     const updates = focusAreasInCategory.map((fa, index) => ({
       id: fa.id,
       displayOrder: index
     }))
 
-    console.log('发送更新请求:', updates)
     await majorCategoryApi.batchUpdateFocusAreaOrder(updates)
-    console.log('更新成功')
 
     // 刷新Focus Areas
     await loadFocusAreas()

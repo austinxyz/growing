@@ -2,8 +2,22 @@
 
 # Growing Backend Start Script
 # Loads environment variables from .env and starts Spring Boot
+#
+# Usage:
+#   ./start.sh           # Development mode (default)
+#   ./start.sh prod      # Production mode
+#   ./start.sh dev       # Development mode (explicit)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Get profile from argument (default: dev)
+PROFILE="${1:-dev}"
+
+# Validate profile
+if [[ "$PROFILE" != "dev" && "$PROFILE" != "prod" ]]; then
+    echo "Error: Invalid profile '$PROFILE'. Use 'dev' or 'prod'."
+    exit 1
+fi
 
 # Load environment variables from .env if it exists
 if [ -f "$SCRIPT_DIR/.env" ]; then
@@ -13,7 +27,14 @@ else
     echo "Warning: .env file not found. Using default configuration."
 fi
 
+# Set Spring profile
+export SPRING_PROFILES_ACTIVE="$PROFILE"
+
 # Start Spring Boot
-echo "Starting Growing backend..."
+echo "========================================="
+echo "Starting Growing backend in $PROFILE mode..."
+echo "Profile: $PROFILE"
+echo "Port: 8082"
+echo "========================================="
 cd "$SCRIPT_DIR"
 mvn spring-boot:run -Dmaven.test.skip=true

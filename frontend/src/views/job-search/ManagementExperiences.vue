@@ -456,11 +456,7 @@ const toggleFocusArea = (focusAreaId) => {
 
 // 选择经验
 const selectExperience = async (expId) => {
-  console.log('selectExperience called with expId:', expId)
-  console.log('experiences.value:', experiences.value)
   selectedExpId.value = expId
-  console.log('selectedExpId.value set to:', selectedExpId.value)
-  console.log('currentExperience.value:', currentExperience.value)
   // 重置所有编辑模式
   Object.keys(editModes.value).forEach(key => {
     editModes.value[key] = false
