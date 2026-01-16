@@ -23,6 +23,7 @@ node_modules/
 
 # Logs
 *.log
+log/
 logs/
 backend/logs/
 frontend/logs/

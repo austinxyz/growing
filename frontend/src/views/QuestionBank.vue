@@ -414,6 +414,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { questionApi } from '@/api/questionApi'
 import careerPathApi from '@/api/careerPathApi'
 import skillApi from '@/api/skillApi'
@@ -421,6 +422,8 @@ import majorCategoryApi from '@/api/majorCategoryApi'
 import focusAreaApi from '@/api/focusAreaApi'
 import AnswerMode from '@/components/question-bank/AnswerMode.vue'
 import ReviewMode from '@/components/question-bank/ReviewMode.vue'
+
+const route = useRoute()
 
 // 数据加载状态
 const loading = ref(false)
@@ -492,6 +495,20 @@ const currentTemplate = ref(null)
 // 初始化加载数据
 onMounted(async () => {
   await loadCareerPaths()
+
+  // 如果URL中有questionId参数，自动加载并打开该题目
+  const questionId = route.query.questionId
+  if (questionId) {
+    try {
+      const question = await questionApi.getQuestionById(parseInt(questionId))
+      selectedQuestion.value = question
+      showQuestionList.value = false
+      currentMode.value = 'answer'
+    } catch (error) {
+      console.error('Failed to load question from URL:', error)
+      alert('无法加载指定的题目')
+    }
+  }
 })
 
 // 加载职业路径

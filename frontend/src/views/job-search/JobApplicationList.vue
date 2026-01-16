@@ -384,7 +384,8 @@
 
                   <!-- Tab 1: 准备笔记 -->
                   <div v-if="activeInterviewSubTab === 'notes'">
-                    <div class="bg-white rounded-lg shadow p-5">
+                    <!-- 准备笔记区域 -->
+                    <div class="bg-white rounded-lg shadow p-5 mb-4">
                       <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-semibold text-gray-900">📝 准备笔记</h4>
                         <div class="flex gap-2">
@@ -475,71 +476,9 @@
                     </div>
                   </div>
 
-                  <!-- Tab 3: 准备清单 -->
+                  <!-- Tab 3: 准备清单 (合并Checklist + TODO) -->
                   <div v-if="activeInterviewSubTab === 'checklist'">
-                    <div class="bg-white rounded-lg shadow p-5">
-                      <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-semibold text-gray-900">✅ 准备清单</h4>
-                        <button
-                          @click="showPreparationChecklist(selectedStage.id)"
-                          class="px-3 py-1.5 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 font-medium"
-                        >
-                          管理清单
-                        </button>
-                      </div>
-
-                      <div v-if="selectedStage.checklistItems && selectedStage.checklistItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div
-                          v-for="item in selectedStage.checklistItems"
-                          :key="item.id"
-                          :class="[
-                            'border-2 rounded-lg p-3 transition-all duration-200',
-                            getCategoryStyle(item.category).border,
-                            getCategoryStyle(item.category).bg,
-                            canNavigateToCategory(item.category) ? 'cursor-pointer hover:shadow-md hover:scale-[1.01]' : ''
-                          ]"
-                          @click="navigateToChecklistCategory(item)"
-                        >
-                          <!-- 卡片头部 -->
-                          <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                              <span :class="['px-2 py-0.5 rounded text-xs font-semibold', getCategoryStyle(item.category).badge]">
-                                {{ getCategoryIcon(item.category) }} {{ item.category }}
-                              </span>
-                              <span v-if="item.isPriority" class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
-                                ⭐ 重点
-                              </span>
-                            </div>
-                            <button
-                              v-if="canNavigateToCategory(item.category)"
-                              class="text-blue-600 hover:text-blue-700 flex-shrink-0"
-                              title="点击查看详情"
-                              @click.stop="navigateToChecklistCategory(item)"
-                            >
-                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </button>
-                          </div>
-
-                          <!-- 清单项内容 (Markdown渲染) -->
-                          <div class="prose prose-sm max-w-none">
-                            <div v-html="renderMarkdown(item.checklistItem)" class="text-gray-900 text-sm leading-snug"></div>
-                          </div>
-
-                          <!-- 备注（如果有，Markdown渲染） -->
-                          <div v-if="item.notes" class="mt-2 pt-2 border-t border-gray-200 prose prose-xs max-w-none">
-                            <div v-html="renderMarkdown(item.notes)" class="text-gray-600 text-xs leading-snug"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <div v-else class="text-center text-gray-500 py-8">
-                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-sm">暂无清单项，点击"管理清单"添加</p>
-                      </div>
-                    </div>
+                    <PreparationChecklistMerged :stage-id="selectedStage.id" />
                   </div>
 
                   <!-- Tab 4: 面试记录 -->
@@ -1756,6 +1695,7 @@ import { aiJobAnalysisApi } from '@/api/aiJobAnalysisApi'
 import { resumeApi } from '@/api/resumeApi'
 import { getSkills } from '@/api/skillApi'
 import MarkdownIt from 'markdown-it'
+import PreparationChecklistMerged from '@/components/job-search/PreparationChecklistMerged.vue'
 
 const router = useRouter()
 const md = new MarkdownIt()

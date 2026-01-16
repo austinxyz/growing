@@ -14,7 +14,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       # JWT Secret
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: /+Eyl6BRHw+WcxklOJYKe1mN0GVU1CAj745+E4Um1qY=
       # Spring Profile - Production mode (minimal logs, optimized performance)
       SPRING_PROFILES_ACTIVE: prod
       # Spring configuration
