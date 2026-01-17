@@ -47,8 +47,34 @@ public class InterviewStageService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此求职申请的面试阶段");
         }
 
-        return interviewStageRepository.findByJobApplicationIdOrderByStageOrder(applicationId).stream()
-                .map(this::convertToDTO)
+        List<InterviewStage> stages = interviewStageRepository.findByJobApplicationIdOrderByStageOrder(applicationId);
+
+        // Collect all focusAreaIds from all stages for batch query
+        List<Long> allFocusAreaIds = stages.stream()
+                .flatMap(stage -> {
+                    try {
+                        if (stage.getFocusAreaIds() != null) {
+                            List<Long> ids = objectMapper.readValue(stage.getFocusAreaIds(),
+                                    new TypeReference<List<Long>>() {});
+                            return ids.stream();
+                        }
+                    } catch (Exception e) {
+                        // Ignore parse errors
+                    }
+                    return java.util.stream.Stream.empty();
+                })
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Batch query all focus areas
+        java.util.Map<Long, FocusArea> focusAreaMap = allFocusAreaIds.isEmpty()
+                ? java.util.Collections.emptyMap()
+                : focusAreaRepository.findAllById(allFocusAreaIds).stream()
+                        .collect(Collectors.toMap(FocusArea::getId, fa -> fa));
+
+        // Convert to DTOs with cached focus areas
+        return stages.stream()
+                .map(stage -> convertToDTO(stage, focusAreaMap))
                 .collect(Collectors.toList());
     }
 
@@ -366,6 +392,11 @@ public class InterviewStageService {
     }
 
     private InterviewStageDTO convertToDTO(InterviewStage stage) {
+        // Call overloaded method with empty map (for single-stage conversion)
+        return convertToDTO(stage, Collections.emptyMap());
+    }
+
+    private InterviewStageDTO convertToDTO(InterviewStage stage, java.util.Map<Long, FocusArea> focusAreaMap) {
         InterviewStageDTO dto = new InterviewStageDTO();
         dto.setId(stage.getId());
         dto.setJobApplicationId(stage.getJobApplicationId());
@@ -394,9 +425,11 @@ public class InterviewStageService {
         if (dto.getFocusAreaIds() != null && !dto.getFocusAreaIds().isEmpty()) {
             List<FocusAreaBriefDTO> focusAreas = dto.getFocusAreaIds().stream()
                     .map(focusAreaId -> {
-                        return focusAreaRepository.findById(focusAreaId)
-                                .map(this::convertFocusAreaToBriefDTO)
-                                .orElse(null);
+                        // Use cached focusAreaMap if available, otherwise query database
+                        FocusArea focusArea = focusAreaMap.isEmpty()
+                                ? focusAreaRepository.findById(focusAreaId).orElse(null)
+                                : focusAreaMap.get(focusAreaId);
+                        return focusArea != null ? convertFocusAreaToBriefDTO(focusArea) : null;
                     })
                     .filter(fa -> fa != null)
                     .collect(Collectors.toList());

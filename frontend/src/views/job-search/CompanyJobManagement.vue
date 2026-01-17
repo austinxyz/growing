@@ -1745,11 +1745,13 @@ watch(selectedCompanyId, async (newVal) => {
 
 watch(selectedJobId, async (newVal) => {
   if (newVal) {
-    await loadInterviewStages()
-    await loadJobReferrals()
-    // Also load AI analyses and customized resume when job changes
-    await loadSavedAnalyses(newVal)
-    await loadCustomizedResume(newVal)
+    // Load all data in parallel for better performance
+    await Promise.all([
+      loadInterviewStages(),
+      loadJobReferrals(),
+      loadSavedAnalyses(newVal),
+      loadCustomizedResume(newVal)
+    ])
   } else {
     interviewStages.value = []
     jobReferrals.value = []
