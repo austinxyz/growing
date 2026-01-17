@@ -27,5 +27,15 @@ export const interviewStageApi = {
   // 获取单个面试阶段
   getById(id) {
     return api.get(`/interview-stages/${id}`)
+  },
+
+  // 生成面试准备AI Prompt (单个阶段)
+  generateAIPrompt(stageId) {
+    return api.get(`/interview-stages/${stageId}/ai-prompt`)
+  },
+
+  // 生成整个职位所有阶段的面试准备AI Prompt
+  generateJobInterviewPrepPrompt(jobApplicationId) {
+    return api.get(`/job-applications/${jobApplicationId}/interview-prep-prompt`)
   }
 }

@@ -1,4 +1,7 @@
-Base directory for this skill: /Users/yanzxu/claude/growing/.claude/skills/job-prepare
+---
+name: job-prepare
+description: AI-powered interview preparation planner. Analyzes job requirements and user's resume/experiences to create detailed interview preparation plan with skill focus areas, key projects, and management experiences to prepare.
+---
 
 # AI Interview Preparation Planner
 
@@ -82,7 +85,7 @@ LEFT JOIN focus_areas f ON f.skill_id = s.id
 ORDER BY s.id, f.id;
 ```
 
-### 4. Check Existing Interview Stages
+### 4. Check Existing Interview Stages and Checklists
 
 ```sql
 -- Check if user has already defined interview stages for this job
@@ -90,29 +93,59 @@ SELECT id, stage_name, stage_order, skill_ids, focus_area_ids, preparation_notes
 FROM interview_stages
 WHERE job_application_id = {job_id}
 ORDER BY stage_order;
+
+-- For each existing stage, get current checklist items (to avoid duplicates)
+SELECT interview_stage_id, checklist_item, is_priority, category, notes
+FROM interview_preparation_checklist
+WHERE interview_stage_id IN ({stage_ids})
+ORDER BY interview_stage_id, sort_order;
 ```
 
 ### 5. Perform AI Analysis
 
 Use Claude's semantic understanding to analyze and recommend:
 
-**A. Required Skills & Focus Areas**
+**A. Required Skills & Focus Areas (Per Stage)**
 
-Analyze the JD (qualifications + responsibilities) to identify:
-1. **Technical Skills** needed (e.g., "Kubernetes", "System Design", "Cloud Native")
-2. **Behavioral Skills** needed (e.g., "Leadership", "People Management", "Communication")
-3. For each skill, identify **specific focus areas** to prepare
-   - Example: Skill "People Management" → Focus Areas: ["Hiring", "Performance Management", "Team Growth"]
-   - Example: Skill "System Design" → Focus Areas: ["Distributed Systems", "Scalability", "Data Modeling"]
+For EACH existing interview stage (or create default if none exist):
 
-Output format:
+1. **Match stage skills to JD requirements**:
+   - If stage has `skill_ids`, analyze THOSE skills in context of JD
+   - Example: Stage has skill_id=3 (People Management) → analyze JD for leadership/management requirements
+
+2. **Recommend focus areas for each stage skill**:
+   - Query available focus_areas for each skill_id
+   - Use JD keywords to match relevant focus areas
+   - Example: JD mentions "hiring" + "coaching" → recommend focus_area_ids [33 (Hiring), 27 (Coaching)]
+
+3. **If stage has NO skills, recommend skills + focus areas from JD**:
+   - Analyze JD to identify needed skills
+   - Then recommend focus areas for those skills
+
+Output format (per stage):
 ```json
 {
-  "skillId": 3,
-  "skillName": "People Management",
-  "focusAreaIds": [33, 88, 27],
-  "focusAreaNames": ["Hiring", "Performance Management", "Coaching"],
-  "reason": "JD requires 'team leadership' and 'coaching developers'"
+  "stageId": 5,
+  "stageName": "Behavioral Round",
+  "existingSkillIds": [3, 9],  // From interview_stages.skill_ids
+  "recommendedFocusAreas": [
+    {
+      "skillId": 3,
+      "skillName": "People Management",
+      "existingFocusAreaIds": [33, 88],  // Already in stage
+      "newFocusAreaIds": [27, 95],       // Recommended to add
+      "focusAreaNames": ["Coaching", "Conflict Resolution"],
+      "reason": "JD emphasizes 'coaching junior engineers' and 'resolving team conflicts'"
+    },
+    {
+      "skillId": 9,
+      "skillName": "Communication",
+      "existingFocusAreaIds": [],
+      "newFocusAreaIds": [101, 102],
+      "focusAreaNames": ["Written Communication", "Presentation Skills"],
+      "reason": "JD requires 'technical writing' and 'presenting to leadership'"
+    }
+  ]
 }
 ```
 
@@ -192,7 +225,7 @@ INSERT INTO interview_preparation_checklist (
   (@stage_id, 'Skill: {skill_name} - {focus_area_name}', 0, 'Skill', '{reason}', {order});
 ```
 
-**Case 2: Existing stages (smart distribution)**
+**Case 2: Existing stages (smart distribution with deduplication)**
 
 Analyze existing stage names and distribute recommendations:
 - "Phone Screen" / "Recruiter" → Usually behavioral questions + basic technical
@@ -206,19 +239,74 @@ Analyze existing stage names and distribute recommendations:
 - "Onsite" / "Final" → Comprehensive
   - Add: All remaining items
 
+**CRITICAL: Deduplication Logic**
+
+Before adding ANY checklist items to a stage:
+
+1. **Load existing checklist items** from step 4
+2. **Compare new items against existing** using these rules:
+   - Match by `checklist_item` text (case-insensitive, trim whitespace)
+   - For projects: match if both contain same project_name
+   - For management: match if both contain same experience_name
+   - For skills/focus areas: match if both mention same skill_name AND focus_area_name
+
+3. **Skip duplicates** - if item already exists:
+   - Do NOT insert it again
+   - Do NOT update existing item (preserve user's manual edits)
+   - Log skipped item in output
+
+4. **Add only new items**:
+   - Items that don't match any existing checklist_item
+   - Set appropriate `sort_order` (max existing sort_order + 1)
+
+Example deduplication check:
+```javascript
+// Existing checklist items (from step 4)
+const existingItems = [
+  "Project: Cloud Migration (user added manually)",
+  "Management: API Standardization",
+  "Skill: System Design - Distributed Systems"
+];
+
+// New AI recommendation
+const newItem = "Project: Cloud Migration";
+
+// Match check (case-insensitive substring match)
+const isDuplicate = existingItems.some(item =>
+  item.toLowerCase().includes("cloud migration")
+);
+
+if (isDuplicate) {
+  console.log("Skipping duplicate:", newItem);
+} else {
+  // Insert new item
+}
+```
+
 ```sql
--- Update existing stage with additional skills/focus areas
+-- Step 1: Get max sort_order for this stage
+SELECT COALESCE(MAX(sort_order), 0) as max_order
+FROM interview_preparation_checklist
+WHERE interview_stage_id = {stage_id};
+
+-- Step 2: Update stage with NEW focus areas only (avoid duplicates in JSON array)
 UPDATE interview_stages
 SET
-  skill_ids = JSON_MERGE_PRESERVE(skill_ids, JSON_ARRAY({new_skill_ids})),
-  focus_area_ids = JSON_MERGE_PRESERVE(focus_area_ids, JSON_ARRAY({new_focus_area_ids})),
-  preparation_notes = CONCAT(IFNULL(preparation_notes, ''), '\n\n', {ai_notes})
+  focus_area_ids = JSON_MERGE_PRESERVE(
+    focus_area_ids,
+    JSON_ARRAY({new_focus_area_ids_not_already_in_array})
+  ),
+  preparation_notes = CONCAT(IFNULL(preparation_notes, ''), '\n\n## AI Recommendations\n\n', {ai_notes})
 WHERE id = {stage_id};
 
--- Add new checklist items
+-- Step 3: Insert ONLY non-duplicate checklist items
+-- (After deduplication check in code)
 INSERT INTO interview_preparation_checklist (
   interview_stage_id, checklist_item, is_priority, category, notes, sort_order
-) VALUES (...);
+) VALUES
+  ({stage_id}, {new_item_1}, {priority}, {category}, {notes}, {max_order + 1}),
+  ({stage_id}, {new_item_2}, {priority}, {category}, {notes}, {max_order + 2});
+  -- Only items that passed deduplication check
 ```
 
 ### 7. Return JSON Result
@@ -229,35 +317,71 @@ Output **VALID JSON** matching this exact structure:
 {
   "jobApplicationId": 13,
   "resumeId": 2,
-  "hasExistingStages": false,
-  "stagesCreated": [
+  "hasExistingStages": true,
+  "stagesCreated": [],
+  "stagesUpdated": [
     {
       "stageId": 5,
-      "stageName": "Overall Preparation",
+      "stageName": "Behavioral Round",
       "stageOrder": 1,
-      "skillIds": [3, 7, 9],
-      "focusAreaIds": [33, 88, 27, 89, 90, 31],
-      "checklistItemsAdded": 15
+      "existingSkillIds": [3, 9],
+      "newFocusAreaIds": [27, 95, 101, 102],
+      "checklistItemsAdded": 8,
+      "checklistItemsSkipped": 3,
+      "skippedReasons": [
+        "Project: Cloud Migration - already exists",
+        "Management: API Standardization - already exists",
+        "Skill: System Design - Distributed Systems - already exists"
+      ]
+    },
+    {
+      "stageId": 6,
+      "stageName": "Technical Round",
+      "stageOrder": 2,
+      "existingSkillIds": [7],
+      "newFocusAreaIds": [89, 90, 31],
+      "checklistItemsAdded": 5,
+      "checklistItemsSkipped": 0,
+      "skippedReasons": []
     }
   ],
-  "stagesUpdated": [],
   "recommendations": {
-    "skills": [
+    "perStage": [
       {
-        "skillId": 3,
-        "skillName": "People Management",
-        "focusAreaIds": [33, 88, 27],
-        "focusAreaNames": ["Hiring", "Performance Management", "Coaching"],
-        "priority": "high",
-        "reason": "JD requires 'team leadership' and 'coaching developers to grow their skills'"
+        "stageId": 5,
+        "stageName": "Behavioral Round",
+        "skillFocusAreas": [
+          {
+            "skillId": 3,
+            "skillName": "People Management",
+            "existingFocusAreaIds": [33, 88],
+            "newFocusAreaIds": [27, 95],
+            "newFocusAreaNames": ["Coaching", "Conflict Resolution"],
+            "reason": "JD emphasizes 'coaching junior engineers' and 'resolving team conflicts'"
+          },
+          {
+            "skillId": 9,
+            "skillName": "Communication",
+            "existingFocusAreaIds": [],
+            "newFocusAreaIds": [101, 102],
+            "newFocusAreaNames": ["Written Communication", "Presentation Skills"],
+            "reason": "JD requires 'technical writing' and 'presenting to leadership'"
+          }
+        ]
       },
       {
-        "skillId": 7,
-        "skillName": "System Design",
-        "focusAreaIds": [89, 90, 31],
-        "focusAreaNames": ["Distributed Systems", "Scalability", "Data Modeling"],
-        "priority": "high",
-        "reason": "JD emphasizes 'platform engineering' and 'distributed systems'"
+        "stageId": 6,
+        "stageName": "Technical Round",
+        "skillFocusAreas": [
+          {
+            "skillId": 7,
+            "skillName": "System Design",
+            "existingFocusAreaIds": [],
+            "newFocusAreaIds": [89, 90, 31],
+            "newFocusAreaNames": ["Distributed Systems", "Scalability", "Data Modeling"],
+            "reason": "JD emphasizes 'platform engineering' and 'distributed systems design'"
+          }
+        ]
       }
     ],
     "projects": [

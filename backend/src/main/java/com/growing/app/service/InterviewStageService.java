@@ -136,6 +136,241 @@ public class InterviewStageService {
         interviewStageRepository.delete(stage);
     }
 
+    /**
+     * 生成面试准备AI Prompt
+     * 包含JD、面试阶段信息、关联的Skills和Focus Areas
+     */
+    public String generatePreparationPrompt(Long stageId, Long userId) {
+        InterviewStage stage = interviewStageRepository.findById(stageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "面试阶段不存在"));
+
+        JobApplication application = jobApplicationRepository.findById(stage.getJobApplicationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "求职申请不存在"));
+
+        if (!application.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此面试阶段");
+        }
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("# 面试准备分析任务\n\n");
+        prompt.append("请根据以下信息为面试阶段生成准备清单和建议。\n\n");
+
+        // Job Description
+        prompt.append("## 职位信息\n\n");
+        prompt.append("**职位名称**: ").append(application.getPositionName()).append("\n");
+        if (application.getPositionLevel() != null) {
+            prompt.append("**职位级别**: ").append(application.getPositionLevel()).append("\n");
+        }
+        prompt.append("\n");
+
+        if (application.getQualifications() != null && !application.getQualifications().isEmpty()) {
+            prompt.append("### Qualifications (技能要求)\n\n");
+            prompt.append(application.getQualifications()).append("\n\n");
+        }
+
+        if (application.getResponsibilities() != null && !application.getResponsibilities().isEmpty()) {
+            prompt.append("### Responsibilities (岗位职责)\n\n");
+            prompt.append(application.getResponsibilities()).append("\n\n");
+        }
+
+        // Interview Stage Info
+        prompt.append("## 面试阶段信息\n\n");
+        prompt.append("**阶段名称**: ").append(stage.getStageName()).append("\n");
+        prompt.append("**阶段顺序**: 第 ").append(stage.getStageOrder()).append(" 轮\n\n");
+
+        // Skills
+        if (stage.getSkillIds() != null) {
+            try {
+                List<Long> skillIds = objectMapper.readValue(stage.getSkillIds(),
+                        new TypeReference<List<Long>>() {});
+                if (!skillIds.isEmpty()) {
+                    prompt.append("### 考察的技能 (Skills)\n\n");
+                    List<Skill> skills = skillRepository.findAllById(skillIds);
+                    for (Skill skill : skills) {
+                        prompt.append("- **").append(skill.getName()).append("**");
+                        if (skill.getDescription() != null) {
+                            prompt.append(": ").append(skill.getDescription());
+                        }
+                        prompt.append("\n");
+                    }
+                    prompt.append("\n");
+                }
+            } catch (Exception e) {
+                // Ignore parsing error
+            }
+        }
+
+        // Focus Areas
+        if (stage.getFocusAreaIds() != null) {
+            try {
+                List<Long> focusAreaIds = objectMapper.readValue(stage.getFocusAreaIds(),
+                        new TypeReference<List<Long>>() {});
+                if (!focusAreaIds.isEmpty()) {
+                    prompt.append("### 重点关注领域 (Focus Areas)\n\n");
+                    List<FocusArea> focusAreas = focusAreaRepository.findAllById(focusAreaIds);
+                    for (FocusArea fa : focusAreas) {
+                        prompt.append("- **").append(fa.getName()).append("**");
+                        if (fa.getDescription() != null) {
+                            prompt.append(": ").append(fa.getDescription());
+                        }
+                        prompt.append("\n");
+                    }
+                    prompt.append("\n");
+                }
+            } catch (Exception e) {
+                // Ignore parsing error
+            }
+        }
+
+        // Existing Preparation Notes
+        if (stage.getPreparationNotes() != null && !stage.getPreparationNotes().isEmpty()) {
+            prompt.append("### 现有准备重点\n\n");
+            prompt.append(stage.getPreparationNotes()).append("\n\n");
+        }
+
+        // Instructions
+        prompt.append("## 任务要求\n\n");
+        prompt.append("请基于以上信息生成：\n\n");
+        prompt.append("1. **面试准备清单** (Markdown格式，带checkbox)\n");
+        prompt.append("   - 针对该阶段的具体准备事项\n");
+        prompt.append("   - 优先级标注（⭐高优先级）\n");
+        prompt.append("   - 每项清单要具体、可执行\n\n");
+        prompt.append("2. **建议增强的Focus Areas** (如果Skills关联了Focus Areas)\n");
+        prompt.append("   - 列出建议深入准备的Focus Area名称和ID\n");
+        prompt.append("   - 说明为什么这些领域在此阶段重要\n\n");
+        prompt.append("3. **注意事项和技巧**\n");
+        prompt.append("   - 面试中的常见陷阱\n");
+        prompt.append("   - 回答问题的策略\n");
+        prompt.append("   - 如何展示相关经验\n\n");
+        prompt.append("请以Markdown格式输出，结构清晰，便于复制到preparation_notes字段。\n");
+
+        return prompt.toString();
+    }
+
+    /**
+     * 生成整个职位的面试准备AI Prompt
+     * 包含JD + 所有面试阶段的信息
+     */
+    public String generateJobPreparationPrompt(Long jobApplicationId, Long userId) {
+        JobApplication application = jobApplicationRepository.findById(jobApplicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "求职申请不存在"));
+
+        if (!application.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问此求职申请");
+        }
+
+        // Get all interview stages for this job
+        List<InterviewStage> stages = interviewStageRepository
+                .findByJobApplicationIdOrderByStageOrder(jobApplicationId);
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("# 面试准备综合分析任务\n\n");
+        prompt.append("请根据以下职位和面试流程信息，为每个面试阶段生成详细的准备清单。\n\n");
+
+        // Job Description
+        prompt.append("## 职位信息\n\n");
+        prompt.append("**职位名称**: ").append(application.getPositionName()).append("\n");
+        if (application.getPositionLevel() != null) {
+            prompt.append("**职位级别**: ").append(application.getPositionLevel()).append("\n");
+        }
+        prompt.append("\n");
+
+        if (application.getQualifications() != null && !application.getQualifications().isEmpty()) {
+            prompt.append("### Qualifications (技能要求)\n\n");
+            prompt.append(application.getQualifications()).append("\n\n");
+        }
+
+        if (application.getResponsibilities() != null && !application.getResponsibilities().isEmpty()) {
+            prompt.append("### Responsibilities (岗位职责)\n\n");
+            prompt.append(application.getResponsibilities()).append("\n\n");
+        }
+
+        // All Interview Stages
+        if (!stages.isEmpty()) {
+            prompt.append("## 面试流程\n\n");
+            prompt.append("本职位面试共").append(stages.size()).append("个阶段：\n\n");
+
+            for (InterviewStage stage : stages) {
+                prompt.append("### 阶段 ").append(stage.getStageOrder())
+                        .append(": ").append(stage.getStageName()).append("\n\n");
+
+                // Skills
+                if (stage.getSkillIds() != null) {
+                    try {
+                        List<Long> skillIds = objectMapper.readValue(stage.getSkillIds(),
+                                new TypeReference<List<Long>>() {});
+                        if (!skillIds.isEmpty()) {
+                            prompt.append("**考察技能**: ");
+                            List<Skill> skills = skillRepository.findAllById(skillIds);
+                            prompt.append(skills.stream()
+                                    .map(Skill::getName)
+                                    .collect(Collectors.joining(", ")));
+                            prompt.append("\n\n");
+                        }
+                    } catch (Exception e) {
+                        // Ignore parsing error
+                    }
+                }
+
+                // Focus Areas
+                if (stage.getFocusAreaIds() != null) {
+                    try {
+                        List<Long> focusAreaIds = objectMapper.readValue(stage.getFocusAreaIds(),
+                                new TypeReference<List<Long>>() {});
+                        if (!focusAreaIds.isEmpty()) {
+                            prompt.append("**重点领域**: ");
+                            List<FocusArea> focusAreas = focusAreaRepository.findAllById(focusAreaIds);
+                            prompt.append(focusAreas.stream()
+                                    .map(FocusArea::getName)
+                                    .collect(Collectors.joining(", ")));
+                            prompt.append("\n\n");
+                        }
+                    } catch (Exception e) {
+                        // Ignore parsing error
+                    }
+                }
+
+                // Existing Preparation Notes
+                if (stage.getPreparationNotes() != null && !stage.getPreparationNotes().isEmpty()) {
+                    prompt.append("**已有准备重点**:\n\n");
+                    prompt.append(stage.getPreparationNotes()).append("\n\n");
+                }
+
+                prompt.append("---\n\n");
+            }
+        }
+
+        // Instructions
+        prompt.append("## 任务要求\n\n");
+        prompt.append("请为每个面试阶段生成：\n\n");
+        prompt.append("1. **准备清单** (Markdown checkbox格式，`- [ ]`)\n");
+        prompt.append("   - 具体、可执行的准备事项\n");
+        prompt.append("   - 用⭐标注高优先级项\n");
+        prompt.append("   - 包含复习的知识点、练习的题目类型等\n\n");
+        prompt.append("2. **建议的Focus Areas**\n");
+        prompt.append("   - 列出该阶段应重点准备的Focus Area（基于技能要求）\n");
+        prompt.append("   - 说明为什么这些领域重要\n\n");
+        prompt.append("3. **面试技巧**\n");
+        prompt.append("   - 该阶段的常见问题类型\n");
+        prompt.append("   - 回答策略和注意事项\n");
+        prompt.append("   - 如何展示相关项目经验\n\n");
+        prompt.append("## 输出格式\n\n");
+        prompt.append("请按照以下格式输出（便于后续更新到各阶段的preparation_notes字段）：\n\n");
+        prompt.append("```markdown\n");
+        prompt.append("## 阶段1: [阶段名称]\n\n");
+        prompt.append("### 准备清单\n");
+        prompt.append("- [ ] 准备事项1\n");
+        prompt.append("- [ ] ⭐ 重要事项2\n\n");
+        prompt.append("### 建议Focus Areas\n");
+        prompt.append("- **[Focus Area名称]**: 原因说明\n\n");
+        prompt.append("### 面试技巧\n");
+        prompt.append("- 技巧1\n");
+        prompt.append("- 技巧2\n");
+        prompt.append("```\n");
+
+        return prompt.toString();
+    }
+
     private InterviewStageDTO convertToDTO(InterviewStage stage) {
         InterviewStageDTO dto = new InterviewStageDTO();
         dto.setId(stage.getId());

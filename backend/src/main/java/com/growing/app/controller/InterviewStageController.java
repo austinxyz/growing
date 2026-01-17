@@ -95,4 +95,30 @@ public class InterviewStageController {
         interviewStageService.deleteStage(stageId, userId);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 生成面试准备AI Prompt (单个阶段)
+     * 用于前端调用Claude Code生成准备建议
+     */
+    @GetMapping("/api/interview-stages/{stageId}/ai-prompt")
+    public ResponseEntity<String> generateAIPrompt(
+            @PathVariable Long stageId,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        String prompt = interviewStageService.generatePreparationPrompt(stageId, userId);
+        return ResponseEntity.ok(prompt);
+    }
+
+    /**
+     * 生成整个职位所有阶段的面试准备AI Prompt
+     * 包含JD + 所有面试阶段信息
+     */
+    @GetMapping("/api/job-applications/{jobApplicationId}/interview-prep-prompt")
+    public ResponseEntity<String> generateJobInterviewPrepPrompt(
+            @PathVariable Long jobApplicationId,
+            @RequestHeader("Authorization") String token) {
+        Long userId = authService.getUserIdFromToken(token);
+        String prompt = interviewStageService.generateJobPreparationPrompt(jobApplicationId, userId);
+        return ResponseEntity.ok(prompt);
+    }
 }

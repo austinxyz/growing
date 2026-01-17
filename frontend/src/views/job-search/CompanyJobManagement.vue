@@ -364,50 +364,116 @@
                     <div class="flex justify-between items-center mb-4">
                       <h3 class="text-lg font-semibold text-gray-900">📝 面试阶段</h3>
                       <button
-                        @click="showCreateStageModal = true"
+                        @click="openStageModal()"
                         class="px-3 py-1 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600"
                       >
                         + 添加阶段
                       </button>
                     </div>
 
-                    <div v-if="interviewStages.length > 0" class="space-y-2">
-                      <div
-                        v-for="stage in interviewStages"
-                        :key="stage.id"
-                        class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all"
-                      >
-                        <div class="flex items-start justify-between">
-                          <div class="flex-1">
-                            <div class="flex items-center gap-3">
-                              <span class="text-sm font-medium text-gray-500">阶段 {{ stage.stageOrder }}</span>
-                              <h4 class="text-lg font-semibold text-gray-900">{{ stage.stageName }}</h4>
-                            </div>
-                            <div v-if="stage.preparationNotes" class="mt-2 text-sm text-gray-600">
-                              <strong>准备要点：</strong>
-                              <div v-html="renderMarkdown(stage.preparationNotes)" class="prose max-w-none mt-1"></div>
-                            </div>
-                            <div v-if="stage.skillIds && stage.skillIds.length > 0" class="mt-2">
-                              <span class="text-xs text-gray-500">关联技能ID: {{ stage.skillIds.join(', ') }}</span>
-                            </div>
-                          </div>
-                          <div class="flex gap-2">
-                            <button
-                              @click="openStageModal(stage)"
-                              class="text-blue-600 hover:text-blue-700 text-sm"
-                              title="编辑"
+                    <div v-if="interviewStages.length > 0" class="pb-4">
+                      <!-- Z字形布局：奇数行从左到右，偶数行从右到左 -->
+                      <div class="space-y-4">
+                        <template v-for="rowIndex in Math.ceil(interviewStages.length / 5)" :key="rowIndex">
+                          <div class="flex items-start gap-4" :class="rowIndex % 2 === 0 ? 'justify-end' : ''">
+                            <template
+                              v-for="(stage, colIndex) in getStagesForRow(rowIndex - 1)"
+                              :key="stage.id"
                             >
-                              编辑
-                            </button>
-                            <button
-                              @click="deleteStage(stage.id)"
-                              class="text-red-600 hover:text-red-700 text-sm"
-                              title="删除"
-                            >
-                              删除
-                            </button>
+                              <!-- 阶段卡片 -->
+                              <div
+                                draggable="true"
+                                @dragstart="handleDragStart(stage, $event)"
+                                @dragover="handleDragOver($event)"
+                                @drop="handleDrop(stage, $event)"
+                                @dragend="handleDragEnd"
+                                :class="[
+                                  'w-64 p-4 border-2 rounded-lg bg-white transition-all cursor-move flex-shrink-0',
+                                  draggedStage?.id === stage.id ? 'opacity-50 border-blue-500' : 'border-green-300 hover:shadow-lg'
+                                ]"
+                              >
+                                <div class="flex items-center justify-between mb-2">
+                                  <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                                    阶段 {{ stage.stageOrder }}
+                                  </span>
+                                  <div class="flex gap-1">
+                                    <button
+                                      @click="openStageModal(stage)"
+                                      class="text-blue-600 hover:text-blue-700 text-xs"
+                                      title="编辑"
+                                    >
+                                      ✏️
+                                    </button>
+                                    <button
+                                      @click="deleteStage(stage.id)"
+                                      class="text-red-600 hover:text-red-700 text-xs"
+                                      title="删除"
+                                    >
+                                      🗑️
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <h4 class="text-base font-bold text-gray-900 mb-3">{{ stage.stageName }}</h4>
+
+                                <!-- 关联技能 -->
+                                <div v-if="stage.skillIds && stage.skillIds.length > 0" class="mb-3">
+                                  <div class="text-xs font-medium text-gray-600 mb-1">关联技能:</div>
+                                  <div class="flex flex-wrap gap-1">
+                                    <span
+                                      v-for="skillId in stage.skillIds"
+                                      :key="skillId"
+                                      class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full"
+                                    >
+                                      {{ getSkillNameById(skillId) }}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <!-- 准备要点 -->
+                                <div v-if="stage.preparationNotes" class="text-xs text-gray-600 border-t pt-2">
+                                  <div class="font-medium text-gray-700 mb-1">准备要点:</div>
+                                  <div v-html="renderMarkdown(stage.preparationNotes)" class="prose prose-sm max-w-none line-clamp-3"></div>
+                                </div>
+                              </div>
+
+                              <!-- 横向箭头（行内，除了最后一个） -->
+                              <template v-if="colIndex < getStagesForRow(rowIndex - 1).length - 1">
+                                <!-- 奇数行：向右箭头，偶数行：向左箭头 -->
+                                <svg
+                                  v-if="rowIndex % 2 === 1"
+                                  class="w-8 h-8 text-green-500 flex-shrink-0 mt-16"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                                <svg
+                                  v-else
+                                  class="w-8 h-8 text-green-500 flex-shrink-0 mt-16"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                              </template>
+                            </template>
                           </div>
-                        </div>
+
+                          <!-- 行间向下箭头（除了最后一行） -->
+                          <div
+                            v-if="rowIndex < Math.ceil(interviewStages.length / 5)"
+                            class="flex"
+                            :class="rowIndex % 2 === 1 ? 'justify-end pr-32' : 'justify-start pl-32'"
+                          >
+                            <svg class="w-20 h-24 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 80 96">
+                              <line x1="40" y1="0" x2="40" y2="76" stroke-width="4" stroke-linecap="round"/>
+                              <path d="M25 61 L40 76 L55 61" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                          </div>
+                        </template>
                       </div>
                     </div>
 
@@ -548,68 +614,62 @@
                 <!-- Tab 4: Recruiter -->
                 <div v-if="activeJobDetailTab === 'recruiter'" class="space-y-4">
                   <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">👤 招聘人员</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">👤 招聘或内推人员</h3>
                     <button
-                      @click="addRecruiterContact"
+                      @click="openAddReferralModal()"
                       class="px-3 py-1 bg-indigo-500 text-white text-sm rounded-lg hover:bg-indigo-600"
                     >
-                      + 添加Recruiter
+                      + 从人脉中添加
                     </button>
                   </div>
 
-                  <div v-if="recruiterContacts.length > 0" class="grid grid-cols-2 gap-4">
+                  <div v-if="jobReferrals.length > 0" class="grid grid-cols-2 gap-4">
                     <div
-                      v-for="contact in recruiterContacts"
-                      :key="contact.id"
+                      v-for="jobRef in jobReferrals"
+                      :key="jobRef.id"
                       class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all"
                     >
                       <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
-                          <h4 class="font-semibold text-gray-900">{{ contact.referralName }}</h4>
-                          <p class="text-sm text-gray-600 mt-1">{{ contact.position || 'Recruiter' }}</p>
+                          <h4 class="font-semibold text-gray-900">{{ jobRef.referral?.referralName }}</h4>
+                          <span class="text-xs px-2 py-0.5 rounded-full" :class="jobRef.roleType === 'Recruiter' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
+                            {{ jobRef.roleType === 'Recruiter' ? '招聘人员' : '内推' }}
+                          </span>
                         </div>
-                        <div class="flex gap-2">
-                          <button
-                            @click="openContactModal(contact)"
-                            class="text-blue-600 hover:text-blue-700 text-sm"
-                          >
-                            编辑
-                          </button>
-                          <button
-                            @click="deleteContact(contact.id)"
-                            class="text-red-600 hover:text-red-700 text-sm"
-                          >
-                            删除
-                          </button>
-                        </div>
+                        <button
+                          @click="removeReferralFromJob(jobRef.id)"
+                          class="text-red-600 hover:text-red-700 text-sm"
+                        >
+                          移除
+                        </button>
                       </div>
 
                       <!-- 联系方式 -->
                       <div class="space-y-1 mb-2">
-                        <div v-if="contact.email" class="flex items-center gap-1 text-xs text-gray-700">
+                        <div v-if="jobRef.referral?.email" class="flex items-center gap-1 text-xs text-gray-700">
                           <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
-                          <a :href="`mailto:${contact.email}`" class="hover:text-blue-600 truncate">{{ contact.email }}</a>
+                          <a :href="`mailto:${jobRef.referral.email}`" class="hover:text-blue-600 truncate">{{ jobRef.referral.email }}</a>
                         </div>
-                        <div v-if="contact.phone" class="flex items-center gap-1 text-xs text-gray-700">
+                        <div v-if="jobRef.referral?.phone" class="flex items-center gap-1 text-xs text-gray-700">
                           <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <a :href="`tel:${contact.phone}`" class="hover:text-blue-600">{{ contact.phone }}</a>
+                          <a :href="`tel:${jobRef.referral.phone}`" class="hover:text-blue-600">{{ jobRef.referral.phone }}</a>
                         </div>
-                        <div v-if="contact.linkedinUrl" class="flex items-center gap-1 text-xs">
+                        <div v-if="jobRef.referral?.linkedinUrl" class="flex items-center gap-1 text-xs">
                           <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                           </svg>
-                          <a :href="contact.linkedinUrl" target="_blank" class="text-blue-600 hover:underline">LinkedIn</a>
+                          <a :href="jobRef.referral.linkedinUrl" target="_blank" class="text-blue-600 hover:underline">LinkedIn</a>
                         </div>
                       </div>
 
-                      <!-- 沟通记录 -->
-                      <div v-if="contact.notes" class="text-xs text-gray-600 border-t pt-2 mt-2">
-                        <strong class="text-gray-700">备注:</strong>
-                        <p class="line-clamp-2 mt-1">{{ contact.notes }}</p>
+                      <!-- 备注 -->
+                      <div v-if="jobRef.notes" class="text-xs text-gray-600 border-t pt-2 mt-2">
+                        <strong class="text-gray-700">针对此职位的备注:</strong>
+                        <p class="line-clamp-2 mt-1">{{ jobRef.notes }}</p>
                       </div>
                     </div>
                   </div>
@@ -635,26 +695,26 @@
                         @click="openRecruiterInsightsModal"
                         class="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600"
                       >
-                        {{ selectedJob?.recruiterInsights ? '编辑' : '添加' }}
+                        {{ currentJob?.recruiterInsights ? '编辑' : '添加' }}
                       </button>
                     </div>
 
-                    <div v-if="selectedJob?.recruiterInsights" class="space-y-4">
-                      <div v-if="selectedJob.recruiterInsights.teamSize">
+                    <div v-if="currentJob?.recruiterInsights" class="space-y-4">
+                      <div v-if="currentJob.recruiterInsights.teamSize">
                         <label class="block text-sm font-medium text-gray-600 mb-1">团队规模</label>
-                        <p class="text-gray-900">{{ selectedJob.recruiterInsights.teamSize }}</p>
+                        <p class="text-gray-900">{{ currentJob.recruiterInsights.teamSize }}</p>
                       </div>
 
-                      <div v-if="selectedJob.recruiterInsights.teamCulture">
+                      <div v-if="currentJob.recruiterInsights.teamCulture">
                         <label class="block text-sm font-medium text-gray-600 mb-1">团队文化</label>
-                        <p class="text-gray-900 text-sm">{{ selectedJob.recruiterInsights.teamCulture }}</p>
+                        <p class="text-gray-900 text-sm">{{ currentJob.recruiterInsights.teamCulture }}</p>
                       </div>
 
-                      <div v-if="selectedJob.recruiterInsights.techStackPreference && selectedJob.recruiterInsights.techStackPreference.length > 0">
+                      <div v-if="currentJob.recruiterInsights.techStackPreference && currentJob.recruiterInsights.techStackPreference.length > 0">
                         <label class="block text-sm font-medium text-gray-600 mb-1">技术栈偏好</label>
                         <div class="flex flex-wrap gap-2">
                           <span
-                            v-for="tech in selectedJob.recruiterInsights.techStackPreference"
+                            v-for="tech in currentJob.recruiterInsights.techStackPreference"
                             :key="tech"
                             class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
                           >
@@ -663,15 +723,15 @@
                         </div>
                       </div>
 
-                      <div v-if="selectedJob.recruiterInsights.interviewFocus">
+                      <div v-if="currentJob.recruiterInsights.interviewFocus">
                         <label class="block text-sm font-medium text-gray-600 mb-1">面试重点</label>
-                        <p class="text-gray-900 text-sm">{{ selectedJob.recruiterInsights.interviewFocus }}</p>
+                        <p class="text-gray-900 text-sm">{{ currentJob.recruiterInsights.interviewFocus }}</p>
                       </div>
 
-                      <div v-if="selectedJob.recruiterInsights.processTips">
+                      <div v-if="currentJob.recruiterInsights.processTips">
                         <label class="block text-sm font-medium text-gray-600 mb-1">流程Tips</label>
                         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-                          <p class="text-sm text-yellow-800">{{ selectedJob.recruiterInsights.processTips }}</p>
+                          <p class="text-sm text-yellow-800">{{ currentJob.recruiterInsights.processTips }}</p>
                         </div>
                       </div>
                     </div>
@@ -805,106 +865,55 @@
 
                 <!-- Tab 6: 面试准备 -->
                 <div v-if="activeJobDetailTab === 'interview-prep'" class="space-y-6">
-                  <!-- Prompt生成区域（紧凑型） -->
-                  <div v-if="interviewPrepPromptData" class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 border border-teal-200">
-                    <div class="mb-2">
-                      <label class="block text-sm font-semibold text-gray-700 mb-2">复制以下Prompt到Claude Code执行面试准备分析</label>
-                      <div class="relative">
-                        <pre class="bg-white p-3 rounded border border-gray-300 text-xs overflow-x-auto whitespace-pre-wrap max-h-32">{{ interviewPrepPromptData.prompt }}</pre>
-                        <button
-                          @click="copyToClipboard(interviewPrepPromptData.prompt)"
-                          class="absolute top-2 right-2 px-3 py-1 bg-teal-600 text-white text-xs rounded hover:bg-teal-700"
-                        >
-                          复制
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 面试准备计划结果 -->
                   <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-6">
                       <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                         <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
-                        面试准备计划
+                        面试准备Skill调用
                       </h3>
                       <button
-                        @click="generateInterviewPrepPrompt"
+                        @click="generateInterviewPrepCommand"
                         class="px-4 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white text-sm rounded-lg hover:from-teal-700 hover:to-green-700 font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        生成面试准备Prompt
+                        生成命令
                       </button>
                     </div>
 
-                    <!-- 面试阶段列表 -->
-                    <div v-if="interviewStages && interviewStages.length > 0" class="space-y-4">
-                      <div v-for="stage in interviewStages" :key="stage.id" class="border border-gray-200 rounded-lg p-5">
-                        <!-- 头部：阶段名称 -->
-                        <div class="flex items-center justify-between mb-4 pb-4 border-b">
-                          <div>
-                            <div class="text-xl font-semibold text-gray-900">{{ stage.stageName }}</div>
-                            <div class="text-sm text-gray-500 mt-1">阶段 {{ stage.stageOrder }}</div>
-                          </div>
-                          <div class="text-sm text-gray-600">
-                            {{ stage.skillIds ? stage.skillIds.length : 0 }} 个技能 ·
-                            {{ stage.focusAreaIds ? stage.focusAreaIds.length : 0 }} 个Focus Area
-                          </div>
-                        </div>
-
-                        <!-- 准备笔记 -->
-                        <div v-if="stage.preparationNotes" class="mb-4 p-4 bg-teal-50 rounded-lg">
-                          <h4 class="text-sm font-semibold text-gray-900 mb-2">准备笔记</h4>
-                          <div class="text-sm text-gray-700 whitespace-pre-wrap">{{ stage.preparationNotes }}</div>
-                        </div>
-
-                        <!-- 准备清单 -->
-                        <div v-if="stage.checklistItems && stage.checklistItems.length > 0">
-                          <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                            </svg>
-                            准备清单 ({{ stage.checklistItems.length }} 项)
-                          </h4>
-                          <div class="space-y-2">
-                            <div
-                              v-for="item in stage.checklistItems"
-                              :key="item.id"
-                              :class="[
-                                'p-3 rounded-lg border-l-4',
-                                item.isPriority ? 'bg-yellow-50 border-yellow-500' : 'bg-gray-50 border-gray-300'
-                              ]"
-                            >
-                              <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 mt-0.5">
-                                  <span v-if="item.isPriority" class="inline-block px-2 py-0.5 bg-yellow-500 text-white text-xs rounded font-medium">高优先级</span>
-                                  <span v-else class="inline-block px-2 py-0.5 bg-gray-400 text-white text-xs rounded">普通</span>
-                                </div>
-                                <div class="flex-1">
-                                  <div class="font-medium text-gray-900 mb-1">{{ item.checklistItem }}</div>
-                                  <div v-if="item.category" class="text-xs text-gray-600 mb-2">
-                                    分类: <span class="px-2 py-0.5 bg-gray-200 rounded">{{ item.category }}</span>
-                                  </div>
-                                  <div v-if="item.notes" class="text-sm text-gray-700 whitespace-pre-wrap bg-white p-2 rounded border border-gray-200">{{ item.notes }}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <!-- 命令显示区域 -->
+                    <div v-if="interviewPrepCommand" class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-6 border border-teal-200">
+                      <label class="block text-sm font-semibold text-gray-700 mb-3">📋 复制以下命令到Claude Code执行</label>
+                      <div class="relative">
+                        <pre class="bg-white p-4 rounded border border-gray-300 text-sm overflow-x-auto whitespace-pre-wrap font-mono">{{ interviewPrepCommand }}</pre>
+                        <button
+                          @click="copyToClipboard(interviewPrepCommand)"
+                          class="absolute top-3 right-3 px-4 py-2 bg-teal-600 text-white text-sm rounded hover:bg-teal-700 shadow-md font-medium"
+                        >
+                          📋 复制
+                        </button>
                       </div>
+                      <p class="text-xs text-gray-600 mt-3">💡 此命令包含当前职位ID、定制简历ID，将自动加载面试阶段信息</p>
                     </div>
 
-                    <!-- 无准备计划时的提示 -->
-                    <div v-else class="text-center py-12 text-gray-500">
-                      <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    <!-- 未生成命令时的提示 -->
+                    <div v-else class="text-center py-16 text-gray-500">
+                      <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      <p class="text-lg mb-2">暂无面试准备计划</p>
-                      <p class="text-sm">点击右上角"生成面试准备Prompt"按钮开始创建准备计划</p>
+                      <p class="text-lg font-medium mb-2">准备生成面试准备命令</p>
+                      <p class="text-sm mb-4">点击"生成命令"按钮，系统将创建包含职位和简历信息的skill调用命令</p>
+                      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-md mx-auto">
+                        <p class="text-sm font-semibold text-blue-900 mb-2">💡 前提条件：</p>
+                        <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                          <li>已填写职位描述</li>
+                          <li>已创建定制简历</li>
+                          <li>（可选）已添加面试阶段</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -927,7 +936,7 @@
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">人脉列表</h3>
               <button
-                @click="showCreateContactModal = true"
+                @click="openContactModal()"
                 class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-lg transition-all font-semibold shadow-md"
               >
                 + 添加人脉
@@ -1180,6 +1189,47 @@
       </div>
     </div>
 
+    <!-- 从人脉中添加关联 Modal -->
+    <div v-if="showAddReferralModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-[600px]">
+        <h3 class="text-lg font-semibold mb-4">从人脉中添加</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">选择人脉 *</label>
+            <select v-model="jobReferralFormData.referralId" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <option :value="null" disabled>-- 请选择人脉 --</option>
+              <option v-for="contact in contacts" :key="contact.id" :value="contact.id">
+                {{ contact.referralName }} - {{ contact.relationship }}
+              </option>
+            </select>
+            <p v-if="contacts.length === 0" class="text-sm text-gray-500 mt-1">
+              暂无人脉，请先在"人脉管理"标签页中添加
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">在此职位中的角色 *</label>
+            <select v-model="jobReferralFormData.roleType" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <option value="Recruiter">招聘人员</option>
+              <option value="Referrer">内推人</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">针对此职位的备注</label>
+            <textarea
+              v-model="jobReferralFormData.notes"
+              rows="4"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+              placeholder="如：负责Phone Screen面试、已发送内推链接等"
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="showAddReferralModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="addReferralToJob" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">添加</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 创建/编辑面试阶段 Modal -->
     <div v-if="showCreateStageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
@@ -1199,49 +1249,23 @@
           <!-- Skill Selection -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">关联技能</label>
-            <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-              <div v-for="skill in allSkills" :key="skill.id" class="flex items-center gap-2 mb-2">
-                <input
-                  type="checkbox"
-                  :id="`skill-${skill.id}`"
-                  :value="skill.id"
-                  v-model="stageFormData.skillIds"
-                  class="rounded border-gray-300"
-                />
-                <label :for="`skill-${skill.id}`" class="text-sm text-gray-700 cursor-pointer">
-                  {{ skill.name }}
-                </label>
+            <div class="border border-gray-300 rounded-lg p-3">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div v-for="skill in allSkills" :key="skill.id" class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    :id="`skill-${skill.id}`"
+                    :value="skill.id"
+                    v-model="stageFormData.skillIds"
+                    class="rounded border-gray-300"
+                  />
+                  <label :for="`skill-${skill.id}`" class="text-sm text-gray-700 cursor-pointer">
+                    {{ skill.name }}
+                  </label>
+                </div>
               </div>
               <div v-if="allSkills.length === 0" class="text-sm text-gray-500 text-center py-2">
                 加载中...
-              </div>
-            </div>
-          </div>
-
-          <!-- Focus Area Selection (only show if at least one skill is selected) -->
-          <div v-if="stageFormData.skillIds && stageFormData.skillIds.length > 0">
-            <label class="block text-sm font-medium text-gray-700 mb-2">关联Focus Area</label>
-            <div class="border border-gray-300 rounded-lg p-3 max-h-64 overflow-y-auto">
-              <div v-for="skill in selectedSkillsWithFocusAreas" :key="skill.id" class="mb-4 last:mb-0">
-                <div class="text-sm font-medium text-gray-900 mb-2 bg-gray-100 px-2 py-1 rounded">
-                  {{ skill.name }}
-                </div>
-                <div v-for="focusArea in skill.focusAreas" :key="focusArea.id" class="flex items-center gap-2 ml-4 mb-2">
-                  <input
-                    type="checkbox"
-                    :id="`focus-${focusArea.id}`"
-                    :value="focusArea.id"
-                    v-model="stageFormData.focusAreaIds"
-                    class="rounded border-gray-300"
-                  />
-                  <label :for="`focus-${focusArea.id}`" class="text-sm text-gray-600 cursor-pointer">
-                    {{ focusArea.name }}
-                    <span v-if="focusArea.category" class="text-xs text-gray-400 ml-1">({{ focusArea.category }})</span>
-                  </label>
-                </div>
-                <div v-if="!skill.focusAreas || skill.focusAreas.length === 0" class="text-xs text-gray-400 ml-4">
-                  该技能暂无Focus Area
-                </div>
               </div>
             </div>
           </div>
@@ -1290,7 +1314,7 @@
     <!-- Recruiter Insights Modal -->
     <div v-if="showRecruiterInsightsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-semibold mb-4">{{ selectedJob?.recruiterInsights ? '编辑' : '添加' }} Recruiter Insights</h3>
+        <h3 class="text-lg font-semibold mb-4">{{ currentJob?.recruiterInsights ? '编辑' : '添加' }} Recruiter Insights</h3>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">团队规模</label>
@@ -1388,6 +1412,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { companyApi } from '@/api/companyApi'
 import { jobApplicationApi } from '@/api/jobApplicationApi'
 import { referralApi } from '@/api/referralApi'
+import { jobApplicationReferralApi } from '@/api/jobApplicationReferralApi'
 import { interviewStageApi } from '@/api/interviewStageApi'
 import { interviewChecklistApi } from '@/api/interviewChecklistApi'
 import { getSkills } from '@/api/skillApi'
@@ -1404,6 +1429,7 @@ const md = new MarkdownIt()
 const companies = ref([])
 const jobs = ref([])
 const contacts = ref([])
+const jobReferrals = ref([]) // 当前职位关联的人脉列表
 const interviewStages = ref([])
 const allSkills = ref([])
 const skillFocusAreas = ref({}) // { skillId: [...focusAreas] }
@@ -1415,6 +1441,7 @@ const resumeAnalysis = ref(null)
 const aiPromptData = ref(null)
 const savedAnalyses = ref([])
 const interviewPrepPromptData = ref(null)
+const interviewPrepCommand = ref(null) // 面试准备skill调用命令
 const selectedAnalysis = ref(null)
 const customizedResume = ref(null) // 定制简历
 const loadingCustomizedResume = ref(false) // 加载状态
@@ -1424,6 +1451,8 @@ const showCreateContactModal = ref(false)
 const showCreateLinkModal = ref(false)
 const showCreateStageModal = ref(false)
 const showRecruiterInsightsModal = ref(false)
+const showAddReferralModal = ref(false)
+const draggedStage = ref(null) // 正在拖动的阶段
 
 const editModes = ref({
   info: false
@@ -1439,9 +1468,9 @@ const jobDetailTabs = [
   { id: 'jd', name: '职位描述' },
   { id: 'ai-analysis', name: '简历分析' },
   { id: 'resume', name: '定制简历' },
-  { id: 'interview-prep', name: '面试准备' },
-  { id: 'recruiter', name: '招聘人员' },
-  { id: 'interview', name: '面试流程' }
+  { id: 'recruiter', name: '招聘或内推人员' },
+  { id: 'interview', name: '面试流程' },
+  { id: 'interview-prep', name: '面试准备' }
 ]
 
 const companyFormData = ref({
@@ -1510,6 +1539,13 @@ const recruiterInsightsFormData = ref({
   processTips: ''
 })
 
+const jobReferralFormData = ref({
+  id: null,
+  referralId: null,
+  roleType: 'Recruiter', // Recruiter or Referrer
+  notes: ''
+})
+
 const techStackInput = ref('')
 
 const currentCompany = computed(() =>
@@ -1518,10 +1554,6 @@ const currentCompany = computed(() =>
 
 const currentJob = computed(() =>
   jobs.value.find(j => j.id === selectedJobId.value)
-)
-
-const recruiterContacts = computed(() =>
-  contacts.value.filter(c => c.relationship === 'Recruiter')
 )
 
 // Get skills with their focus areas for the selected skills
@@ -1555,6 +1587,12 @@ const renderMarkdown = (text) => {
     text = String(text)
   }
   return md.render(text)
+}
+
+// 根据技能ID获取技能名称
+const getSkillNameById = (skillId) => {
+  const skill = allSkills.value.find(s => s.id === skillId)
+  return skill ? skill.name : `技能ID: ${skillId}`
 }
 
 // 加载简历分析
@@ -1678,11 +1716,13 @@ watch(selectedCompanyId, async (newVal) => {
 watch(selectedJobId, async (newVal) => {
   if (newVal) {
     await loadInterviewStages()
+    await loadJobReferrals()
     // Also load AI analyses and customized resume when job changes
     await loadSavedAnalyses(newVal)
     await loadCustomizedResume(newVal)
   } else {
     interviewStages.value = []
+    jobReferrals.value = []
     savedAnalyses.value = []
     customizedResume.value = null
   }
@@ -1758,6 +1798,17 @@ const loadContacts = async () => {
     contacts.value = data || []
   } catch (error) {
     console.error('加载人脉列表失败:', error)
+  }
+}
+
+const loadJobReferrals = async () => {
+  if (!selectedJobId.value) return
+
+  try {
+    const data = await jobApplicationReferralApi.getReferralsByJob(selectedJobId.value)
+    jobReferrals.value = data || []
+  } catch (error) {
+    console.error('加载职位关联人脉失败:', error)
   }
 }
 
@@ -2029,6 +2080,16 @@ const deleteLink = async (linkId) => {
 }
 
 // --- Interview Stages Management ---
+// 获取指定行的阶段（Z字形布局）
+const getStagesForRow = (rowIndex) => {
+  const startIndex = rowIndex * 5
+  const endIndex = Math.min(startIndex + 5, interviewStages.value.length)
+  const rowStages = interviewStages.value.slice(startIndex, endIndex)
+
+  // 偶数行（第2、4、6...行）需要反转顺序（从右到左）
+  return rowIndex % 2 === 1 ? rowStages.reverse() : rowStages
+}
+
 const loadInterviewStages = async () => {
   if (!selectedJobId.value) return
 
@@ -2091,9 +2152,9 @@ const saveStage = async () => {
     }
 
     if (editingStage.value?.id) {
-      await interviewStageApi.updateStage(editingStage.value.id, payload)
+      await interviewStageApi.update(editingStage.value.id, payload)
     } else {
-      await interviewStageApi.createStage(selectedJobId.value, payload)
+      await interviewStageApi.create(payload)
     }
 
     showCreateStageModal.value = false
@@ -2109,7 +2170,7 @@ const deleteStage = async (stageId) => {
   if (!confirm('确定要删除这个面试阶段吗?')) return
 
   try {
-    await interviewStageApi.deleteStage(stageId)
+    await interviewStageApi.delete(stageId)
     await loadInterviewStages()
   } catch (error) {
     console.error('删除面试阶段失败:', error)
@@ -2117,22 +2178,114 @@ const deleteStage = async (stageId) => {
   }
 }
 
+// 拖拽处理函数
+const handleDragStart = (stage, event) => {
+  draggedStage.value = stage
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+const handleDragOver = (event) => {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+}
+
+const handleDrop = async (targetStage, event) => {
+  event.preventDefault()
+
+  if (!draggedStage.value || draggedStage.value.id === targetStage.id) {
+    return
+  }
+
+  const draggedIndex = interviewStages.value.findIndex(s => s.id === draggedStage.value.id)
+  const targetIndex = interviewStages.value.findIndex(s => s.id === targetStage.id)
+
+  if (draggedIndex === -1 || targetIndex === -1) return
+
+  // 重新排序数组
+  const newStages = [...interviewStages.value]
+  const [removed] = newStages.splice(draggedIndex, 1)
+  newStages.splice(targetIndex, 0, removed)
+
+  // 更新每个阶段的 stageOrder
+  const updates = newStages.map((stage, index) => ({
+    id: stage.id,
+    stageOrder: index + 1
+  }))
+
+  try {
+    // 批量更新每个阶段的顺序
+    await Promise.all(
+      updates.map(update =>
+        interviewStageApi.update(update.id, {
+          ...interviewStages.value.find(s => s.id === update.id),
+          stageOrder: update.stageOrder
+        })
+      )
+    )
+
+    // 重新加载阶段列表
+    await loadInterviewStages()
+  } catch (error) {
+    console.error('更新阶段顺序失败:', error)
+    alert('更新顺序失败，请重试')
+  }
+}
+
+const handleDragEnd = () => {
+  draggedStage.value = null
+}
+
 // --- Interview Records Management ---
 
-// --- Recruiter Management ---
-const addRecruiterContact = () => {
-  // 预填充relationship为Recruiter
-  contactFormData.value = {
-    referralName: '',
-    position: 'Recruiter',
-    relationship: 'Recruiter',
-    email: '',
-    phone: '',
-    linkedinUrl: '',
+// --- Job Referral Management (招聘或内推人员关联) ---
+
+const openAddReferralModal = () => {
+  jobReferralFormData.value = {
+    id: null,
+    referralId: null,
+    roleType: 'Recruiter',
     notes: ''
   }
-  editingContact.value = null
-  showCreateContactModal.value = true
+  showAddReferralModal.value = true
+}
+
+const addReferralToJob = async () => {
+  if (!jobReferralFormData.value.referralId) {
+    alert('请选择人脉')
+    return
+  }
+
+  if (!selectedJobId.value) {
+    alert('请先选择职位')
+    return
+  }
+
+  try {
+    const data = {
+      referralId: jobReferralFormData.value.referralId,
+      roleType: jobReferralFormData.value.roleType,
+      notes: jobReferralFormData.value.notes || null
+    }
+
+    await jobApplicationReferralApi.addReferralToJob(selectedJobId.value, data)
+    showAddReferralModal.value = false
+    await loadJobReferrals()
+  } catch (error) {
+    console.error('添加关联人脉失败:', error)
+    alert('添加失败，请稍后重试')
+  }
+}
+
+const removeReferralFromJob = async (jobReferralId) => {
+  if (!confirm('确定要取消此人脉关联吗？')) return
+
+  try {
+    await jobApplicationReferralApi.removeReferralFromJob(selectedJobId.value, jobReferralId)
+    await loadJobReferrals()
+  } catch (error) {
+    console.error('删除关联失败:', error)
+    alert('删除失败，请稍后重试')
+  }
 }
 
 // ========== AI Job Analysis Functions ==========
@@ -2207,20 +2360,21 @@ const copyToClipboard = async (text) => {
 // ========== Interview Preparation Functions ==========
 
 // Generate interview preparation prompt
-const generateInterviewPrepPrompt = async () => {
+const generateInterviewPrepCommand = () => {
   if (!selectedJobId.value) {
     alert('请先选择一个职位')
     return
   }
 
-  const userId = 3 // TODO: Get from auth context
-  const prompt = `Prepare for interview job ${selectedJobId.value} user ${userId}`
-
-  interviewPrepPromptData.value = {
-    jobId: selectedJobId.value,
-    userId: userId,
-    prompt: prompt
+  if (!customizedResume.value || !customizedResume.value.id) {
+    alert('请先创建定制简历')
+    return
   }
+
+  // 生成简洁的skill调用命令
+  const command = `/job-prepare job_id=${selectedJobId.value} resume_id=${customizedResume.value.id}`
+
+  interviewPrepCommand.value = command
 }
 
 // Parse analysis result safely
@@ -2339,14 +2493,14 @@ const extractImprovementSuggestions = () => {
 // ========== Recruiter Insights Functions ==========
 
 const openRecruiterInsightsModal = () => {
-  if (selectedJob.value?.recruiterInsights) {
+  if (currentJob.value?.recruiterInsights) {
     // 编辑模式 - 加载现有数据
     recruiterInsightsFormData.value = {
-      teamSize: selectedJob.value.recruiterInsights.teamSize || '',
-      teamCulture: selectedJob.value.recruiterInsights.teamCulture || '',
-      techStackPreference: selectedJob.value.recruiterInsights.techStackPreference || [],
-      interviewFocus: selectedJob.value.recruiterInsights.interviewFocus || '',
-      processTips: selectedJob.value.recruiterInsights.processTips || ''
+      teamSize: currentJob.value.recruiterInsights.teamSize || '',
+      teamCulture: currentJob.value.recruiterInsights.teamCulture || '',
+      techStackPreference: currentJob.value.recruiterInsights.techStackPreference || [],
+      interviewFocus: currentJob.value.recruiterInsights.interviewFocus || '',
+      processTips: currentJob.value.recruiterInsights.processTips || ''
     }
   } else {
     // 新建模式
