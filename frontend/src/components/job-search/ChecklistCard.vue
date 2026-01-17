@@ -14,40 +14,44 @@
         <!-- 复选框 -->
         <div class="flex-shrink-0 mt-1">
           <input
-            v-if="item.hasDetails"
             type="checkbox"
             :checked="item.isCompleted"
-            @change.stop="$emit('toggle-complete', item)"
+            @change.stop="handleToggleComplete"
             class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
           />
-          <div v-else class="w-5 h-5 border-2 border-gray-300 rounded bg-gray-100" title="未展开，无法勾选"></div>
         </div>
 
         <!-- 标题和标签 -->
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">
+            <!-- 来源标签 -->
+            <span
+              :class="[
+                'px-2 py-0.5 rounded-full text-xs font-medium border',
+                item.source === 'AI'
+                  ? 'bg-blue-50 text-blue-700 border-blue-300'
+                  : 'bg-green-50 text-green-700 border-green-300'
+              ]"
+            >
+              {{ item.source === 'AI' ? '🤖 AI生成' : '👤 用户创建' }}
+            </span>
+
             <!-- 优先级标签 -->
             <span
-              v-if="item.checklistPriority"
-              class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-300"
+              :class="[
+                'px-2 py-0.5 rounded-full text-xs font-medium border',
+                getPriorityClass(item.priority)
+              ]"
             >
-              重要
+              优先级: {{ item.priority }}
             </span>
 
             <!-- 分类标签 -->
             <span
-              v-if="item.checklistCategory"
+              v-if="item.todoType"
               class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-300"
             >
-              {{ item.checklistCategory }}
-            </span>
-
-            <!-- 状态标签 -->
-            <span
-              v-if="!item.hasDetails"
-              class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"
-            >
-              待展开
+              {{ getTodoTypeLabel(item.todoType) }}
             </span>
           </div>
 
@@ -147,7 +151,7 @@
           @click.stop="$emit('edit', item)"
           class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
         >
-          ✏️ 编辑详情
+          ✏️ 编辑
         </button>
         <button
           v-else
@@ -156,6 +160,45 @@
         >
           ➕ 添加详情
         </button>
+        <button
+          v-if="item.id"
+          @click.stop="$emit('delete', item.id)"
+          class="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+        >
+          🗑️ 删除
+        </button>
+      </div>
+    </div>
+
+    <!-- 完成备注弹窗 -->
+    <div
+      v-if="showCompletionDialog"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="showCompletionDialog = false"
+    >
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">✅ 完成备注</h3>
+        <textarea
+          v-model="completionNotes"
+          rows="4"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          placeholder="记录完成心得、收获或遇到的问题..."
+          autofocus
+        ></textarea>
+        <div class="flex justify-end gap-3 mt-4">
+          <button
+            @click="cancelComplete"
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            取消
+          </button>
+          <button
+            @click="confirmComplete"
+            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            确认完成
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -164,9 +207,14 @@
 <script setup>
 import MarkdownIt from 'markdown-it'
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
 const md = new MarkdownIt()
+
+// 完成备注相关状态
+const showCompletionDialog = ref(false)
+const completionNotes = ref('')
 
 const props = defineProps({
   item: {
@@ -182,7 +230,33 @@ const props = defineProps({
 const emit = defineEmits(['toggle-expand', 'toggle-complete', 'edit'])
 
 const toggleExpand = () => {
-  emit('toggle-expand', props.item.checklistItemId)
+  // Use id if available (for both AI and user TODOs), fallback to checklistItemId for legacy support
+  const itemId = props.item.id || props.item.checklistItemId
+  emit('toggle-expand', itemId)
+}
+
+// 处理完成状态切换
+const handleToggleComplete = () => {
+  if (props.item.isCompleted) {
+    // 取消完成：直接触发
+    emit('toggle-complete', props.item)
+  } else {
+    // 标记为完成：显示备注输入框
+    completionNotes.value = ''
+    showCompletionDialog.value = true
+  }
+}
+
+// 确认完成
+const confirmComplete = () => {
+  showCompletionDialog.value = false
+  emit('toggle-complete', props.item, completionNotes.value)
+}
+
+// 取消完成
+const cancelComplete = () => {
+  showCompletionDialog.value = false
+  completionNotes.value = ''
 }
 
 const addDetails = () => {
@@ -289,6 +363,26 @@ const handleResourceClick = (link) => {
   if (handler) {
     handler()
   }
+}
+
+// 获取优先级样式
+const getPriorityClass = (priority) => {
+  if (priority >= 4) return 'bg-red-100 text-red-700 border-red-300 font-bold'
+  if (priority >= 3) return 'bg-orange-100 text-orange-700 border-orange-300'
+  if (priority >= 2) return 'bg-yellow-100 text-yellow-700 border-yellow-300'
+  return 'bg-gray-100 text-gray-600 border-gray-300'
+}
+
+// 获取TODO类型标签
+const getTodoTypeLabel = (type) => {
+  const labels = {
+    'General': '一般任务',
+    'StudyMaterial': '学习材料',
+    'Practice': '练习刷题',
+    'ProjectReview': '项目回顾',
+    'Checklist': '准备清单'
+  }
+  return labels[type] || type
 }
 </script>
 

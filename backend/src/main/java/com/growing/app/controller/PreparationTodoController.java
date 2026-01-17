@@ -129,7 +129,10 @@ public class PreparationTodoController {
 
     /**
      * 为checklist项创建详细TODO（展开checklist）
+     * 现在所有AI项都已存在，这个方法只是更新现有TODO
      * POST /api/checklist/{checklistId}/expand
+     *
+     * @deprecated Since table merge, AI items already exist. This now just updates existing TODO.
      */
     @PostMapping("/checklist/{checklistId}/expand")
     public ResponseEntity<PreparationTodoDTO> expandChecklist(
@@ -138,7 +141,8 @@ public class PreparationTodoController {
             @RequestHeader("Authorization") String token) {
 
         Long userId = authService.getUserIdFromToken(token);
-        PreparationTodoDTO created = todoService.createTodoFromChecklist(checklistId, dto, userId);
-        return ResponseEntity.ok(created);
+        // 直接更新现有TODO（AI生成的项已经存在于数据库中）
+        PreparationTodoDTO updated = todoService.updateTodo(checklistId, dto, userId);
+        return ResponseEntity.ok(updated);
     }
 }

@@ -10,9 +10,9 @@ public class PreparationTodoDTO {
     private String title;
     private String description;
     private String todoType; // General, StudyMaterial, Practice, ProjectReview, Checklist
+    private String source; // AI or User
     private Integer priority; // 0-5
     private Integer orderIndex;
-    private Long checklistItemId;
     private List<ResourceLink> resourceLinks; // 解析后的资源链接列表
     private Boolean isCompleted;
     private LocalDateTime completedAt;
@@ -143,6 +143,14 @@ public class PreparationTodoDTO {
         this.todoType = todoType;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public Integer getPriority() {
         return priority;
     }
@@ -157,14 +165,6 @@ public class PreparationTodoDTO {
 
     public void setOrderIndex(Integer orderIndex) {
         this.orderIndex = orderIndex;
-    }
-
-    public Long getChecklistItemId() {
-        return checklistItemId;
-    }
-
-    public void setChecklistItemId(Long checklistItemId) {
-        this.checklistItemId = checklistItemId;
     }
 
     public List<ResourceLink> getResourceLinks() {

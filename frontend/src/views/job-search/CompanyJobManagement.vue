@@ -444,7 +444,7 @@
                                 </div>
 
                                 <!-- 准备要点 -->
-                                <div v-if="stage.preparationNotes" class="text-xs text-gray-600 border-t pt-2">
+                                <div v-if="stage.preparationNotes" class="text-xs text-gray-600 border-t pt-2 mt-2">
                                   <div class="font-medium text-gray-700 mb-1">准备要点:</div>
                                   <div v-html="renderMarkdown(stage.preparationNotes)" class="prose prose-sm max-w-none line-clamp-3"></div>
                                 </div>
@@ -1444,7 +1444,6 @@ import { jobApplicationApi } from '@/api/jobApplicationApi'
 import { referralApi } from '@/api/referralApi'
 import { jobApplicationReferralApi } from '@/api/jobApplicationReferralApi'
 import { interviewStageApi } from '@/api/interviewStageApi'
-import { interviewChecklistApi } from '@/api/interviewChecklistApi'
 import { getSkills } from '@/api/skillApi'
 import { getFocusAreasBySkillId } from '@/api/focusAreaApi'
 import { resumeAnalysisApi } from '@/api/resumeAnalysisApi'
@@ -2132,21 +2131,7 @@ const loadInterviewStages = async () => {
 
   try {
     const data = await interviewStageApi.getByJobApplication(selectedJobId.value)
-    // Also load checklist items for each stage
-    if (data && data.length > 0) {
-      const stagesWithChecklists = await Promise.all(
-        data.map(async (stage) => {
-          const checklist = await interviewChecklistApi.getByStage(stage.id)
-          return {
-            ...stage,
-            checklistItems: checklist || []
-          }
-        })
-      )
-      interviewStages.value = stagesWithChecklists
-    } else {
-      interviewStages.value = []
-    }
+    interviewStages.value = data || []
   } catch (error) {
     console.error('加载面试阶段失败:', error)
     interviewStages.value = []

@@ -14,8 +14,8 @@ public class InterviewPreparationTodo {
     @Column(name = "interview_stage_id", nullable = false)
     private Long interviewStageId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id")
+    private Long userId; // Nullable: user is determined via interview_stage_id → job_application_id → user_id
 
     @Column(nullable = false, length = 500)
     private String title;
@@ -26,14 +26,14 @@ public class InterviewPreparationTodo {
     @Column(name = "todo_type", nullable = false, length = 50)
     private String todoType = "General"; // General, StudyMaterial, Practice, ProjectReview, Checklist
 
+    @Column(nullable = false, length = 20)
+    private String source = "User"; // AI (AI-generated) or User (user-created)
+
     @Column(nullable = false)
     private Integer priority = 0; // 0-5
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex = 0;
-
-    @Column(name = "checklist_item_id")
-    private Long checklistItemId;
 
     @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted = false;
@@ -110,6 +110,14 @@ public class InterviewPreparationTodo {
         this.todoType = todoType;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public Integer getPriority() {
         return priority;
     }
@@ -124,14 +132,6 @@ public class InterviewPreparationTodo {
 
     public void setOrderIndex(Integer orderIndex) {
         this.orderIndex = orderIndex;
-    }
-
-    public Long getChecklistItemId() {
-        return checklistItemId;
-    }
-
-    public void setChecklistItemId(Long checklistItemId) {
-        this.checklistItemId = checklistItemId;
     }
 
     public Boolean getIsCompleted() {

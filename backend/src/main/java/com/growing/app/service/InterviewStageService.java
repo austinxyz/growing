@@ -3,15 +3,12 @@ package com.growing.app.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.FocusAreaBriefDTO;
-import com.growing.app.dto.InterviewPreparationChecklistDTO;
 import com.growing.app.dto.InterviewStageDTO;
-import com.growing.app.entity.InterviewPreparationChecklist;
 import com.growing.app.entity.InterviewStage;
 import com.growing.app.entity.JobApplication;
 import com.growing.app.model.FocusArea;
 import com.growing.app.model.Skill;
 import com.growing.app.repository.FocusAreaRepository;
-import com.growing.app.repository.InterviewPreparationChecklistRepository;
 import com.growing.app.repository.InterviewStageRepository;
 import com.growing.app.repository.JobApplicationRepository;
 import com.growing.app.repository.SkillRepository;
@@ -33,9 +30,6 @@ public class InterviewStageService {
 
     @Autowired
     private JobApplicationRepository jobApplicationRepository;
-
-    @Autowired
-    private InterviewPreparationChecklistRepository checklistRepository;
 
     @Autowired
     private FocusAreaRepository focusAreaRepository;
@@ -411,12 +405,9 @@ public class InterviewStageService {
             dto.setFocusAreas(Collections.emptyList());
         }
 
-        // DTO Completeness Checklist: Load checklist items
-        List<InterviewPreparationChecklist> checklists = checklistRepository
-                .findByInterviewStageIdOrderBySortOrderAsc(stage.getId());
-        dto.setChecklistItems(checklists.stream()
-                .map(this::convertChecklistToDTO)
-                .collect(Collectors.toList()));
+        // Checklist items are now in interview_preparation_todos table
+        // They are loaded separately via PreparationTodoService if needed
+        dto.setChecklistItems(Collections.emptyList());
 
         return dto;
     }
@@ -436,17 +427,5 @@ public class InterviewStageService {
         return dto;
     }
 
-    private InterviewPreparationChecklistDTO convertChecklistToDTO(InterviewPreparationChecklist checklist) {
-        InterviewPreparationChecklistDTO dto = new InterviewPreparationChecklistDTO();
-        dto.setId(checklist.getId());
-        dto.setInterviewStageId(checklist.getInterviewStageId());
-        dto.setChecklistItem(checklist.getChecklistItem());
-        dto.setIsPriority(checklist.getIsPriority());
-        dto.setCategory(checklist.getCategory());
-        dto.setNotes(checklist.getNotes());
-        dto.setSortOrder(checklist.getSortOrder());
-        dto.setCreatedAt(checklist.getCreatedAt());
-        dto.setUpdatedAt(checklist.getUpdatedAt());
-        return dto;
-    }
+    // convertChecklistToDTO removed - checklist is now merged into interview_preparation_todos table
 }

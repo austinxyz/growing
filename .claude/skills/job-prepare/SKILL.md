@@ -94,9 +94,10 @@ FROM interview_stages
 WHERE job_application_id = {job_id}
 ORDER BY stage_order;
 
--- For each existing stage, get current checklist items (to avoid duplicates)
-SELECT interview_stage_id, checklist_item, is_priority, category, notes
-FROM interview_preparation_checklist
+-- For each existing stage, get current TODO items (to avoid duplicates)
+-- Note: AI-generated items have source='AI', user-created items have source='User'
+SELECT interview_stage_id, title, priority, todo_type, description
+FROM interview_preparation_todos
 WHERE interview_stage_id IN ({stage_ids})
 ORDER BY interview_stage_id, sort_order;
 ```
@@ -216,13 +217,13 @@ INSERT INTO interview_stages (
 -- Get the new stage_id
 SET @stage_id = LAST_INSERT_ID();
 
--- Add checklist items
-INSERT INTO interview_preparation_checklist (
-  interview_stage_id, checklist_item, is_priority, category, notes, sort_order
+-- Add TODO items (AI-generated with source='AI')
+INSERT INTO interview_preparation_todos (
+  interview_stage_id, user_id, title, description, todo_type, source, priority, order_index, is_completed
 ) VALUES
-  (@stage_id, 'Project: {project_name}', 1, 'Project', '{preparation_tips}', {order}),
-  (@stage_id, 'Management: {experience_name}', 1, 'Management', '{preparation_tips}', {order}),
-  (@stage_id, 'Skill: {skill_name} - {focus_area_name}', 0, 'Skill', '{reason}', {order});
+  (@stage_id, NULL, 'Project: {project_name}', '{preparation_tips}', 'Project', 'AI', 4, {order}, 0),
+  (@stage_id, NULL, 'Management: {experience_name}', '{preparation_tips}', 'Management', 'AI', 4, {order}, 0),
+  (@stage_id, NULL, 'Skill: {skill_name} - {focus_area_name}', '{reason}', 'Skill', 'AI', 2, {order}, 0);
 ```
 
 **Case 2: Existing stages (smart distribution with deduplication)**
@@ -245,10 +246,10 @@ Before adding ANY checklist items to a stage:
 
 1. **Load existing checklist items** from step 4
 2. **Compare new items against existing** using these rules:
-   - Match by `checklist_item` text (case-insensitive, trim whitespace)
-   - For projects: match if both contain same project_name
-   - For management: match if both contain same experience_name
-   - For skills/focus areas: match if both mention same skill_name AND focus_area_name
+   - Match by `title` text (case-insensitive, trim whitespace)
+   - For projects: match if both titles contain same project_name
+   - For management: match if both titles contain same experience_name
+   - For skills/focus areas: match if both titles mention same skill_name AND focus_area_name
 
 3. **Skip duplicates** - if item already exists:
    - Do NOT insert it again
@@ -284,9 +285,9 @@ if (isDuplicate) {
 ```
 
 ```sql
--- Step 1: Get max sort_order for this stage
-SELECT COALESCE(MAX(sort_order), 0) as max_order
-FROM interview_preparation_checklist
+-- Step 1: Get max order_index for this stage
+SELECT COALESCE(MAX(order_index), 0) as max_order
+FROM interview_preparation_todos
 WHERE interview_stage_id = {stage_id};
 
 -- Step 2: Update stage with NEW focus areas only (avoid duplicates in JSON array)
@@ -299,13 +300,14 @@ SET
   preparation_notes = CONCAT(IFNULL(preparation_notes, ''), '\n\n## AI Recommendations\n\n', {ai_notes})
 WHERE id = {stage_id};
 
--- Step 3: Insert ONLY non-duplicate checklist items
+-- Step 3: Insert ONLY non-duplicate TODO items (AI-generated with source='AI')
 -- (After deduplication check in code)
-INSERT INTO interview_preparation_checklist (
-  interview_stage_id, checklist_item, is_priority, category, notes, sort_order
+-- user_id is NULL because it's AI-generated (user determined via interview_stage_id chain)
+INSERT INTO interview_preparation_todos (
+  interview_stage_id, user_id, title, description, todo_type, source, priority, order_index, is_completed
 ) VALUES
-  ({stage_id}, {new_item_1}, {priority}, {category}, {notes}, {max_order + 1}),
-  ({stage_id}, {new_item_2}, {priority}, {category}, {notes}, {max_order + 2});
+  ({stage_id}, NULL, {new_item_title_1}, {notes_1}, {category_1}, 'AI', {priority_1}, {max_order + 1}, 0),
+  ({stage_id}, NULL, {new_item_title_2}, {notes_2}, {category_2}, 'AI', {priority_2}, {max_order + 2}, 0);
   -- Only items that passed deduplication check
 ```
 

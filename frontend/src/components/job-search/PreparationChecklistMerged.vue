@@ -1,13 +1,13 @@
 <template>
-  <div class="preparation-checklist-merged flex gap-4 h-full">
-    <!-- 左侧：清单项（占主要空间） -->
-    <div class="flex-1 flex flex-col">
+  <div class="preparation-checklist-merged flex flex-col h-full">
+    <!-- 顶部工具栏 -->
+    <div class="flex items-center justify-between mb-4">
       <!-- 进度条 -->
-      <div class="mb-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+      <div class="flex-1 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-semibold text-gray-700">📊 完成进度</span>
           <span class="text-sm font-medium text-blue-600">
-            {{ completedCount }}/{{ checklistItems.length }} 完成
+            {{ completedCount }}/{{ allItems.length }} 完成
           </span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
@@ -19,119 +19,46 @@
         <p class="text-xs text-gray-600 mt-2 text-right font-medium">{{ completionProgress }}%</p>
       </div>
 
-      <!-- 清单项列表 -->
-      <div class="flex-1 overflow-y-auto space-y-3">
-        <div v-if="loading" class="text-center py-8">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p class="text-sm text-gray-500 mt-2">加载中...</p>
-        </div>
-
-        <div v-else-if="checklistItems.length > 0" class="space-y-3">
-          <ChecklistCard
-            v-for="item in sortedChecklistItems"
-            :key="item.checklistItemId"
-            :item="item"
-            :expanded="expandedItemId === item.checklistItemId"
-            @toggle-expand="toggleExpand"
-            @toggle-complete="toggleComplete"
-            @edit="editItem"
-          />
-        </div>
-
-        <div v-else class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
-          <p class="text-gray-600 font-medium">暂无准备清单</p>
-        </div>
-      </div>
+      <!-- 新建按钮 -->
+      <button
+        @click="createCustomTodo"
+        class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+        title="新建准备项"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        新建准备项
+      </button>
     </div>
 
-    <!-- 右侧：独立TODO列表 -->
-    <div class="w-80 flex flex-col bg-white rounded-lg shadow-md p-4 border border-gray-200">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          自定义TODO
-        </h3>
-        <button
-          @click="createCustomTodo"
-          class="px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors"
-          title="新建TODO"
-        >
-          ＋
-        </button>
+    <!-- 清单项列表 -->
+    <div class="flex-1 overflow-y-auto space-y-3">
+      <div v-if="loading" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p class="text-sm text-gray-500 mt-2">加载中...</p>
       </div>
 
-      <div class="flex-1 overflow-y-auto space-y-2">
-        <div v-if="customTodos.length === 0" class="text-center py-8 text-gray-400 text-xs">
-          <p>暂无自定义TODO</p>
-          <p class="mt-1">点击"+"添加</p>
-        </div>
+      <div v-else-if="allItems.length > 0" class="space-y-3">
+        <ChecklistCard
+          v-for="item in sortedAllItems"
+          :key="item.id || item.checklistItemId"
+          :item="item"
+          :expanded="expandedItemId === (item.id || item.checklistItemId)"
+          :show-actions="true"
+          @toggle-expand="toggleExpand"
+          @toggle-complete="toggleComplete"
+          @edit="editItem"
+          @delete="deleteTodo"
+        />
+      </div>
 
-        <div
-          v-for="todo in sortedCustomTodos"
-          :key="todo.id"
-          class="border rounded p-3 hover:shadow-sm transition-shadow"
-          :class="todo.isCompleted ? 'bg-gray-50 border-gray-300 opacity-75' : 'bg-white border-gray-200'"
-        >
-          <div class="flex items-start gap-2">
-            <input
-              type="checkbox"
-              :checked="todo.isCompleted"
-              @change="toggleComplete(todo)"
-              class="mt-1 w-4 h-4 text-purple-600 rounded cursor-pointer"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1 mb-1">
-                <span
-                  v-if="todo.priority >= 3"
-                  :class="[
-                    'px-1.5 py-0.5 rounded-full text-xs font-bold',
-                    todo.priority >= 4 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-                  ]"
-                >
-                  {{ todo.priority >= 4 ? '高' : '中' }}
-                </span>
-                <!-- 标题（如果有资源则显示为链接） -->
-                <a
-                  v-if="todo.resourceLinks && todo.resourceLinks.length > 0"
-                  @click.stop="handleCustomTodoTitleClick(todo)"
-                  class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer inline-flex items-center gap-1"
-                  :class="todo.isCompleted ? 'line-through opacity-75' : ''"
-                >
-                  {{ todo.title }}
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-                <span
-                  v-else
-                  class="text-sm font-medium"
-                  :class="todo.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'"
-                >
-                  {{ todo.title }}
-                </span>
-              </div>
-              <div class="flex gap-1">
-                <button
-                  @click="editItem(todo)"
-                  class="text-xs text-blue-600 hover:text-blue-700"
-                >
-                  编辑
-                </button>
-                <button
-                  @click="deleteTodo(todo.id)"
-                  class="text-xs text-red-600 hover:text-red-700"
-                >
-                  删除
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div v-else class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+        <p class="text-gray-600 font-medium">暂无准备清单</p>
+        <p class="text-sm text-gray-500 mt-2">点击右上角"新建准备项"按钮添加</p>
       </div>
     </div>
 
@@ -167,47 +94,32 @@ const showTodoForm = ref(false)
 const editingTodo = ref(null)
 const loading = ref(false)
 
-// 分离checklist项和自定义TODO
-const checklistItems = computed(() => {
-  return allItems.value.filter(item => item.fromChecklist)
-})
-
-const customTodos = computed(() => {
-  return allItems.value.filter(item => !item.fromChecklist)
-})
-
-// 完成数量（只统计checklist）
+// 完成数量（统计所有TODO）
 const completedCount = computed(() => {
-  return checklistItems.value.filter(t => t.isCompleted).length
+  return allItems.value.filter(t => t.isCompleted).length
 })
 
 // 完成进度
 const completionProgress = computed(() => {
-  if (checklistItems.value.length === 0) return 0
-  return Math.round((completedCount.value / checklistItems.value.length) * 100)
+  if (allItems.value.length === 0) return 0
+  return Math.round((completedCount.value / allItems.value.length) * 100)
 })
 
-// 排序：未完成在前，按优先级降序
-const sortedChecklistItems = computed(() => {
-  return [...checklistItems.value].sort((a, b) => {
+// 统一排序：未完成在前，按优先级降序，同优先级按order排序
+const sortedAllItems = computed(() => {
+  return [...allItems.value].sort((a, b) => {
+    // 未完成的在前
     if (a.isCompleted !== b.isCompleted) {
       return a.isCompleted ? 1 : -1
     }
+    // 按优先级降序
     const aPriority = a.checklistPriority ? 4 : (a.priority || 2)
     const bPriority = b.checklistPriority ? 4 : (b.priority || 2)
-    return bPriority - aPriority
-  })
-})
-
-const sortedCustomTodos = computed(() => {
-  return [...customTodos.value].sort((a, b) => {
-    if (a.isCompleted !== b.isCompleted) {
-      return a.isCompleted ? 1 : -1
+    if (aPriority !== bPriority) {
+      return bPriority - aPriority
     }
-    if (a.priority !== b.priority) {
-      return b.priority - a.priority
-    }
-    return a.orderIndex - b.orderIndex
+    // 同优先级按orderIndex排序
+    return (a.orderIndex || 0) - (b.orderIndex || 0)
   })
 })
 
@@ -298,19 +210,31 @@ const saveTodo = async (todoData) => {
 }
 
 // 切换完成状态
-const toggleComplete = async (item) => {
-  // 未展开的checklist不能标记完成
-  if (item.fromChecklist && !item.hasDetails) {
-    alert('请先展开此清单项，添加详细信息后再标记完成')
-    return
-  }
-
+const toggleComplete = async (item, completionNotes = null) => {
   try {
-    await preparationTodoApi.toggleComplete(
-      item.id,
-      !item.isCompleted,
-      null
-    )
+    // 如果是未展开的checklist项（没有TODO id），需要先创建TODO记录
+    if (item.fromChecklist && !item.id) {
+      // 先展开checklist创建TODO，然后标记为完成
+      const newTodo = await preparationTodoApi.expandChecklist(item.checklistItemId, {
+        title: item.title,
+        description: item.description || '',
+        todoType: 'Checklist',
+        priority: item.checklistPriority ? 4 : (item.priority || 2)
+      })
+
+      // 立即标记为完成
+      if (newTodo && newTodo.id) {
+        await preparationTodoApi.toggleComplete(newTodo.id, true, completionNotes)
+      }
+    } else {
+      // 已有TODO id，直接切换完成状态
+      await preparationTodoApi.toggleComplete(
+        item.id,
+        !item.isCompleted,
+        completionNotes
+      )
+    }
+
     await loadItems()
   } catch (error) {
     console.error('切换完成状态失败:', error)
