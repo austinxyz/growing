@@ -1,7 +1,7 @@
 <template>
   <div class="company-job-management h-full flex bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     <!-- 左侧：公司列表 -->
-    <div class="w-80 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+    <div v-show="showCompanyList" class="w-80 bg-white border-r border-gray-200 flex flex-col shadow-lg transition-all duration-300">
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 border-b border-purple-700">
         <h2 class="text-lg font-bold text-white mb-3">🏢 公司列表</h2>
         <button
@@ -50,7 +50,20 @@
       <div v-if="currentCompany" class="flex-1 flex flex-col">
         <!-- 顶部操作栏 -->
         <div class="bg-gradient-to-r from-indigo-600 to-purple-600 border-b border-purple-700 p-4 flex items-center justify-between shadow-lg">
-          <h1 class="text-xl font-bold text-white">{{ currentCompany.companyName }}</h1>
+          <div class="flex items-center gap-3">
+            <!-- 切换左侧栏按钮 -->
+            <button
+              @click="showCompanyList = !showCompanyList"
+              class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all flex items-center gap-2"
+              :title="showCompanyList ? '隐藏公司列表' : '显示公司列表'"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path v-if="showCompanyList" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+            <h1 class="text-xl font-bold text-white">{{ currentCompany.companyName }}</h1>
+          </div>
           <div class="flex gap-2">
             <button
               @click="deleteCompany"
@@ -374,7 +387,7 @@
                     <div v-if="interviewStages.length > 0" class="pb-4">
                       <!-- Z字形布局：奇数行从左到右，偶数行从右到左 -->
                       <div class="space-y-4">
-                        <template v-for="rowIndex in Math.ceil(interviewStages.length / 5)" :key="rowIndex">
+                        <template v-for="rowIndex in Math.ceil(interviewStages.length / 3)" :key="rowIndex">
                           <div class="flex items-start gap-4" :class="rowIndex % 2 === 0 ? 'justify-end' : ''">
                             <template
                               v-for="(stage, colIndex) in getStagesForRow(rowIndex - 1)"
@@ -388,7 +401,7 @@
                                 @drop="handleDrop(stage, $event)"
                                 @dragend="handleDragEnd"
                                 :class="[
-                                  'w-64 p-4 border-2 rounded-lg bg-white transition-all cursor-move flex-shrink-0',
+                                  'w-64 p-3 border-2 rounded-lg bg-white transition-all cursor-move flex-shrink-0',
                                   draggedStage?.id === stage.id ? 'opacity-50 border-blue-500' : 'border-green-300 hover:shadow-lg'
                                 ]"
                               >
@@ -414,7 +427,7 @@
                                   </div>
                                 </div>
 
-                                <h4 class="text-base font-bold text-gray-900 mb-3">{{ stage.stageName }}</h4>
+                                <h4 class="text-sm font-bold text-gray-900 mb-2">{{ stage.stageName }}</h4>
 
                                 <!-- 关联技能 -->
                                 <div v-if="stage.skillIds && stage.skillIds.length > 0" class="mb-3">
@@ -464,13 +477,13 @@
 
                           <!-- 行间向下箭头（除了最后一行） -->
                           <div
-                            v-if="rowIndex < Math.ceil(interviewStages.length / 5)"
+                            v-if="rowIndex < Math.ceil(interviewStages.length / 3)"
                             class="flex"
                             :class="rowIndex % 2 === 1 ? 'justify-end pr-32' : 'justify-start pl-32'"
                           >
-                            <svg class="w-20 h-24 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 80 96">
-                              <line x1="40" y1="0" x2="40" y2="76" stroke-width="4" stroke-linecap="round"/>
-                              <path d="M25 61 L40 76 L55 61" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            <svg class="w-10 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 40 48">
+                              <line x1="20" y1="0" x2="20" y2="38" stroke-width="3" stroke-linecap="round"/>
+                              <path d="M12 30 L20 38 L28 30" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                             </svg>
                           </div>
                         </template>
@@ -1038,12 +1051,29 @@
         </div>
       </div>
 
-      <div v-else class="flex-1 flex items-center justify-center">
-        <div class="text-center text-gray-500">
-          <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          <p class="text-lg">请选择或创建一个公司</p>
+      <div v-else class="flex-1 flex flex-col">
+        <!-- 顶部切换按钮（未选择公司时） -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 border-b border-purple-700 p-4">
+          <button
+            @click="showCompanyList = !showCompanyList"
+            class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all flex items-center gap-2"
+            :title="showCompanyList ? '隐藏公司列表' : '显示公司列表'"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path v-if="showCompanyList" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- 空状态提示 -->
+        <div class="flex-1 flex items-center justify-center">
+          <div class="text-center text-gray-500">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <p class="text-lg">请选择或创建一个公司</p>
+          </div>
         </div>
       </div>
     </div>
@@ -1453,6 +1483,7 @@ const showCreateStageModal = ref(false)
 const showRecruiterInsightsModal = ref(false)
 const showAddReferralModal = ref(false)
 const draggedStage = ref(null) // 正在拖动的阶段
+const showCompanyList = ref(true) // 控制左侧公司列表显示/隐藏
 
 const editModes = ref({
   info: false
@@ -1839,7 +1870,13 @@ const createCompany = async () => {
 }
 
 const deleteCompany = async () => {
-  if (!confirm('确定要删除这个公司吗？所有关联的职位和人脉也将被删除。')) return
+  // 检查该公司下是否有职位
+  if (jobs.value && jobs.value.length > 0) {
+    alert(`无法删除公司：该公司下还有 ${jobs.value.length} 个职位。\n\n请先删除所有职位后再删除公司。`)
+    return
+  }
+
+  if (!confirm('确定要删除这个公司吗？')) return
 
   try {
     await companyApi.deleteCompany(selectedCompanyId.value)
@@ -2082,8 +2119,8 @@ const deleteLink = async (linkId) => {
 // --- Interview Stages Management ---
 // 获取指定行的阶段（Z字形布局）
 const getStagesForRow = (rowIndex) => {
-  const startIndex = rowIndex * 5
-  const endIndex = Math.min(startIndex + 5, interviewStages.value.length)
+  const startIndex = rowIndex * 3
+  const endIndex = Math.min(startIndex + 3, interviewStages.value.length)
   const rowStages = interviewStages.value.slice(startIndex, endIndex)
 
   // 偶数行（第2、4、6...行）需要反转顺序（从右到左）
