@@ -48,6 +48,13 @@ UPDATE interview_stages
 SET skill_ids = '[3, 4]'
 WHERE id = 12;
 
+-- 阶段13: 加面
+-- 当前: skill_ids=[10]
+-- 应该: skill_ids=[4,10] (添加4-云计算)
+UPDATE interview_stages
+SET skill_ids = '[4, 10]'
+WHERE id = 13;
+
 -- 验证修复结果
 SELECT
   id,
@@ -62,9 +69,10 @@ SELECT
       WHEN 10 THEN ' [3,4,7,9]'
       WHEN 11 THEN ' [3,9]'
       WHEN 12 THEN ' [3,4]'
+      WHEN 13 THEN ' [4,10]'
       ELSE ' (无需修改)'
     END
   ) as expected_skills
 FROM interview_stages
-WHERE id IN (6, 7, 8, 9, 10, 11, 12)
+WHERE id IN (6, 7, 8, 9, 10, 11, 12, 13)
 ORDER BY id;
