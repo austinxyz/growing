@@ -443,35 +443,55 @@
                   <!-- Tab 2: 重点领域 -->
                   <div v-if="activeInterviewSubTab === 'areas'">
                     <div class="bg-white rounded-lg shadow p-5">
-                      <div class="flex items-center justify-between mb-3">
-                        <h4 class="text-sm font-semibold text-gray-900">🎯 重点领域</h4>
-                        <button
-                          @click="editFocusAreas"
-                          class="px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600 font-medium"
-                        >
-                          {{ selectedStage.focusAreas && selectedStage.focusAreas.length > 0 ? '编辑' : '添加' }}领域
-                        </button>
+                      <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-semibold text-gray-900">🎯 重点领域 - 按技能分组</h4>
                       </div>
-                      <div v-if="selectedStage.focusAreas && selectedStage.focusAreas.length > 0" class="flex flex-wrap gap-2">
-                        <button
-                          v-for="focusArea in selectedStage.focusAreas"
-                          :key="focusArea.id"
-                          @click="navigateToSkillLearning(focusArea)"
-                          class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 hover:shadow-md transition-all cursor-pointer"
-                          :title="`点击查看 ${focusArea.skillName} - ${focusArea.name} 的学习资料和试题库\n\n${focusArea.description}`"
+
+                      <!-- 按技能分组显示重点领域 -->
+                      <div v-if="getSkillsWithFocusAreas().length > 0" class="space-y-4">
+                        <div
+                          v-for="skillData in getSkillsWithFocusAreas()"
+                          :key="skillData.skillId"
+                          class="border border-gray-200 rounded-lg p-4"
                         >
-                          {{ focusArea.skillName }} / {{ focusArea.name }}
-                          <svg class="w-3 h-3 ml-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </button>
+                          <div class="flex items-center justify-between mb-3">
+                            <h5 class="font-semibold text-gray-900">{{ skillData.skillName }}</h5>
+                            <button
+                              @click="editSkillFocusAreas(skillData)"
+                              class="px-3 py-1 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600"
+                            >
+                              {{ skillData.selectedFocusAreas.length > 0 ? '编辑' : '添加' }}领域
+                            </button>
+                          </div>
+
+                          <!-- 该技能的重点领域 -->
+                          <div v-if="skillData.selectedFocusAreas.length > 0" class="flex flex-wrap gap-2">
+                            <button
+                              v-for="focusArea in skillData.selectedFocusAreas"
+                              :key="focusArea.id"
+                              @click="navigateToSkillLearning(focusArea)"
+                              class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 hover:shadow-md transition-all cursor-pointer"
+                              :title="`点击查看 ${focusArea.name} 的学习资料和试题库\n\n${focusArea.description}`"
+                            >
+                              {{ focusArea.name }}
+                              <svg class="w-3 h-3 ml-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </button>
+                          </div>
+                          <div v-else class="text-sm text-gray-500">
+                            暂未选择重点领域
+                          </div>
+                        </div>
                       </div>
+
+                      <!-- 无技能提示 -->
                       <div v-else class="text-center text-gray-500 py-8">
                         <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <p class="text-sm">暂无重点领域</p>
-                        <p class="text-xs mt-1 text-gray-400">点击"添加领域"按钮关联技能和Focus Area</p>
+                        <p class="text-sm">该阶段暂无关联技能</p>
+                        <p class="text-xs mt-1 text-gray-400">请先在"职位管理"页面为该阶段添加技能</p>
                       </div>
                     </div>
                   </div>
@@ -1388,54 +1408,37 @@
 
     <!-- 编辑重点领域 Modal -->
     <div v-if="showEditAreasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-[800px] max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-semibold mb-4">编辑重点领域</h3>
+      <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">编辑重点领域 - {{ editingSkillData?.skillName }}</h3>
         <p class="text-sm text-gray-600 mb-4">
-          选择本阶段需要重点准备的Focus Area（可多选）
+          选择该技能需要重点准备的Focus Area（可多选）
         </p>
 
-        <!-- 按技能分组的Focus Area选择 -->
-        <div class="space-y-4 mb-4">
-          <div v-for="skill in availableSkills" :key="skill.id" class="border border-gray-200 rounded-lg p-4">
-            <div class="flex items-center mb-3">
-              <input
-                :id="`skill-${skill.id}`"
-                type="checkbox"
-                :checked="isSkillSelected(skill.id)"
-                @change="toggleSkill(skill.id)"
-                class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mr-2"
-              />
-              <label :for="`skill-${skill.id}`" class="font-semibold text-gray-900 cursor-pointer">
-                {{ skill.name }}
-              </label>
-              <span class="ml-2 text-xs text-gray-500">({{ skill.focusAreas?.length || 0 }} 个领域)</span>
+        <!-- 单个技能的Focus Area选择 -->
+        <div v-if="editingSkillData?.allFocusAreas && editingSkillData.allFocusAreas.length > 0" class="space-y-2 mb-4">
+          <label
+            v-for="fa in editingSkillData.allFocusAreas"
+            :key="fa.id"
+            class="flex items-start p-3 hover:bg-purple-50 rounded-lg cursor-pointer border border-gray-200"
+          >
+            <input
+              type="checkbox"
+              :value="fa.id"
+              v-model="selectedFocusAreaIds"
+              class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 mr-3"
+            />
+            <div class="flex-1">
+              <div class="font-medium text-sm text-gray-900">{{ fa.name }}</div>
+              <div class="text-xs text-gray-500 mt-1">{{ fa.description }}</div>
             </div>
-            <div v-if="skill.focusAreas && skill.focusAreas.length > 0" class="ml-6 grid grid-cols-2 gap-2">
-              <label
-                v-for="fa in skill.focusAreas"
-                :key="fa.id"
-                class="flex items-start p-2 hover:bg-purple-50 rounded cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  :value="fa.id"
-                  v-model="selectedFocusAreaIds"
-                  class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 mr-2"
-                />
-                <div class="flex-1">
-                  <div class="font-medium text-sm text-gray-900">{{ fa.name }}</div>
-                  <div class="text-xs text-gray-500 mt-0.5">{{ fa.description }}</div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div v-if="availableSkills.length === 0" class="text-center text-gray-500 py-8">
-            <p class="text-sm">暂无可用技能，请先在"职位管理"中添加面试阶段的技能</p>
-          </div>
+          </label>
         </div>
 
-        <div class="flex justify-end gap-2 border-t pt-4">
+        <div v-else class="text-center text-gray-500 py-8 border border-gray-200 rounded-lg">
+          <p class="text-sm">该技能暂无Focus Area</p>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-4 mt-4">
           <button
             @click="showEditAreasModal = false"
             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -1443,7 +1446,7 @@
             取消
           </button>
           <button
-            @click="saveFocusAreas"
+            @click="saveSkillFocusAreas"
             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             保存 (已选 {{ selectedFocusAreaIds.length }} 个)
@@ -1617,51 +1620,12 @@
               />
             </div>
           </div>
+        </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              关联重点领域
-              <span class="text-xs text-gray-500 ml-2">(可多选)</span>
-            </label>
-            <div v-if="availableSkills.length > 0" class="space-y-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
-              <div v-for="skill in availableSkills" :key="skill.id" class="border-b border-gray-100 last:border-0 pb-2">
-                <div class="flex items-center mb-2">
-                  <input
-                    :id="`stage-skill-${skill.id}`"
-                    type="checkbox"
-                    :checked="isSkillSelectedForStage(skill.id)"
-                    @change="toggleSkillForStage(skill.id)"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mr-2"
-                  />
-                  <label :for="`stage-skill-${skill.id}`" class="font-semibold text-gray-900 cursor-pointer">
-                    {{ skill.name }}
-                  </label>
-                  <span class="ml-2 text-xs text-gray-500">({{ skill.focusAreas?.length || 0 }} 个领域)</span>
-                </div>
-                <div v-if="skill.focusAreas && skill.focusAreas.length > 0" class="ml-6 grid grid-cols-2 gap-2">
-                  <label
-                    v-for="fa in skill.focusAreas"
-                    :key="fa.id"
-                    class="flex items-start p-2 hover:bg-purple-50 rounded cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      :value="fa.id"
-                      v-model="stageFormData.focusAreaIds"
-                      class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 mr-2"
-                    />
-                    <div class="flex-1">
-                      <div class="font-medium text-sm text-gray-900">{{ fa.name }}</div>
-                      <div class="text-xs text-gray-500 mt-0.5">{{ fa.description }}</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div v-else class="text-center text-gray-500 py-8 border border-gray-200 rounded-lg">
-              <p class="text-sm">暂无可用技能，请先在"职位管理"中添加</p>
-            </div>
-          </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+          <p class="text-sm text-blue-800">
+            💡 提示：面试阶段创建后，可以在右侧"重点领域"Tab中为每个技能选择要准备的Focus Area
+          </p>
         </div>
 
         <div class="flex justify-end gap-2 mt-6 border-t pt-4">
@@ -1768,6 +1732,7 @@ const showAIAnalysis = ref(false) // 控制AI分析结果的显示/隐藏
 const expandedExperiences = ref(new Set()) // 存储展开的工作经历ID集合
 const showAddStageModal = ref(false) // 控制添加/编辑面试阶段模态框
 const editingStage = ref(null) // 当前编辑的面试阶段
+const editingSkillData = ref(null) // 当前编辑重点领域的技能数据
 const stageFormData = ref({
   stageName: '',
   stageOrder: 1,
@@ -2176,6 +2141,18 @@ watch(activeTab, (newTab) => {
   }
 })
 
+// 当进入重点领域Tab时，加载所有技能数据
+watch(activeInterviewSubTab, async (newSubTab) => {
+  if (newSubTab === 'areas' && availableSkills.value.length === 0) {
+    try {
+      const skills = await getSkills()
+      availableSkills.value = skills || []
+    } catch (error) {
+      console.error('加载技能列表失败:', error)
+    }
+  }
+})
+
 const loadApplications = async () => {
   try {
     const data = await jobApplicationApi.getAllJobApplications()
@@ -2509,39 +2486,68 @@ const savePreparationNotes = async () => {
 }
 
 // 编辑重点领域
-const editFocusAreas = async () => {
-  if (!selectedStage.value) return
+// 获取当前阶段按技能分组的重点领域数据
+const getSkillsWithFocusAreas = () => {
+  if (!selectedStage.value || !selectedStage.value.skillIds) return []
 
-  // 加载所有技能和它们的Focus Areas
-  try {
-    const skills = await getSkills()
-    availableSkills.value = skills || []
+  const skills = availableSkills.value
+  const stageFocusAreaIds = selectedStage.value.focusAreaIds || []
 
-    // 预选当前阶段已选中的Focus Areas (深拷贝数组)
-    const currentFocusAreaIds = selectedStage.value.focusAreaIds || []
-    selectedFocusAreaIds.value = [...currentFocusAreaIds]
+  return selectedStage.value.skillIds.map(skillId => {
+    const skill = skills.find(s => s.id === skillId)
+    if (!skill) return null
 
-    showEditAreasModal.value = true
-  } catch (error) {
-    console.error('加载技能列表失败:', error)
-    alert('加载失败，请稍后重试')
-  }
+    // 找出属于该技能的所有selected focus areas
+    const selectedFocusAreas = (skill.focusAreas || []).filter(fa =>
+      stageFocusAreaIds.includes(fa.id)
+    )
+
+    return {
+      skillId: skill.id,
+      skillName: skill.name,
+      allFocusAreas: skill.focusAreas || [],
+      selectedFocusAreas: selectedFocusAreas
+    }
+  }).filter(data => data !== null)
 }
 
-// 保存重点领域
-const saveFocusAreas = async () => {
-  if (!selectedStage.value) return
+// 编辑某个技能的重点领域
+const editSkillFocusAreas = (skillData) => {
+  editingSkillData.value = skillData
+
+  // 预选该技能已选中的Focus Area IDs
+  selectedFocusAreaIds.value = skillData.selectedFocusAreas.map(fa => fa.id)
+
+  showEditAreasModal.value = true
+}
+
+// 保存单个技能的重点领域
+const saveSkillFocusAreas = async () => {
+  if (!selectedStage.value || !editingSkillData.value) return
 
   try {
+    // 获取当前阶段的所有focusAreaIds
+    const currentFocusAreaIds = selectedStage.value.focusAreaIds || []
+
+    // 移除该技能的旧Focus Area IDs
+    const editingSkillFocusAreaIds = editingSkillData.value.allFocusAreas.map(fa => fa.id)
+    const otherFocusAreaIds = currentFocusAreaIds.filter(
+      id => !editingSkillFocusAreaIds.includes(id)
+    )
+
+    // 合并其他技能的Focus Area IDs 和 当前技能新选中的IDs
+    const newFocusAreaIds = [...otherFocusAreaIds, ...selectedFocusAreaIds.value]
+
     const payload = {
       ...selectedStage.value,
-      focusAreaIds: selectedFocusAreaIds.value
+      focusAreaIds: newFocusAreaIds
     }
     await interviewStageApi.update(selectedStage.value.id, payload)
 
     // 刷新面试阶段列表
     await loadInterviewStages(selectedApplicationId.value)
     showEditAreasModal.value = false
+    editingSkillData.value = null
   } catch (error) {
     console.error('保存重点领域失败:', error)
     alert('保存失败，请稍后重试')
