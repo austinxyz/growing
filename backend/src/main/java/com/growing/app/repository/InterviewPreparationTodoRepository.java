@@ -28,4 +28,9 @@ public interface InterviewPreparationTodoRepository extends JpaRepository<Interv
      * 删除指定面试阶段的所有TODO
      */
     void deleteByInterviewStageId(Long interviewStageId);
+
+    /**
+     * 统计指定面试阶段的TODO数量
+     */
+    int countByInterviewStageId(Long interviewStageId);
 }

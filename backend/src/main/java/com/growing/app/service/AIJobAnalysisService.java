@@ -12,6 +12,8 @@ import com.growing.app.repository.AIJobAnalysisRepository;
 import com.growing.app.repository.JobApplicationRepository;
 import com.growing.app.repository.ResumeRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AIJobAnalysisService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AIJobAnalysisService.class);
 
     private final AIJobAnalysisRepository analysisRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -102,7 +106,7 @@ public class AIJobAnalysisService {
             analysis.setAnalysisMetadata(objectMapper.writeValueAsString(metadata));
         } catch (Exception e) {
             // 如果提取失败，记录日志但继续保存
-            System.err.println("Failed to extract metadata: " + e.getMessage());
+            logger.error("Failed to extract metadata: {}", e.getMessage(), e);
         }
 
         // 7. 更新状态
@@ -263,7 +267,7 @@ public class AIJobAnalysisService {
                 );
                 dto.setMetadata(metadata);
             } catch (Exception e) {
-                System.err.println("Failed to parse metadata: " + e.getMessage());
+                logger.error("Failed to parse metadata: {}", e.getMessage(), e);
             }
         }
 

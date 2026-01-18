@@ -5,6 +5,8 @@ import com.growing.app.model.User;
 import com.growing.app.repository.UserRepository;
 import com.growing.app.service.LearningStageService;
 import com.growing.app.util.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,8 @@ import java.util.List;
 @RequestMapping("/api/learning-stages")
 @CrossOrigin(origins = "http://localhost:3000")
 public class LearningStageController {
+
+    private static final Logger logger = LoggerFactory.getLogger(LearningStageController.class);
 
     @Autowired
     private LearningStageService learningStageService;
@@ -56,8 +60,7 @@ public class LearningStageController {
             List<LearningStageDTO> stages = learningStageService.getStagesBySkillId(skillId);
             return ResponseEntity.ok(stages);
         } catch (Exception e) {
-            System.err.println("Error in getStagesBySkill: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error in getStagesBySkill: {}", e.getMessage(), e);
             throw e;
         }
     }

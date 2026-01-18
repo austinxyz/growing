@@ -37,6 +37,9 @@ public class InterviewStageService {
     @Autowired
     private SkillRepository skillRepository;
 
+    @Autowired
+    private com.growing.app.repository.InterviewPreparationTodoRepository preparationTodoRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<InterviewStageDTO> getStagesByApplicationId(Long applicationId, Long userId) {
@@ -421,6 +424,16 @@ public class InterviewStageService {
             dto.setFocusAreaIds(Collections.emptyList());
         }
 
+        // DTO Completeness Checklist: Populate skillNames
+        if (dto.getSkillIds() != null && !dto.getSkillIds().isEmpty()) {
+            List<String> skillNames = skillRepository.findAllById(dto.getSkillIds()).stream()
+                    .map(Skill::getName)
+                    .collect(Collectors.toList());
+            dto.setSkillNames(skillNames);
+        } else {
+            dto.setSkillNames(Collections.emptyList());
+        }
+
         // DTO Completeness Checklist: Populate focusAreas with names
         if (dto.getFocusAreaIds() != null && !dto.getFocusAreaIds().isEmpty()) {
             List<FocusAreaBriefDTO> focusAreas = dto.getFocusAreaIds().stream()
@@ -441,6 +454,10 @@ public class InterviewStageService {
         // Checklist items are now in interview_preparation_todos table
         // They are loaded separately via PreparationTodoService if needed
         dto.setChecklistItems(Collections.emptyList());
+
+        // DTO Completeness Checklist: Populate checklistCount from interview_preparation_todos
+        int checklistCount = preparationTodoRepository.countByInterviewStageId(stage.getId());
+        dto.setChecklistCount(checklistCount);
 
         return dto;
     }

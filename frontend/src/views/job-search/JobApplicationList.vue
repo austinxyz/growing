@@ -315,6 +315,16 @@
                         </span>
                       </div>
                       <h4 class="font-bold text-gray-900 text-sm">{{ stage.stageName }}</h4>
+                      <!-- 关联技能显示 -->
+                      <div v-if="stage.skillNames && stage.skillNames.length > 0" class="flex flex-wrap gap-1 mt-2">
+                        <span
+                          v-for="(skillName, index) in stage.skillNames"
+                          :key="index"
+                          class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs"
+                        >
+                          {{ skillName }}
+                        </span>
+                      </div>
                     </div>
                     <button
                       @click.stop="editStage(stage)"
@@ -328,7 +338,7 @@
                   </div>
                   <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
                     <span v-if="stage.focusAreas?.length > 0">{{ stage.focusAreas.length }} 个领域</span>
-                    <span v-if="stage.checklistItems?.length > 0">{{ stage.checklistItems.length }} 项清单</span>
+                    <span v-if="stage.checklistCount > 0">{{ stage.checklistCount }} 项清单</span>
                     <span v-if="getRecordsByStage(stage.id).length > 0">
                       {{ getRecordsByStage(stage.id).length }} 条记录
                     </span>
@@ -355,13 +365,24 @@
                     :key="subTab.id"
                     @click="activeInterviewSubTab = subTab.id"
                     :class="[
-                      'px-4 py-3 text-sm font-medium transition-all duration-200',
+                      'px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-2',
                       activeInterviewSubTab === subTab.id
                         ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
                         : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
                     ]"
                   >
                     {{ subTab.name }}
+                    <span
+                      v-if="subTab.count !== undefined && subTab.count > 0"
+                      :class="[
+                        'px-2 py-0.5 rounded-full text-xs font-semibold',
+                        activeInterviewSubTab === subTab.id
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-200 text-gray-700'
+                      ]"
+                    >
+                      {{ subTab.count }}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1595,52 +1616,52 @@
 
     <!-- 添加/编辑面试阶段 Modal -->
     <div v-if="showAddStageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-[800px] max-h-[90vh] overflow-y-auto">
+      <div class="bg-white rounded-lg p-6 w-[700px] max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-semibold mb-4">{{ editingStage?.id ? '编辑面试阶段' : '添加面试阶段' }}</h3>
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">阶段名称 *</label>
-              <input
-                v-model="stageFormData.stageName"
-                type="text"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="例如: 第一轮技术面试"
-                required
-              />
+              <input v-model="stageFormData.stageName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="如: Phone Screen" required />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">阶段顺序 *</label>
-              <input
-                v-model.number="stageFormData.stageOrder"
-                type="number"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                min="1"
-                required
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-1">阶段顺序</label>
+              <input v-model.number="stageFormData.stageOrder" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" />
             </div>
           </div>
-        </div>
 
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-          <p class="text-sm text-blue-800">
-            💡 提示：面试阶段创建后，可以在右侧"重点领域"Tab中为每个技能选择要准备的Focus Area
-          </p>
-        </div>
+          <!-- Skill Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">关联技能</label>
+            <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div v-for="skill in availableSkills" :key="skill.id" class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    :id="`skill-${skill.id}`"
+                    :value="skill.id"
+                    v-model="stageFormData.skillIds"
+                    class="rounded border-gray-300"
+                  />
+                  <label :for="`skill-${skill.id}`" class="text-sm text-gray-700 cursor-pointer">
+                    {{ skill.name }}
+                  </label>
+                </div>
+              </div>
+              <div v-if="availableSkills.length === 0" class="text-sm text-gray-500 text-center py-2">
+                加载中...
+              </div>
+            </div>
+          </div>
 
-        <div class="flex justify-end gap-2 mt-6 border-t pt-4">
-          <button
-            @click="cancelAddStage"
-            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            取消
-          </button>
-          <button
-            @click="saveStage"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            保存
-          </button>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">准备要点 (支持 Markdown)</label>
+            <textarea v-model="stageFormData.preparationNotes" rows="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="## 准备重点&#10;- 算法题：Array, Hash Table&#10;- 系统设计：Database Schema"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button @click="cancelAddStage" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+          <button @click="saveStage" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">保存</button>
         </div>
       </div>
     </div>
@@ -1736,7 +1757,9 @@ const editingSkillData = ref(null) // 当前编辑重点领域的技能数据
 const stageFormData = ref({
   stageName: '',
   stageOrder: 1,
-  focusAreaIds: []
+  skillIds: [],
+  focusAreaIds: [],
+  preparationNotes: ''
 })
 const isEditingStatus = ref(false) // 控制申请状态编辑模式
 const editingStatusValue = ref('') // 编辑中的申请状态值
@@ -1747,12 +1770,20 @@ const tabs = [
   { id: 'resume', name: '简历' }
 ]
 
-const interviewSubTabs = [
+const interviewSubTabs = computed(() => [
   { id: 'notes', name: '准备笔记' },
-  { id: 'areas', name: '重点领域' },
-  { id: 'checklist', name: '准备清单' },
+  {
+    id: 'areas',
+    name: '重点领域',
+    count: selectedStage.value?.focusAreas?.length || 0
+  },
+  {
+    id: 'checklist',
+    name: '准备清单',
+    count: selectedStage.value?.checklistCount || 0
+  },
   { id: 'records', name: '面试记录' }
-]
+])
 
 const currentApplication = computed(() =>
   applications.value.find(app => app.id === selectedApplicationId.value)
@@ -2840,7 +2871,9 @@ const addStage = async () => {
   stageFormData.value = {
     stageName: '',
     stageOrder: interviewStages.value.length + 1,
-    focusAreaIds: []
+    skillIds: [],
+    focusAreaIds: [],
+    preparationNotes: ''
   }
 
   // 加载所有可用技能和Focus Areas
@@ -2860,7 +2893,9 @@ const editStage = async (stage) => {
   stageFormData.value = {
     stageName: stage.stageName || '',
     stageOrder: stage.stageOrder || 1,
-    focusAreaIds: stage.focusAreaIds ? [...stage.focusAreaIds] : []
+    skillIds: stage.skillIds ? [...stage.skillIds] : [],
+    focusAreaIds: stage.focusAreaIds ? [...stage.focusAreaIds] : [],
+    preparationNotes: stage.preparationNotes || ''
   }
 
   // 加载所有可用技能和Focus Areas
@@ -2881,7 +2916,9 @@ const cancelAddStage = () => {
   stageFormData.value = {
     stageName: '',
     stageOrder: 1,
-    focusAreaIds: []
+    skillIds: [],
+    focusAreaIds: [],
+    preparationNotes: ''
   }
   availableSkills.value = []
 }
