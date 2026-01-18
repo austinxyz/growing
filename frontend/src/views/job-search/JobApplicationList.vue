@@ -476,7 +476,10 @@
                           class="border border-gray-200 rounded-lg p-4"
                         >
                           <div class="flex items-center justify-between mb-3">
-                            <h5 class="font-semibold text-gray-900">{{ skillData.skillName }}</h5>
+                            <div class="flex items-center gap-2">
+                              <h5 class="font-semibold text-gray-900">{{ skillData.skillName }}</h5>
+                              <span class="text-sm text-gray-500">({{ skillData.selectedFocusAreas.length }} 个领域)</span>
+                            </div>
                             <button
                               @click="editSkillFocusAreas(skillData)"
                               class="px-3 py-1 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600"
@@ -2184,6 +2187,36 @@ watch(activeInterviewSubTab, async (newSubTab) => {
   }
 })
 
+// 监听编辑面试阶段时skillIds的变化，自动清理不属于选中技能的focusAreaIds
+watch(() => stageFormData.value.skillIds, (newSkillIds, oldSkillIds) => {
+  // 只在skillIds减少时才清理focusAreaIds（即用户取消勾选某个技能）
+  if (!oldSkillIds || newSkillIds.length >= oldSkillIds.length) {
+    return
+  }
+
+  // 找出被移除的技能IDs
+  const removedSkillIds = oldSkillIds.filter(id => !newSkillIds.includes(id))
+  if (removedSkillIds.length === 0) {
+    return
+  }
+
+  // 收集被移除技能的所有Focus Area IDs
+  const removedFocusAreaIds = new Set()
+  removedSkillIds.forEach(skillId => {
+    const skill = availableSkills.value.find(s => s.id === skillId)
+    if (skill && skill.focusAreas) {
+      skill.focusAreas.forEach(fa => removedFocusAreaIds.add(fa.id))
+    }
+  })
+
+  // 从focusAreaIds中移除这些Focus Area
+  if (removedFocusAreaIds.size > 0) {
+    stageFormData.value.focusAreaIds = stageFormData.value.focusAreaIds.filter(
+      faId => !removedFocusAreaIds.has(faId)
+    )
+  }
+}, { deep: true })
+
 const loadApplications = async () => {
   try {
     const data = await jobApplicationApi.getAllJobApplications()
@@ -2931,8 +2964,27 @@ const saveStage = async () => {
   }
 
   try {
+    // 数据一致性检查：清理不属于选中技能的Focus Area
+    const selectedSkillIds = stageFormData.value.skillIds || []
+    let cleanedFocusAreaIds = stageFormData.value.focusAreaIds || []
+
+    if (selectedSkillIds.length > 0 && cleanedFocusAreaIds.length > 0) {
+      // 收集所有选中技能的Focus Area IDs
+      const validFocusAreaIds = new Set()
+      selectedSkillIds.forEach(skillId => {
+        const skill = availableSkills.value.find(s => s.id === skillId)
+        if (skill && skill.focusAreas) {
+          skill.focusAreas.forEach(fa => validFocusAreaIds.add(fa.id))
+        }
+      })
+
+      // 只保留属于选中技能的Focus Area
+      cleanedFocusAreaIds = cleanedFocusAreaIds.filter(faId => validFocusAreaIds.has(faId))
+    }
+
     const payload = {
       ...stageFormData.value,
+      focusAreaIds: cleanedFocusAreaIds,
       jobApplicationId: selectedApplicationId.value
     }
 
