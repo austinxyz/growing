@@ -19,6 +19,29 @@ Example invocations:
 - "Create interview prep plan for job_id=13, user_id=3"
 - "Generate preparation checklist for Austin's job application 13"
 
+## ⚠️ CRITICAL: Data Consistency Rule
+
+**Skill ↔ Focus Area Relationship MUST be maintained:**
+
+1. **Rule**: If a focus_area is in `focus_area_ids`, its corresponding skill MUST be in `skill_ids`
+2. **Validation**: Before adding focus_area_ids, check if their skill_ids are present:
+   ```sql
+   -- Get skill_id for each new focus_area
+   SELECT DISTINCT skill_id FROM focus_areas WHERE id IN ({new_focus_area_ids});
+
+   -- Add missing skill_ids to interview_stages.skill_ids
+   ```
+3. **Example**:
+   - Adding focus_area_id=27 (Coaching, belongs to skill_id=3)
+   - Current stage has skill_ids=[2, 5]
+   - ✅ CORRECT: Update to skill_ids=[2, 5, 3], focus_area_ids=[..., 27]
+   - ❌ WRONG: Only update focus_area_ids=[..., 27] without adding skill_id=3
+
+**Why this matters:**
+- Frontend displays focus areas grouped by skill
+- If skill is missing, focus area won't display correctly
+- Left sidebar counts will be wrong ("22 个领域" but only 5 visible)
+
 ## Implementation Steps
 
 When this skill is invoked:
@@ -290,15 +313,23 @@ SELECT COALESCE(MAX(order_index), 0) as max_order
 FROM interview_preparation_todos
 WHERE interview_stage_id = {stage_id};
 
--- Step 2: Update stage with NEW focus areas only (avoid duplicates in JSON array)
+-- Step 2: Update stage with NEW focus areas AND corresponding skills (ensure data consistency)
+-- CRITICAL: When adding new focus_area_ids, MUST also add their skill_ids to maintain consistency
 UPDATE interview_stages
 SET
   focus_area_ids = JSON_MERGE_PRESERVE(
     focus_area_ids,
     JSON_ARRAY({new_focus_area_ids_not_already_in_array})
   ),
+  skill_ids = JSON_MERGE_PRESERVE(
+    skill_ids,
+    JSON_ARRAY({new_skill_ids_for_new_focus_areas})
+  ),
   preparation_notes = CONCAT(IFNULL(preparation_notes, ''), '\n\n## AI Recommendations\n\n', {ai_notes})
 WHERE id = {stage_id};
+
+-- Example: If adding focus_area_ids [27, 95] which belong to skill_id=3,
+-- and skill_id=3 is NOT in current skill_ids, then add skill_id=3 to skill_ids
 
 -- Step 3: Insert ONLY non-duplicate TODO items (AI-generated with source='AI')
 -- (After deduplication check in code)
