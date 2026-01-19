@@ -67,6 +67,7 @@ docker-compose.override.yml
 # User notes
 notes/
 
-# Import files (personal resume data)
+# Import files (personal resume data and remote configs)
 import/Resume*
 import/resume/
+import/docker-compose.remot.yml
