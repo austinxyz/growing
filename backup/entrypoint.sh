@@ -42,5 +42,6 @@ echo "  Weekly: 03:00 (Saturday)"
 echo "  Monthly: 04:00 (1st of month)"
 
 # 启动webhook服务
-echo "Starting webhook service on port 5000..."
+PORT=${PORT:-5000}
+echo "Starting webhook service on port $PORT..."
 exec python3 /app/webhook.py
