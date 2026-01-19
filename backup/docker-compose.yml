@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backup:
+    build: .
+    container_name: growing-backup
+    environment:
+      - DB_HOST=${DB_HOST:-10.0.0.7}
+      - DB_PORT=${DB_PORT:-37719}
+      - DB_USER=${DB_USER:-austinxu}
+      - DB_PASSWORD=${DB_PASSWORD:-helloworld}
+      - DB_NAME=${DB_NAME:-growing}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
+      - BACKUP_RETENTION_WEEKS=${BACKUP_RETENTION_WEEKS:-4}
+      - BACKUP_RETENTION_MONTHS=${BACKUP_RETENTION_MONTHS:-12}
+      - TZ=UTC
+    volumes:
+      - ./backups:/backups
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

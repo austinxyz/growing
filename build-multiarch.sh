@@ -50,6 +50,18 @@ docker buildx build \
   .
 cd ..
 
+# Build and push backup image
+echo ""
+echo "🏗️ Building backup image for linux/amd64 and linux/arm64..."
+cd backup
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ${DOCKER_USERNAME}/growing-backup:${VERSION} \
+  -t ${DOCKER_USERNAME}/growing-backup:latest \
+  --push \
+  .
+cd ..
+
 echo ""
 echo "✅ Multi-platform images built and pushed successfully!"
 echo ""
@@ -61,6 +73,11 @@ echo "Frontend images:"
 echo "  - ${DOCKER_USERNAME}/growing-frontend:${VERSION} (amd64 + arm64)"
 echo "  - ${DOCKER_USERNAME}/growing-frontend:latest (amd64 + arm64)"
 echo ""
+echo "Backup images:"
+echo "  - ${DOCKER_USERNAME}/growing-backup:${VERSION} (amd64 + arm64)"
+echo "  - ${DOCKER_USERNAME}/growing-backup:latest (amd64 + arm64)"
+echo ""
 echo "🔍 To verify platforms:"
 echo "   docker buildx imagetools inspect ${DOCKER_USERNAME}/growing-backend:latest"
 echo "   docker buildx imagetools inspect ${DOCKER_USERNAME}/growing-frontend:latest"
+echo "   docker buildx imagetools inspect ${DOCKER_USERNAME}/growing-backup:latest"

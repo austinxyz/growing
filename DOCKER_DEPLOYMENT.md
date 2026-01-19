@@ -1,148 +1,200 @@
-# Docker Production Deployment Guide
+# Growing App - Docker Deployment Guide
 
-## 🚀 快速部署
+## 📦 服务架构
 
-### 前置要求
+Growing App使用Docker Compose部署，包含3个服务：
 
-- Docker 20.10+
-- Docker Compose 2.0+
-- 访问数据库服务器（10.0.0.7:37719）
+1. **Backend** - Spring Boot API (端口8082)
+2. **Frontend** - Vue.js + Nginx (端口3001)
+3. **Backup** - 数据库备份服务 (端口5001)
 
-### 部署步骤
+所有服务在同一个Docker网络中运行，可以通过服务名互相访问。
 
-1. **创建环境变量文件**
+## 🚀 快速开始
+
+### 1. 环境准备
 
 ```bash
-# 从模板创建.env文件
+# 克隆项目
+git clone https://github.com/austinxyz/growing.git
+cd growing
+
+# 创建环境变量文件
 cp .env.production.example .env
-
-# 编辑.env文件，填入实际值
-vim .env
 ```
 
-2. **运行部署脚本**
+### 2. 配置环境变量
 
-```bash
-./deploy.sh
-```
-
-脚本会自动：
-- ✅ 验证环境变量
-- ✅ 拉取最新镜像
-- ✅ 停止旧容器
-- ✅ 启动新容器（生产模式）
-- ✅ 显示状态和日志
-
-### 手动部署（不使用脚本）
-
-```bash
-# 1. 创建.env文件（见上）
-
-# 2. 拉取镜像
-docker-compose pull
-
-# 3. 启动服务
-docker-compose up -d
-
-# 4. 查看状态
-docker-compose ps
-
-# 5. 查看日志
-docker-compose logs -f
-```
-
-## 🔧 配置说明
-
-### Docker Compose环境变量
-
-在`.env`文件中配置：
+编辑`.env`文件，填入实际的数据库凭据：
 
 ```bash
 # 数据库配置
-DB_HOST=10.0.0.7          # 数据库主机
-DB_PORT=37719             # 数据库端口
-DB_NAME=growing           # 数据库名称
-DB_USER=your_username     # 数据库用户名
-DB_PASSWORD=your_password # 数据库密码
+DB_HOST=10.0.0.7
+DB_PORT=37719
+DB_NAME=growing
+DB_USER=austinxu
+DB_PASSWORD=your_actual_password  # 修改为实际密码
 
-# JWT密钥（重要！）
+# JWT密钥（必须修改为强随机字符串）
 JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+
+# 备份保留策略（可选，使用默认值）
+# BACKUP_RETENTION_DAYS=7
+# BACKUP_RETENTION_WEEKS=4
+# BACKUP_RETENTION_MONTHS=12
 ```
 
-### Spring Profile配置
-
-**自动设置为生产模式**：
-
-- **Dockerfile**：默认 `ENV SPRING_PROFILES_ACTIVE=prod`
-- **docker-compose.yml**：显式设置 `SPRING_PROFILES_ACTIVE: prod`
-
-这确保容器启动时**始终使用生产环境配置**：
-- ✅ 关闭SQL日志
-- ✅ 优化性能
-- ✅ 禁用API文档（Swagger）
-- ✅ 隐藏错误详情
-
-### 验证生产模式
-
-启动后检查日志：
+### 3. 部署启动
 
 ```bash
+# 使用部署脚本（推荐，自动使用生产模式）
+./deploy.sh
+
+# 或手动启动
+docker-compose up -d
+```
+
+### 4. 验证部署
+
+```bash
+# 检查所有服务状态
+docker-compose ps
+
+# 应该看到3个服务都是Up状态：
+# - growing-backend
+# - growing-frontend
+# - growing-backup
+
+# 检查后端生产模式
 docker-compose logs backend | grep "profiles are active"
+# 应显示: The following profiles are active: prod
+
+# 检查备份服务
+curl http://localhost:5001/health
+# 应返回: {"status": "healthy", "timestamp": "..."}
 ```
 
-应该看到：
-```
-The following profiles are active: prod
-```
+### 5. 访问应用
 
-如果看到`dev`，说明配置有误！
+- **前端页面**: http://your-server:3001
+- **后端API**: http://your-server:8082
+- **备份管理**: 登录后访问 设置 → 系统管理 → 数据库备份（仅管理员）
 
-## 📊 服务说明
+## 🔧 服务详情
 
 ### Backend服务
 
 - **镜像**: `xuaustin/growing-backend:latest`
 - **端口**: 8082
-- **健康检查**: `http://localhost:8082/api/career-paths`
-- **内存配置**: 512MB - 1GB
-- **日志等级**: INFO（生产模式）
+- **环境变量**:
+  - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` - 数据库连接
+  - `JWT_SECRET` - JWT令牌密钥
+  - `SPRING_PROFILES_ACTIVE=prod` - 生产模式（固定）
+  - `BACKUP_WEBHOOK_URL=http://backup:5000` - 备份服务URL（自动配置）
 
 ### Frontend服务
 
 - **镜像**: `xuaustin/growing-frontend:latest`
-- **端口**: 3001 (nginx监听80，映射到宿主机3001)
-- **健康检查**: `http://localhost/`
-- **依赖**: backend服务
+- **端口**: 3001（映射到容器的80端口）
+- **功能**: Vue.js应用 + Nginx静态文件服务器
 
-## 🔍 常用命令
+### Backup服务
 
-### 查看状态
+- **镜像**: `xuaustin/growing-backup:latest`
+- **端口**: 5001（映射到容器的5000端口）
+- **功能**:
+  - 定时备份（每日02:00 UTC，每周六03:00，每月1日04:00）
+  - 手动备份触发
+  - 备份文件管理
+  - 数据库恢复
+- **数据卷**: `backup-data` - 存储所有备份文件
+
+## 📊 备份功能
+
+### 自动备份计划
+
+备份服务自动执行以下备份：
+
+- **每日备份**: 每天02:00 UTC，保留7天
+- **每周备份**: 每周六03:00 UTC，保留4周
+- **每月备份**: 每月1日04:00 UTC，保留12个月
+
+### 手动备份
+
+通过前端界面（仅管理员）：
+
+1. 登录管理员账号
+2. 导航至：设置 → 系统管理 → 数据库备份
+3. 点击"手动备份"按钮
+
+### 恢复备份
+
+⚠️ **危险操作** - 会覆盖当前数据库！
+
+1. 在备份管理页面选择要恢复的备份文件
+2. 点击"恢复"按钮
+3. 输入数据库名称（`growing`）确认
+4. 等待恢复完成（自动刷新页面）
+
+### 查看备份文件
+
+所有备份文件存储在Docker数据卷`backup-data`中：
 
 ```bash
-# 所有服务状态
-docker-compose ps
+# 列出备份文件
+docker exec growing-backup ls -lh /backups/daily
+docker exec growing-backup ls -lh /backups/weekly
+docker exec growing-backup ls -lh /backups/monthly
 
-# 详细信息
-docker-compose ps -a
+# 复制备份文件到本地
+docker cp growing-backup:/backups/daily/growing_daily_20260118_020000.sql.gz ./
 ```
+
+## 🔄 更新部署
+
+### 方法1：拉取最新镜像（推荐）
+
+```bash
+# 拉取最新镜像
+docker-compose pull
+
+# 重新创建并启动容器
+docker-compose up -d
+
+# 清理旧镜像
+docker image prune -f
+```
+
+### 方法2：完全重新部署
+
+```bash
+# 停止并删除所有容器
+docker-compose down
+
+# 拉取最新镜像
+docker-compose pull
+
+# 启动服务
+docker-compose up -d
+```
+
+⚠️ **注意**: 备份数据卷`backup-data`会保留，不会被删除。
+
+## 🛠️ 维护操作
 
 ### 查看日志
 
 ```bash
-# 所有服务日志（实时）
-docker-compose logs -f
+# 查看所有服务日志
+docker-compose logs
 
-# 只看Backend日志
+# 查看特定服务日志
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs backup
+
+# 实时跟踪日志
 docker-compose logs -f backend
-
-# 只看Frontend日志
-docker-compose logs -f frontend
-
-# 最近100行日志
-docker-compose logs --tail=100
-
-# 查看特定时间范围
-docker-compose logs --since 1h
 ```
 
 ### 重启服务
@@ -151,235 +203,134 @@ docker-compose logs --since 1h
 # 重启所有服务
 docker-compose restart
 
-# 重启单个服务
+# 重启特定服务
 docker-compose restart backend
-docker-compose restart frontend
+docker-compose restart backup
 ```
 
 ### 停止服务
 
 ```bash
-# 停止服务（保留容器）
+# 停止但不删除容器
 docker-compose stop
 
-# 停止并删除容器
+# 停止并删除容器（保留数据卷）
 docker-compose down
 
-# 停止并删除容器、网络、卷
+# 停止并删除容器和数据卷（危险！）
 docker-compose down -v
 ```
 
-### 更新服务
+### 进入容器调试
 
 ```bash
-# 拉取最新镜像
-docker-compose pull
+# 进入backend容器
+docker exec -it growing-backend bash
 
-# 重新创建并启动
-docker-compose up -d --force-recreate
+# 进入backup容器
+docker exec -it growing-backup bash
 
-# 或使用部署脚本
-./deploy.sh
+# 执行数据库操作
+docker exec growing-backup mysql -h $DB_HOST -P $DB_PORT -u $DB_USER -p$DB_PASSWORD $DB_NAME -e "SHOW TABLES;"
 ```
 
-## 🐛 故障排查
+## 🏗️ 构建自定义镜像
 
-### 问题1: Backend启动失败
-
-**检查日志**：
-```bash
-docker-compose logs backend
-```
-
-**常见原因**：
-- 数据库连接失败（检查DB_HOST, DB_PORT, DB_USER, DB_PASSWORD）
-- JWT_SECRET未设置
-- 端口8082被占用
-
-**解决方法**：
-```bash
-# 检查.env文件
-cat .env
-
-# 检查端口占用
-lsof -i :8082
-
-# 重新启动
-docker-compose restart backend
-```
-
-### 问题2: 仍然看到SQL日志
-
-**原因**: 可能使用了开发模式
-
-**检查**：
-```bash
-docker-compose logs backend | grep "profiles are active"
-```
-
-**修复**：
-确保`docker-compose.yml`中有：
-```yaml
-environment:
-  SPRING_PROFILES_ACTIVE: prod
-```
-
-然后重新启动：
-```bash
-docker-compose down
-docker-compose up -d
-```
-
-### 问题3: Swagger UI仍然可访问
-
-**原因**: 未使用生产模式
-
-**验证**：
-```bash
-# 应该返回404
-curl http://localhost:8082/api/swagger-ui.html
-```
-
-**修复**: 确认生产模式（见问题2）
-
-### 问题4: 健康检查失败
-
-**检查**：
-```bash
-docker-compose ps
-# 如果显示 unhealthy，查看日志
-docker-compose logs backend
-```
-
-**常见原因**：
-- 应用启动慢（等待更长时间）
-- 数据库连接失败
-- 内存不足
-
-**调整健康检查**：
-编辑`docker-compose.yml`，增加`start_period`:
-```yaml
-healthcheck:
-  start_period: 120s  # 从60s增加到120s
-```
-
-## 🔒 安全建议
-
-### 1. JWT密钥
-
-**生成强密钥**：
-```bash
-openssl rand -base64 64
-```
-
-**保护密钥**：
-- ❌ 不要提交到Git
-- ✅ 使用环境变量
-- ✅ 定期轮换（每3-6个月）
-
-### 2. 数据库凭据
-
-- ❌ 不要使用默认密码
-- ✅ 使用强密码（16+字符）
-- ✅ 限制数据库访问IP
-
-### 3. 网络暴露
-
-**生产环境建议**：
-```yaml
-# 不暴露Backend端口到公网
-ports:
-  - "127.0.0.1:8082:8082"  # 只允许本地访问
-
-# 或使用Nginx反向代理，不暴露Backend
-```
-
-### 4. 日志安全
-
-生产模式已经：
-- ✅ 隐藏SQL参数（可能包含敏感数据）
-- ✅ 隐藏错误堆栈
-- ✅ 禁用API文档
-
-## 📈 性能优化
-
-### JVM内存调优
-
-编辑`.env`或`docker-compose.yml`:
+如果需要修改代码并构建自己的镜像：
 
 ```bash
-# 小型部署（<100用户）
-JAVA_OPTS=-Xms256m -Xmx512m
+# 构建并推送多平台镜像（amd64 + arm64）
+./build-multiarch.sh v1.0.1
 
-# 中型部署（100-500用户）
-JAVA_OPTS=-Xms512m -Xmx1024m
+# 或单独构建某个服务
+cd backend
+docker build -t your-username/growing-backend:latest .
 
-# 大型部署（500+用户）
-JAVA_OPTS=-Xms1024m -Xmx2048m
+cd ../frontend
+docker build -t your-username/growing-frontend:latest .
+
+cd ../backup
+docker build -t your-username/growing-backup:latest .
 ```
 
-### 数据库连接池
+然后修改`docker-compose.yml`中的镜像名称为你的镜像。
 
-默认配置在`application-prod.properties`中。
+## 🔐 安全建议
 
-如需调整，在`docker-compose.yml`添加：
-```yaml
-environment:
-  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 20
-  SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
+1. **修改JWT密钥**: `.env`中的`JWT_SECRET`必须是强随机字符串
+   ```bash
+   # 生成新密钥
+   openssl rand -base64 64
+   ```
+
+2. **数据库密码**: 使用强密码，不要使用默认值
+
+3. **防火墙配置**:
+   - 端口3001（前端）需要对外开放
+   - 端口8082（后端）和5001（备份）可以只在内网开放
+
+4. **HTTPS配置**: 生产环境建议使用Nginx反向代理配置HTTPS
+
+5. **备份数据保护**: 备份文件包含敏感数据，需要：
+   - 定期复制到安全的异地存储
+   - 限制`backup-data`数据卷的访问权限
+   - 加密备份文件（如需要）
+
+## 📈 监控和健康检查
+
+所有服务都配置了健康检查：
+
+```bash
+# 查看健康状态
+docker inspect growing-backend --format='{{json .State.Health}}' | jq .
+docker inspect growing-frontend --format='{{json .State.Health}}' | jq .
+docker inspect growing-backup --format='{{json .State.Health}}' | jq .
 ```
 
-## 🔄 CI/CD集成
+健康检查配置：
+- **Backend**: 每30秒检查`/api/career-paths`端点
+- **Frontend**: 每30秒检查首页
+- **Backup**: 每30秒检查`/health`端点
 
-### GitHub Actions示例
+## ❓ 常见问题
 
-```yaml
-name: Deploy to Production
+### Q: Backend启动失败，提示数据库连接错误
 
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /path/to/growing
-            git pull
-            ./deploy.sh
+检查`.env`文件中的数据库配置是否正确：
+```bash
+docker-compose logs backend | grep -i "error\|exception"
 ```
 
-## 📋 部署检查清单
+### Q: Backup服务提示数据库连接失败
 
-部署前确认：
+这是正常的！Backup服务在容器启动时会测试数据库连接，但即使失败也会继续启动。实际备份会在定时任务触发时执行。
 
-- [ ] `.env` 文件已创建并配置正确
-- [ ] JWT_SECRET 已设置且足够强（32+字符）
-- [ ] 数据库凭据正确
-- [ ] Docker和Docker Compose已安装
-- [ ] 端口3001和8082未被占用
-- [ ] 网络可访问数据库服务器
+如果数据库在远程主机且Docker网络无法访问，备份功能将无法正常工作。
 
-部署后验证：
+### Q: 前端页面空白或404
 
-- [ ] 服务状态正常：`docker-compose ps`
-- [ ] 生产模式激活：`docker-compose logs backend | grep "profiles are active: prod"`
-- [ ] 无SQL日志：`docker-compose logs backend` 不显示Hibernate SQL
-- [ ] Swagger UI禁用：`curl http://localhost:8082/api/swagger-ui.html` 返回404
-- [ ] 前端可访问：`curl http://localhost:3001`
-- [ ] 后端健康检查通过：`curl http://localhost:8082/api/career-paths`
+检查frontend容器是否正常运行：
+```bash
+docker-compose ps frontend
+docker-compose logs frontend
+```
 
-## 📚 相关文档
+### Q: 备份文件占用太多空间
 
-- **本地开发**: `/backend/start.sh` - 开发模式启动
-- **部署指南**: `/backend/DEPLOYMENT.md` - 环境配置详解
-- **快速参考**: `/CLAUDE.md` - 守则和快速启动
+调整保留策略（`.env`文件）：
+```bash
+BACKUP_RETENTION_DAYS=3    # 减少到3天
+BACKUP_RETENTION_WEEKS=2   # 减少到2周
+BACKUP_RETENTION_MONTHS=6  # 减少到6个月
+```
+
+然后重启backup服务：
+```bash
+docker-compose restart backup
+```
+
+## 📞 技术支持
+
+- **GitHub**: https://github.com/austinxyz/growing
+- **文档**: 查看`docs/`目录下的详细文档
+- **备份系统**: 查看`docs/BACKUP_SYSTEM.md`

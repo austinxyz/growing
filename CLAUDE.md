@@ -383,6 +383,30 @@ docker-compose logs backend | grep "profiles are active"
 - **User**: `austinxu` / `helloworld`
 - **Credentials**: In `backend/.env` (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
 
+### Database Backup
+
+**本地开发**: 不需要启动backup服务（前端页面会显示连接错误，这是正常的）
+
+**生产部署**: Backup服务已集成到主docker-compose.yml中
+```bash
+# 部署时自动启动（包含backend、frontend、backup三个服务）
+./deploy.sh
+
+# 或手动启动
+docker-compose up -d
+
+# 验证backup服务
+curl http://localhost:5001/health
+
+# 手动触发备份（仅用于测试）
+curl -X POST http://localhost:5001/backup/trigger -H "Content-Type: application/json" -d '{"type":"manual"}'
+
+# 查看备份文件
+curl http://localhost:5001/backup/list
+
+# 详见 docs/BACKUP_SYSTEM.md
+```
+
 ### Test Admin Account
 ```
 Username: austinxu

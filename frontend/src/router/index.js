@@ -71,6 +71,13 @@ const routes = [
     name: 'Profile',
     component: () => import('../views/settings/Profile.vue')
   },
+  // 设置模块 - 数据库备份管理（仅管理员）
+  {
+    path: '/settings/backup',
+    name: 'BackupManagement',
+    component: () => import('../views/settings/BackupManagement.vue'),
+    meta: { requiresAdmin: true }
+  },
   // 管理员 - 算法内容管理（Phase 4）
   {
     path: '/admin/algorithm-content',

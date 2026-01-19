@@ -1,0 +1,13 @@
+# Growing App Backup Crontab
+# 所有时间为UTC时区
+
+# 每日备份: 每天凌晨2点
+0 2 * * * root /scripts/backup.sh daily >> /var/log/cron.log 2>&1
+
+# 周备份: 每周六凌晨3点
+0 3 * * 6 root /scripts/backup.sh weekly >> /var/log/cron.log 2>&1
+
+# 月备份: 每月1号凌晨4点
+0 4 1 * * root /scripts/backup.sh monthly >> /var/log/cron.log 2>&1
+
+# 空行必须存在

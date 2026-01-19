@@ -326,6 +326,19 @@
           </router-link>
         </div>
 
+        <!-- 系统管理（仅管理员可见） -->
+        <div v-if="isAdmin" class="space-y-1">
+          <div class="nav-section-title">系统管理</div>
+          <router-link
+            to="/settings/backup"
+            class="nav-item"
+            :class="isActive('/settings/backup')"
+          >
+            <Database class="w-5 h-5" />
+            <span>数据库备份</span>
+          </router-link>
+        </div>
+
         <!-- 个人设置 -->
         <div class="space-y-1">
           <div class="nav-section-title">个人设置</div>
@@ -437,6 +450,14 @@
         >
           <UserCog class="w-5 h-5" />
         </router-link>
+        <router-link
+          to="/settings/backup"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/settings/backup')"
+          title="数据库备份"
+        >
+          <Database class="w-5 h-5" />
+        </router-link>
       </template>
     </nav>
 
@@ -475,7 +496,8 @@ import {
   UserCheck,
   User,
   FolderOpen,
-  UserCog
+  UserCog,
+  Database
 } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 
