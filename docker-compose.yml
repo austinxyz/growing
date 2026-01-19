@@ -66,6 +66,7 @@ services:
       - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
       - BACKUP_RETENTION_WEEKS=${BACKUP_RETENTION_WEEKS:-4}
       - BACKUP_RETENTION_MONTHS=${BACKUP_RETENTION_MONTHS:-12}
+      - PORT=5000
       - TZ=UTC
     volumes:
       - backup-data:/backups
