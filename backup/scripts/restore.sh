@@ -5,7 +5,7 @@
 
 set -e
 
-BACKUP_DIR="/backups"
+BACKUP_DIR="${BACKUP_DIR:-/backups}"
 LOG_FILE="$BACKUP_DIR/restore.log"
 
 # 日志函数

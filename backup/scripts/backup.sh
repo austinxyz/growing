@@ -6,7 +6,7 @@
 set -e
 
 # 配置
-BACKUP_DIR="/backups"
+BACKUP_DIR="${BACKUP_DIR:-/backups}"
 DAILY_DIR="$BACKUP_DIR/daily"
 WEEKLY_DIR="$BACKUP_DIR/weekly"
 MONTHLY_DIR="$BACKUP_DIR/monthly"
