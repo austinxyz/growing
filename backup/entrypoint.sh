@@ -17,13 +17,13 @@ fi
 
 echo "Database connection configured:"
 echo "  Host: $DB_HOST"
-echo "  Port: ${DB_PORT:-3306}"
+echo "  Port: ${DB_PORT:-37719}"
 echo "  Database: $DB_NAME"
 echo "  User: $DB_USER"
 
 # 测试数据库连接
 echo "Testing database connection..."
-if mysql -h "$DB_HOST" -P "${DB_PORT:-3306}" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" > /dev/null 2>&1; then
+if mysql -h "$DB_HOST" -P "${DB_PORT:-37719}" -u "$DB_USER" -p"$DB_PASSWORD" --skip-ssl -e "SELECT 1" > /dev/null 2>&1; then
     echo "Database connection successful!"
 else
     echo "WARNING: Database connection failed"

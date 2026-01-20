@@ -13,7 +13,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-BACKUP_DIR = "/Users/yanzxu/claude/growing/backup/backups"
+BACKUP_DIR = os.environ.get('BACKUP_DIR', '/backups')
 SCRIPTS_DIR = os.environ.get('SCRIPTS_DIR', '/scripts')
 LOG_FILE = f"{BACKUP_DIR}/backup.log"
 RESTORE_LOG_FILE = f"{BACKUP_DIR}/restore.log"

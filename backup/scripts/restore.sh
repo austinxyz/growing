@@ -44,9 +44,10 @@ main() {
 
     if mysqldump \
         -h "$DB_HOST" \
-        -P "$DB_PORT" \
+        -P "${DB_PORT:-37719}" \
         -u "$DB_USER" \
         -p"$DB_PASSWORD" \
+        --skip-ssl \
         --single-transaction \
         --routines \
         --triggers \
@@ -61,9 +62,10 @@ main() {
     log "开始恢复数据库..."
     if zcat "$backup_file" | mysql \
         -h "$DB_HOST" \
-        -P "$DB_PORT" \
+        -P "${DB_PORT:-37719}" \
         -u "$DB_USER" \
         -p"$DB_PASSWORD" \
+        --skip-ssl \
         "$DB_NAME" 2>> "$LOG_FILE"; then
         log "数据库恢复成功"
         log "========== 恢复流程完成 =========="

@@ -36,9 +36,10 @@ perform_backup() {
     # 执行mysqldump
     if mysqldump \
         -h "$DB_HOST" \
-        -P "$DB_PORT" \
+        -P "${DB_PORT:-37719}" \
         -u "$DB_USER" \
         -p"$DB_PASSWORD" \
+        --skip-ssl \
         --single-transaction \
         --routines \
         --triggers \
