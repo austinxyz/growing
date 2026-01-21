@@ -4,6 +4,21 @@ set -e
 
 echo "Starting Growing Backup Service..."
 
+# 导出环境变量到文件供cron使用
+echo "Exporting environment variables for cron..."
+cat > /etc/environment << EOF
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_USER=$DB_USER
+DB_PASSWORD=$DB_PASSWORD
+DB_NAME=$DB_NAME
+BACKUP_DIR=$BACKUP_DIR
+SCRIPTS_DIR=$SCRIPTS_DIR
+BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
+BACKUP_RETENTION_WEEKS=${BACKUP_RETENTION_WEEKS:-4}
+BACKUP_RETENTION_MONTHS=${BACKUP_RETENTION_MONTHS:-12}
+EOF
+
 # 启动cron服务
 echo "Starting cron service..."
 service cron start
