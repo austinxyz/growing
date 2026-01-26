@@ -228,7 +228,9 @@ async function refreshData() {
 async function loadStatus() {
   try {
     const data = await backupApi.getStatus()
-    status.value = data
+    // Backend returns { success: true, status: { healthy: true, ... } }
+    // Extract the inner status object
+    status.value = data.status || data
 
     // Update database name from status
     if (data.dbName) {
@@ -236,6 +238,8 @@ async function loadStatus() {
     }
   } catch (error) {
     console.error('Failed to load status:', error)
+    // Set unhealthy status on error
+    status.value = { healthy: false }
   }
 }
 
@@ -244,7 +248,8 @@ async function loadBackups() {
   try {
     loading.value = true
     const data = await backupApi.listBackups(selectedType.value === 'all' ? null : selectedType.value)
-    backups.value = data || []
+    // Backend returns { success: true, backups: [...] }
+    backups.value = data.backups || data || []
   } catch (error) {
     console.error('Failed to load backups:', error)
     alert('加载备份列表失败：' + error.message)
@@ -257,7 +262,8 @@ async function loadBackups() {
 async function loadLogs() {
   try {
     const data = await backupApi.getLogs(selectedLogType.value, 100)
-    logs.value = data || []
+    // Backend returns { success: true, logs: [...] }
+    logs.value = data.logs || data || []
   } catch (error) {
     console.error('Failed to load logs:', error)
   }
