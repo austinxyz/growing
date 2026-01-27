@@ -38,4 +38,9 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
      * 根据用户ID和职位申请ID查找定制简历
      */
     Resume findByUserIdAndJobApplicationId(Long userId, Long jobApplicationId);
+
+    /**
+     * 统计用户的简历数量
+     */
+    Long countByUserId(Long userId);
 }

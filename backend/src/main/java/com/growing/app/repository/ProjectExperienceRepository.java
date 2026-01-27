@@ -27,4 +27,9 @@ public interface ProjectExperienceRepository extends JpaRepository<ProjectExperi
      * 删除指定用户的所有项目经验
      */
     void deleteByUserId(Long userId);
+
+    /**
+     * 统计用户的项目经验数量
+     */
+    Long countByUserId(Long userId);
 }

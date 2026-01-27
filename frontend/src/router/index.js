@@ -166,7 +166,13 @@ const routes = [
   // 用户端 - 求职管理（Phase 7）
   {
     path: '/job-search',
-    redirect: '/job-search/resume',
+    redirect: '/job-search/dashboard',
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/job-search/dashboard',
+    name: 'JobSearchDashboard',
+    component: () => import('../views/job-search/JobSearchDashboard.vue'),
     meta: { requiresAuth: true }
   },
   {

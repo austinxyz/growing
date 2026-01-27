@@ -38,4 +38,9 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
      * 删除指定公司的所有职位申请
      */
     void deleteByCompanyId(Long companyId);
+
+    /**
+     * 统计用户的职位申请数量
+     */
+    Long countByUserId(Long userId);
 }

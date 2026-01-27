@@ -207,6 +207,16 @@
 
       <!-- 求职类菜单 -->
       <template v-if="activeTopTab === 'career'">
+        <!-- 仪表盘 -->
+        <router-link
+          to="/job-search/dashboard"
+          class="nav-item"
+          :class="isActive('/job-search/dashboard')"
+        >
+          <LayoutDashboard class="w-5 h-5" />
+          <span>仪表盘</span>
+        </router-link>
+
         <!-- 简历管理 -->
         <div class="space-y-1">
           <div class="nav-section-title">简历</div>
@@ -422,6 +432,57 @@
           title="学习总结"
         >
           <FileText class="w-5 h-5" />
+        </router-link>
+      </template>
+
+      <template v-if="activeTopTab === 'career'">
+        <router-link
+          to="/job-search/dashboard"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/dashboard')"
+          title="仪表盘"
+        >
+          <LayoutDashboard class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/job-search/resume"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/resume')"
+          title="基本信息管理"
+        >
+          <User class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/job-search/projects"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/projects')"
+          title="项目经验库"
+        >
+          <FolderOpen class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/job-search/management"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/management')"
+          title="人员管理经验库"
+        >
+          <Users class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/job-search/companies"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/companies')"
+          title="公司与职位"
+        >
+          <Building class="w-5 h-5" />
+        </router-link>
+        <router-link
+          to="/job-search/applications"
+          class="flex items-center justify-center p-2 rounded-md transition-colors"
+          :class="isActive('/job-search/applications')"
+          title="申请列表"
+        >
+          <Calendar class="w-5 h-5" />
         </router-link>
       </template>
 

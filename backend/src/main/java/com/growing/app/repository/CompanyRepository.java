@@ -33,4 +33,9 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * 检查公司名称是否存在
      */
     boolean existsByUserIdAndCompanyName(Long userId, String companyName);
+
+    /**
+     * 统计用户的公司数量
+     */
+    Long countByUserId(Long userId);
 }

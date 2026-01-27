@@ -443,13 +443,19 @@ public class ResumeAnalysisService {
             }
         }
 
-        int totalCount = RESPONSIBILITY_KEYWORDS.size();
-        int matchedCount = matchedKeywords.size();
-        int score = (matchedCount * 100) / Math.max(1, totalCount);
+        Integer totalCount = RESPONSIBILITY_KEYWORDS.size();
+        Integer matchedCount = matchedKeywords.size();
+        Integer score = (matchedCount * 100) / Math.max(1, totalCount);
 
         String explanation = String.format("匹配 %d/%d 职责关键词", matchedCount, totalCount);
 
-        return new ResponsibilityMatchDTO(matchedCount, totalCount, matchedKeywords, score, explanation);
+        ResponsibilityMatchDTO dto = new ResponsibilityMatchDTO();
+        dto.setMatchedCount(matchedCount);
+        dto.setTotalCount(totalCount);
+        dto.setMatchedKeywords(matchedKeywords);
+        dto.setScore(score);
+        dto.setExplanation(explanation);
+        return dto;
     }
 
     private boolean matchesAnyKeyword(String text, List<String> keywords) {

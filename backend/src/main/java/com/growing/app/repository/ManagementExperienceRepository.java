@@ -22,4 +22,9 @@ public interface ManagementExperienceRepository extends JpaRepository<Management
      * 删除指定用户的所有管理经验
      */
     void deleteByUserId(Long userId);
+
+    /**
+     * 统计用户的管理经验数量
+     */
+    Long countByUserId(Long userId);
 }
