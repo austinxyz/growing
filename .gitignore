@@ -70,4 +70,5 @@ notes/
 # Import files (personal resume data and remote configs)
 import/Resume*
 import/resume/
+import/experience/
 import/docker-compose.remot.yml
