@@ -174,18 +174,58 @@
                 <p class="mt-1 text-xs text-gray-500">HelloInterview 面试题链接</p>
               </div>
 
-              <!-- 相似题目 -->
+              <!-- 相似题目（只读显示） -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   相似题目
                 </label>
-                <input
-                  v-model="form.programmingDetails.similarQuestions"
-                  type="text"
-                  placeholder="相似题目编号，用逗号分隔，例如：15,18,167"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p class="mt-1 text-xs text-gray-500">填写相似题目的ID，用逗号分隔</p>
+                <div v-if="form.programmingDetails.similarQuestions && form.programmingDetails.similarQuestions.length > 0"
+                     class="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 space-y-2">
+                  <div v-for="(q, index) in form.programmingDetails.similarQuestions"
+                       :key="index"
+                       class="flex items-center gap-2 text-sm py-1">
+                    <!-- 序号 -->
+                    <span class="text-gray-400 flex-shrink-0">{{ index + 1 }}.</span>
+
+                    <!-- LeetCode链接 + 题目名 -->
+                    <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                      <a v-if="q.titleSlug"
+                         :href="`https://leetcode.com/problems/${q.titleSlug}/`"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         class="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                         :title="`在LeetCode上查看: ${q.title}`">
+                        {{ q.title }}
+                      </a>
+                      <span v-else class="text-gray-700 truncate">{{ q.title }}</span>
+
+                      <!-- LeetCode图标标识 -->
+                      <a v-if="q.titleSlug"
+                         :href="`https://leetcode.com/problems/${q.titleSlug}/`"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         class="text-orange-500 hover:text-orange-600 flex-shrink-0 text-xs"
+                         title="在LeetCode上查看">
+                        🔗
+                      </a>
+                    </div>
+
+                    <!-- 难度标识 -->
+                    <span v-if="q.difficulty"
+                          :class="[
+                            'text-xs px-2 py-0.5 rounded flex-shrink-0',
+                            q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                            q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          ]">
+                      {{ q.difficulty }}
+                    </span>
+                  </div>
+                </div>
+                <div v-else class="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm text-gray-400">
+                  暂无相似题目
+                </div>
+                <p class="mt-1 text-xs text-gray-500">相似题目列表（只读，由系统从LeetCode同步）。点击题目或🔗图标跳转到LeetCode</p>
               </div>
 
               <!-- 复杂度 -->
@@ -340,7 +380,7 @@ const form = ref({
     labuladongUrl: '',
     hellointerviewUrl: '',
     tags: '',
-    similarQuestions: '',
+    similarQuestions: [],
     complexity: '',
     isImportant: false
   }
@@ -375,8 +415,10 @@ watch(() => props.question, (newQuestion) => {
         leetcodeUrl: programmingDetails.leetcodeUrl || '',
         labuladongUrl: programmingDetails.labuladongUrl || '',
         hellointerviewUrl: programmingDetails.hellointerviewUrl || '',
-        tags: programmingDetails.tags || '',
-        similarQuestions: programmingDetails.similarQuestions || '',
+        tags: Array.isArray(programmingDetails.tags)
+          ? programmingDetails.tags.join(', ')
+          : (programmingDetails.tags || ''),
+        similarQuestions: programmingDetails.similarQuestions || [],
         complexity: programmingDetails.complexity || '',
         isImportant: programmingDetails.isImportant || false
       }
@@ -397,7 +439,7 @@ watch(() => props.question, (newQuestion) => {
         labuladongUrl: '',
         hellointerviewUrl: '',
         tags: '',
-        similarQuestions: '',
+        similarQuestions: [],
         complexity: '',
         isImportant: false
       }
@@ -415,8 +457,8 @@ const handleSubmit = () => {
       tags: form.value.programmingDetails.tags
         ? form.value.programmingDetails.tags.split(',').map(t => t.trim()).filter(t => t !== '')
         : [],
-      // similarQuestions暂时发送空数组（后续可扩展为对象数组）
-      similarQuestions: []
+      // similarQuestions保持原始对象数组格式（编辑时保持不变，新建时为空数组）
+      similarQuestions: form.value.programmingDetails.similarQuestions || []
     }
   }
 

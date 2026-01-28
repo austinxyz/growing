@@ -585,9 +585,11 @@ const loadQuestions = async () => {
   if (!selectedFocusArea.value) return
 
   try {
-    const data = await questionApi.getQuestionsByFocusArea(selectedFocusArea.value.id)
+    const response = await questionApi.getQuestionsByFocusArea(selectedFocusArea.value.id)
+    // 从分页响应中提取试题数组
+    const data = response?.content || []
     // 排序逻辑：先按isImportant降序（重要的在前），再按leetcodeNumber升序
-    const sortedData = (data || []).sort((a, b) => {
+    const sortedData = data.sort((a, b) => {
       // 1. 先比较isImportant（重要的在前）
       const aImportant = a.programmingDetails?.isImportant || false
       const bImportant = b.programmingDetails?.isImportant || false
@@ -689,9 +691,41 @@ const showAddQuestionModal = () => {
   showEditModal.value = true
 }
 
-const editQuestion = (question) => {
-  editingQuestion.value = question
-  showEditModal.value = true
+const editQuestion = async (question) => {
+  try {
+    // 从API获取完整的试题详情（包含questionDescription、programmingDetails等）
+    // QuestionListDTO只包含基本字段，编辑时需要加载完整数据
+    const api = isAdmin.value ? adminQuestionApi : questionApi
+    console.log('Loading full question details for ID:', question.id)
+    console.log('Using API:', isAdmin.value ? 'admin' : 'user')
+
+    const fullQuestion = await api.getQuestionById(question.id)
+    console.log('Loaded full question:', fullQuestion)
+
+    editingQuestion.value = fullQuestion
+    showEditModal.value = true
+  } catch (error) {
+    console.error('Failed to load question details:', error)
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response,
+      request: error.request
+    })
+
+    // 显示更详细的错误信息，并提供fallback选项
+    const errorMsg = error.response?.data?.message || error.message || '未知错误'
+    const shouldUseFallback = confirm(
+      `加载完整试题详情失败: ${errorMsg}\n\n` +
+      `点击"确定"使用基本信息编辑（部分字段可能为空）\n` +
+      `点击"取消"放弃编辑`
+    )
+
+    if (shouldUseFallback) {
+      // Fallback: 使用列表数据（虽然不完整，但至少可以编辑部分字段）
+      editingQuestion.value = question
+      showEditModal.value = true
+    }
+  }
 }
 
 const saveQuestion = async (formData) => {

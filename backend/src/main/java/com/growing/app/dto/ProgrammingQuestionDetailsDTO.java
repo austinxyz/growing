@@ -35,5 +35,7 @@ public class ProgrammingQuestionDetailsDTO {
     public static class SimilarQuestion {
         private Long id;
         private String title;
+        private String titleSlug;   // LeetCode URL路径
+        private String difficulty;  // Easy/Medium/Hard
     }
 }
