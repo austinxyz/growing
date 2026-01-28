@@ -696,21 +696,11 @@ const editQuestion = async (question) => {
     // 从API获取完整的试题详情（包含questionDescription、programmingDetails等）
     // QuestionListDTO只包含基本字段，编辑时需要加载完整数据
     const api = isAdmin.value ? adminQuestionApi : questionApi
-    console.log('Loading full question details for ID:', question.id)
-    console.log('Using API:', isAdmin.value ? 'admin' : 'user')
-
     const fullQuestion = await api.getQuestionById(question.id)
-    console.log('Loaded full question:', fullQuestion)
-
     editingQuestion.value = fullQuestion
     showEditModal.value = true
   } catch (error) {
     console.error('Failed to load question details:', error)
-    console.error('Error details:', {
-      message: error.message,
-      response: error.response,
-      request: error.request
-    })
 
     // 显示更详细的错误信息，并提供fallback选项
     const errorMsg = error.response?.data?.message || error.message || '未知错误'
