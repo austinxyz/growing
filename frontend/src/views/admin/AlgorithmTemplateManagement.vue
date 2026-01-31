@@ -281,6 +281,75 @@
                   <span v-else class="text-gray-400">未设置</span>
                 </div>
               </div>
+
+              <!-- 关联试题 -->
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <label class="block text-sm font-medium text-gray-700">关联试题</label>
+                  <button
+                    @click="showAddQuestionDialog = true"
+                    class="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center space-x-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>添加试题</span>
+                  </button>
+                </div>
+
+                <!-- 关联试题列表 -->
+                <div v-if="loadingQuestions" class="text-center py-4">
+                  <svg class="animate-spin h-6 w-6 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <div v-else-if="relatedQuestions.length === 0" class="text-center py-8 border-2 border-dashed border-gray-300 rounded-md">
+                  <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p class="mt-2 text-sm text-gray-500">暂无关联试题</p>
+                  <p class="text-xs text-gray-400 mt-1">点击上方按钮添加相关编程题</p>
+                </div>
+                <div v-else class="space-y-2">
+                  <div
+                    v-for="question in relatedQuestions"
+                    :key="question.id"
+                    class="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                  >
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center space-x-2">
+                        <span v-if="question.leetcodeNumber" class="text-xs font-semibold text-gray-500">
+                          #{{ question.leetcodeNumber }}
+                        </span>
+                        <h4 class="text-sm font-medium text-gray-900 truncate">{{ question.questionTitle }}</h4>
+                      </div>
+                      <div class="flex items-center space-x-2 mt-1">
+                        <span
+                          v-if="question.difficulty"
+                          :class="[
+                            'px-2 py-0.5 text-xs font-semibold rounded',
+                            question.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                            question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          ]"
+                        >
+                          {{ question.difficulty === 'EASY' ? '简单' : question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      @click="removeQuestion(question.questionId)"
+                      class="ml-3 text-red-600 hover:text-red-800"
+                      title="移除关联"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -297,12 +366,98 @@
       @confirm="handleDelete"
       @cancel="showDeleteConfirm = false"
     />
+
+    <!-- 添加试题对话框 -->
+    <div
+      v-if="showAddQuestionDialog"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="showAddQuestionDialog = false"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <!-- 对话框标题 -->
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">添加关联试题</h3>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="px-6 py-4 border-b border-gray-200">
+          <input
+            v-model="questionSearchQuery"
+            type="text"
+            placeholder="搜索试题标题或LeetCode题号..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            @input="searchQuestions"
+          />
+        </div>
+
+        <!-- 试题列表 -->
+        <div class="flex-1 overflow-y-auto px-6 py-4">
+          <div v-if="searchingQuestions" class="text-center py-8">
+            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">搜索中...</p>
+          </div>
+          <div v-else-if="availableQuestions.length === 0" class="text-center py-8">
+            <p class="text-sm text-gray-500">没有找到相关试题</p>
+          </div>
+          <div v-else class="space-y-2">
+            <div
+              v-for="question in availableQuestions"
+              :key="question.id"
+              @click="addQuestion(question.id)"
+              class="p-3 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center space-x-2">
+                    <span v-if="question.leetcodeNumber" class="text-xs font-semibold text-gray-500">
+                      #{{ question.leetcodeNumber }}
+                    </span>
+                    <h4 class="text-sm font-medium text-gray-900 truncate">{{ question.title }}</h4>
+                  </div>
+                  <div class="flex items-center space-x-2 mt-1">
+                    <span
+                      v-if="question.difficulty"
+                      :class="[
+                        'px-2 py-0.5 text-xs font-semibold rounded',
+                        question.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                        question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      ]"
+                    >
+                      {{ question.difficulty === 'EASY' ? '简单' : question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
+                    </span>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 对话框按钮 -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+          <button
+            @click="showAddQuestionDialog = false"
+            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          >
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import learningContentApi from '@/api/learningContentApi'
+import templateQuestionApi from '@/api/templateQuestionApi'
+import questionApi from '@/api/questionApi'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 // 状态
@@ -313,6 +468,14 @@ const searchQuery = ref('')
 const selectedTemplate = ref(null)
 const isEditing = ref(false)
 const showDeleteConfirm = ref(false)
+
+// 关联试题相关状态
+const showAddQuestionDialog = ref(false)
+const loadingQuestions = ref(false)
+const searchingQuestions = ref(false)
+const relatedQuestions = ref([])
+const availableQuestions = ref([])
+const questionSearchQuery = ref('')
 
 // 编辑表单
 const editForm = ref({
@@ -359,6 +522,7 @@ const selectTemplate = (template) => {
   selectedTemplate.value = template
   isEditing.value = false
   loadEditForm(template)
+  loadRelatedQuestions(template.id)
 }
 
 // 加载编辑表单
@@ -493,6 +657,104 @@ const addKeyPoint = () => {
 
 const removeKeyPoint = (index) => {
   editForm.value.contentData.keyPoints.splice(index, 1)
+}
+
+// 加载关联试题
+const loadRelatedQuestions = async (templateId) => {
+  if (!templateId) {
+    relatedQuestions.value = []
+    return
+  }
+
+  try {
+    loadingQuestions.value = true
+    const data = await templateQuestionApi.getQuestionsByTemplate(templateId)
+    relatedQuestions.value = data || []
+  } catch (error) {
+    console.error('加载关联试题失败:', error)
+    relatedQuestions.value = []
+  } finally {
+    loadingQuestions.value = false
+  }
+}
+
+// 搜索可用试题
+const searchQuestions = async () => {
+  const query = questionSearchQuery.value.trim()
+  if (!query) {
+    availableQuestions.value = []
+    return
+  }
+
+  try {
+    searchingQuestions.value = true
+    // 搜索所有编程题（PROGRAMMING类型）
+    const allQuestions = await questionApi.getQuestions()
+
+    // 过滤编程题并排除已关联的
+    const relatedIds = new Set(relatedQuestions.value.map(q => q.questionId))
+    const queryLower = query.toLowerCase()
+
+    availableQuestions.value = allQuestions
+      .filter(q => q.type === 'PROGRAMMING')
+      .filter(q => !relatedIds.has(q.id))
+      .filter(q => {
+        const titleMatch = q.title.toLowerCase().includes(queryLower)
+        const numberMatch = q.leetcodeNumber && q.leetcodeNumber.toString().includes(query)
+        return titleMatch || numberMatch
+      })
+      .slice(0, 20) // 限制显示20个
+  } catch (error) {
+    console.error('搜索试题失败:', error)
+    availableQuestions.value = []
+  } finally {
+    searchingQuestions.value = false
+  }
+}
+
+// 添加试题关联
+const addQuestion = async (questionId) => {
+  if (!selectedTemplate.value) return
+
+  try {
+    await templateQuestionApi.addTemplateQuestion(
+      selectedTemplate.value.id,
+      questionId
+    )
+
+    // 重新加载关联试题
+    await loadRelatedQuestions(selectedTemplate.value.id)
+
+    // 关闭对话框并重置搜索
+    showAddQuestionDialog.value = false
+    questionSearchQuery.value = ''
+    availableQuestions.value = []
+  } catch (error) {
+    console.error('添加试题关联失败:', error)
+    alert('添加失败: ' + (error.message || '未知错误'))
+  }
+}
+
+// 移除试题关联
+const removeQuestion = async (questionId) => {
+  if (!selectedTemplate.value) return
+
+  if (!confirm('确定要移除这个试题的关联吗？')) {
+    return
+  }
+
+  try {
+    await templateQuestionApi.removeTemplateQuestion(
+      selectedTemplate.value.id,
+      questionId
+    )
+
+    // 重新加载关联试题
+    await loadRelatedQuestions(selectedTemplate.value.id)
+  } catch (error) {
+    console.error('移除试题关联失败:', error)
+    alert('移除失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 格式化日期

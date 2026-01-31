@@ -248,6 +248,67 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 关联试题卡片 -->
+              <div class="flex-1 bg-white rounded-xl shadow-lg border-2 border-purple-200 flex flex-col overflow-hidden">
+                <div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200 flex-shrink-0">
+                  <h3 class="text-lg font-semibold text-purple-700 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    相关试题
+                  </h3>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4">
+                  <div v-if="loadingRelatedQuestions" class="text-center py-8">
+                    <svg class="animate-spin h-6 w-6 text-purple-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">加载中...</p>
+                  </div>
+                  <div v-else-if="relatedQuestions.length === 0" class="text-gray-400 text-center py-12 text-sm">
+                    暂无关联试题
+                  </div>
+                  <div v-else class="space-y-2">
+                    <div
+                      v-for="question in relatedQuestions"
+                      :key="question.id"
+                      class="bg-purple-50/50 rounded-lg p-3 hover:bg-purple-100/70 transition-colors cursor-pointer"
+                      @click="viewQuestion(question.questionId)"
+                    >
+                      <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center space-x-2">
+                            <span v-if="question.leetcodeNumber" class="text-xs font-bold text-purple-600">
+                              #{{ question.leetcodeNumber }}
+                            </span>
+                            <h4 class="text-sm font-medium text-gray-900 truncate">
+                              {{ question.questionTitle }}
+                            </h4>
+                          </div>
+                          <div class="flex items-center space-x-2 mt-1">
+                            <span
+                              v-if="question.difficulty"
+                              :class="[
+                                'px-2 py-0.5 text-xs font-semibold rounded',
+                                question.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                                question.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              ]"
+                            >
+                              {{ question.difficulty === 'EASY' ? '简单' : question.difficulty === 'MEDIUM' ? '中等' : '困难' }}
+                            </span>
+                          </div>
+                        </div>
+                        <svg class="w-4 h-4 text-purple-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -258,6 +319,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import {
   getAlgorithmTemplates,
@@ -265,6 +327,7 @@ import {
   saveOrUpdateTemplateNote,
   deleteTemplateNote
 } from '@/api/learningContentApi'
+import templateQuestionApi from '@/api/templateQuestionApi'
 
 // 数据状态
 const templates = ref([])
@@ -277,6 +340,13 @@ const totalElements = ref(0)
 const currentNote = ref(null)
 const isEditingNote = ref(false)
 const editContent = ref('')
+
+// 关联试题相关状态
+const loadingRelatedQuestions = ref(false)
+const relatedQuestions = ref([])
+
+// Router
+const router = useRouter()
 const savingNote = ref(false)
 
 // 解析contentData JSON字符串
@@ -311,6 +381,7 @@ const selectTemplate = async (template) => {
   selectedTemplate.value = template
   isEditingNote.value = false
   await loadNoteForTemplate(template.id)
+  await loadRelatedQuestions(template.id)
 }
 
 // 加载模版笔记
@@ -395,6 +466,34 @@ const formatDate = (dateString) => {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
+  })
+}
+
+// 加载关联试题
+const loadRelatedQuestions = async (templateId) => {
+  if (!templateId) {
+    relatedQuestions.value = []
+    return
+  }
+
+  try {
+    loadingRelatedQuestions.value = true
+    const data = await templateQuestionApi.getQuestionsByTemplate(templateId)
+    relatedQuestions.value = data || []
+  } catch (error) {
+    console.error('加载关联试题失败:', error)
+    relatedQuestions.value = []
+  } finally {
+    loadingRelatedQuestions.value = false
+  }
+}
+
+// 查看试题详情
+const viewQuestion = (questionId) => {
+  // 跳转到试题库页面并选中该题目
+  router.push({
+    name: 'QuestionBank',
+    query: { questionId }
   })
 }
 
