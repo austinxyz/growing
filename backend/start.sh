@@ -10,6 +10,9 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Set Java 17 for Maven
+export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home
+
 # Get profile from argument (default: dev)
 PROFILE="${1:-dev}"
 
