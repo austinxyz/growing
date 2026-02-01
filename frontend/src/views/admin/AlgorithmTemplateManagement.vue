@@ -379,6 +379,21 @@
           <h3 class="text-lg font-semibold text-gray-900">添加关联试题</h3>
         </div>
 
+        <!-- Focus Area选择器 -->
+        <div class="px-6 py-4 border-b border-gray-200">
+          <label class="block text-sm font-medium text-gray-700 mb-2">选择Focus Area</label>
+          <select
+            v-model="selectedFocusAreaId"
+            @change="handleFocusAreaChange"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="null">全部试题</option>
+            <option v-for="area in focusAreas" :key="area.id" :value="area.id">
+              {{ area.name }}
+            </option>
+          </select>
+        </div>
+
         <!-- 搜索栏 -->
         <div class="px-6 py-4 border-b border-gray-200">
           <input
@@ -458,6 +473,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import learningContentApi from '@/api/learningContentApi'
 import templateQuestionApi from '@/api/templateQuestionApi'
 import questionApi from '@/api/questionApi'
+import skillApi from '@/api/skillApi'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 // 状态
@@ -476,6 +492,9 @@ const searchingQuestions = ref(false)
 const relatedQuestions = ref([])
 const availableQuestions = ref([])
 const questionSearchQuery = ref('')
+const focusAreas = ref([])
+const selectedFocusAreaId = ref(null)
+const loadingFocusAreas = ref(false)
 
 // 编辑表单
 const editForm = ref({
@@ -678,24 +697,95 @@ const loadRelatedQuestions = async (templateId) => {
   }
 }
 
-// 搜索可用试题
-const searchQuestions = async () => {
-  const query = questionSearchQuery.value.trim()
-  if (!query) {
+// 加载算法与数据结构的Focus Areas
+const loadFocusAreas = async () => {
+  try {
+    loadingFocusAreas.value = true
+    // 算法与数据结构的skill ID通常是1，如果不是需要调整
+    // 这里通过名称查找更可靠
+    const skills = await skillApi.getSkills()
+    const algorithmSkill = skills.find(s => s.name === '算法与数据结构')
+
+    if (algorithmSkill) {
+      const skillDetail = await skillApi.getSkillById(algorithmSkill.id)
+      focusAreas.value = skillDetail.focusAreas || []
+    }
+  } catch (error) {
+    console.error('加载Focus Areas失败:', error)
+    focusAreas.value = []
+  } finally {
+    loadingFocusAreas.value = false
+  }
+}
+
+// 处理Focus Area变化
+const handleFocusAreaChange = () => {
+  // 清空搜索结果，重新加载该Focus Area下的试题
+  questionSearchQuery.value = ''
+  loadQuestionsByFocusArea()
+}
+
+// 加载指定Focus Area下的试题
+const loadQuestionsByFocusArea = async () => {
+  if (!selectedFocusAreaId.value) {
     availableQuestions.value = []
     return
   }
 
   try {
     searchingQuestions.value = true
-    // 搜索所有编程题（PROGRAMMING类型）
-    const allQuestions = await questionApi.getQuestions()
+    // 获取Focus Area下的所有试题
+    const data = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
+
+    // 过滤编程题并排除已关联的
+    const relatedIds = new Set(relatedQuestions.value.map(q => q.questionId))
+
+    availableQuestions.value = (data || [])
+      .filter(q => q.type === 'PROGRAMMING')
+      .filter(q => !relatedIds.has(q.id))
+      .slice(0, 50) // 显示该Focus Area下前50个试题
+  } catch (error) {
+    console.error('加载试题失败:', error)
+    availableQuestions.value = []
+  } finally {
+    searchingQuestions.value = false
+  }
+}
+
+// 搜索可用试题（支持Focus Area筛选）
+const searchQuestions = async () => {
+  const query = questionSearchQuery.value.trim()
+
+  // 如果没有搜索词且没有选择Focus Area，清空结果
+  if (!query && !selectedFocusAreaId.value) {
+    availableQuestions.value = []
+    return
+  }
+
+  // 如果没有搜索词但选择了Focus Area，显示该Focus Area下的试题
+  if (!query && selectedFocusAreaId.value) {
+    await loadQuestionsByFocusArea()
+    return
+  }
+
+  try {
+    searchingQuestions.value = true
+    let questions = []
+
+    if (selectedFocusAreaId.value) {
+      // 在选定的Focus Area内搜索
+      const data = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
+      questions = data || []
+    } else {
+      // 搜索所有试题
+      questions = await questionApi.getQuestions()
+    }
 
     // 过滤编程题并排除已关联的
     const relatedIds = new Set(relatedQuestions.value.map(q => q.questionId))
     const queryLower = query.toLowerCase()
 
-    availableQuestions.value = allQuestions
+    availableQuestions.value = questions
       .filter(q => q.type === 'PROGRAMMING')
       .filter(q => !relatedIds.has(q.id))
       .filter(q => {
@@ -766,6 +856,20 @@ const formatDate = (dateString) => {
     day: '2-digit'
   })
 }
+
+// 监听添加试题对话框打开，加载Focus Areas
+watch(showAddQuestionDialog, (newValue) => {
+  if (newValue) {
+    // 对话框打开时加载Focus Areas
+    if (focusAreas.value.length === 0) {
+      loadFocusAreas()
+    }
+    // 重置选择
+    selectedFocusAreaId.value = null
+    questionSearchQuery.value = ''
+    availableQuestions.value = []
+  }
+})
 
 // 初始化
 onMounted(() => {
