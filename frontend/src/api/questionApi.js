@@ -114,3 +114,6 @@ export const adminQuestionApi = {
     return api.delete(`/admin/questions/${questionId}/ai-note`)
   }
 }
+
+// 添加默认导出以支持 import questionApi from '@/api/questionApi'
+export default questionApi
