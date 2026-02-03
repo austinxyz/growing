@@ -426,10 +426,30 @@
             <div
               v-for="question in availableQuestions"
               :key="question.id"
-              @click="addQuestion(question.id)"
-              class="p-3 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors"
+              @click="toggleQuestionSelection(question.id)"
+              :class="[
+                'p-3 border rounded-md cursor-pointer transition-colors',
+                selectedQuestionIds.has(question.id)
+                  ? 'bg-blue-50 border-blue-400'
+                  : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+              ]"
             >
-              <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <!-- 复选框 -->
+                <div class="flex-shrink-0">
+                  <div :class="[
+                    'w-5 h-5 rounded border-2 flex items-center justify-center',
+                    selectedQuestionIds.has(question.id)
+                      ? 'bg-blue-600 border-blue-600'
+                      : 'border-gray-300'
+                  ]">
+                    <svg v-if="selectedQuestionIds.has(question.id)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- 试题信息 -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center space-x-2">
                     <span v-if="question.leetcodeNumber" class="text-xs font-semibold text-gray-500">
@@ -451,22 +471,31 @@
                     </span>
                   </div>
                 </div>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 对话框按钮 -->
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-          <button
-            @click="showAddQuestionDialog = false"
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-          >
-            关闭
-          </button>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+          <div class="text-sm text-gray-600">
+            已选择 <span class="font-semibold text-blue-600">{{ selectedQuestionIds.size }}</span> 个试题
+          </div>
+          <div class="flex space-x-3">
+            <button
+              @click="showAddQuestionDialog = false"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            >
+              取消
+            </button>
+            <button
+              @click="addSelectedQuestions"
+              :disabled="selectedQuestionIds.size === 0 || addingQuestions"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              {{ addingQuestions ? '添加中...' : `确认添加 (${selectedQuestionIds.size})` }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -500,6 +529,8 @@ const questionSearchQuery = ref('')
 const focusAreas = ref([])
 const selectedFocusAreaId = ref(null)
 const loadingFocusAreas = ref(false)
+const selectedQuestionIds = ref(new Set()) // 多选的试题ID集合
+const addingQuestions = ref(false) // 批量添加中
 
 // 编辑表单
 const editForm = ref({
@@ -749,8 +780,10 @@ const loadQuestionsByFocusArea = async () => {
     const relatedIds = new Set(relatedQuestions.value.map(q => q.questionId))
     console.log('Related question IDs:', Array.from(relatedIds))
 
-    const filtered = (data || [])
-      .filter(q => q.type === 'PROGRAMMING')
+    // API返回分页对象，试题列表在content字段中
+    const questionList = data?.content || []
+    const filtered = questionList
+      .filter(q => q.questionType === 'programming')
       .filter(q => !relatedIds.has(q.id))
       .slice(0, 50) // 显示该Focus Area下前50个试题
 
@@ -788,10 +821,13 @@ const searchQuestions = async () => {
     if (selectedFocusAreaId.value) {
       // 在选定的Focus Area内搜索
       const data = await questionApi.getQuestionsByFocusArea(selectedFocusAreaId.value)
-      questions = data || []
+      // API返回分页对象，试题列表在content字段中
+      questions = data?.content || []
     } else {
       // 搜索所有试题
-      questions = await questionApi.getQuestions()
+      const data = await questionApi.getQuestions()
+      // API返回分页对象，试题列表在content字段中
+      questions = data?.content || []
     }
 
     // 过滤编程题并排除已关联的
@@ -799,7 +835,7 @@ const searchQuestions = async () => {
     const queryLower = query.toLowerCase()
 
     availableQuestions.value = questions
-      .filter(q => q.type === 'PROGRAMMING')
+      .filter(q => q.questionType === 'programming')
       .filter(q => !relatedIds.has(q.id))
       .filter(q => {
         const titleMatch = q.title.toLowerCase().includes(queryLower)
@@ -815,26 +851,49 @@ const searchQuestions = async () => {
   }
 }
 
-// 添加试题关联
-const addQuestion = async (questionId) => {
-  if (!selectedTemplate.value) return
+// 切换试题选中状态
+const toggleQuestionSelection = (questionId) => {
+  if (selectedQuestionIds.value.has(questionId)) {
+    selectedQuestionIds.value.delete(questionId)
+  } else {
+    selectedQuestionIds.value.add(questionId)
+  }
+}
+
+// 批量添加试题关联
+const addSelectedQuestions = async () => {
+  if (!selectedTemplate.value || selectedQuestionIds.value.size === 0) {
+    alert('请先选择要添加的试题')
+    return
+  }
 
   try {
-    await templateQuestionApi.addTemplateQuestion(
-      selectedTemplate.value.id,
-      questionId
-    )
+    addingQuestions.value = true
+    const questionIds = Array.from(selectedQuestionIds.value)
+
+    // 批量调用API添加每个试题
+    for (const questionId of questionIds) {
+      await templateQuestionApi.addTemplateQuestion(
+        selectedTemplate.value.id,
+        questionId
+      )
+    }
 
     // 重新加载关联试题
     await loadRelatedQuestions(selectedTemplate.value.id)
 
-    // 关闭对话框并重置搜索
+    // 关闭对话框并重置
     showAddQuestionDialog.value = false
     questionSearchQuery.value = ''
     availableQuestions.value = []
+    selectedQuestionIds.value.clear()
+
+    alert(`成功添加 ${questionIds.length} 个试题`)
   } catch (error) {
     console.error('添加试题关联失败:', error)
     alert('添加失败: ' + (error.message || '未知错误'))
+  } finally {
+    addingQuestions.value = false
   }
 }
 
@@ -881,6 +940,7 @@ watch(showAddQuestionDialog, (newValue) => {
     selectedFocusAreaId.value = null
     questionSearchQuery.value = ''
     availableQuestions.value = []
+    selectedQuestionIds.value.clear() // 清空已选试题
   }
 })
 
