@@ -20,7 +20,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://10.0.0.13:8082',  // 使用网络IP，支持移动端访问
+        target: 'http://localhost:8082',
         changeOrigin: true
       }
     }

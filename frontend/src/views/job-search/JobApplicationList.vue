@@ -25,6 +25,7 @@
             v-model="filterJobStatus"
             class="w-full px-3 py-2 bg-white text-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-300"
           >
+            <option value="!Closed">隐藏已关闭</option>
             <option value="">全部招聘状态</option>
             <option value="Open">开放招聘</option>
             <option value="ActivelyHiring">积极招聘</option>
@@ -1694,7 +1695,7 @@ const interviewRecords = ref([])
 const selectedApplicationId = ref(null)
 const activeTab = ref('overview')
 const filterStatus = ref('')
-const filterJobStatus = ref('')
+const filterJobStatus = ref('!Closed')
 const selectedStageId = ref(null) // 选中的面试阶段ID
 const showApplicationList = ref(true) // 控制职位申请列表显示/隐藏
 const activeInterviewSubTab = ref('notes') // 面试详情子Tab: notes, areas, checklist, records
@@ -1810,7 +1811,9 @@ const filteredApplications = computed(() => {
   }
 
   // 按职位招聘状态筛选
-  if (filterJobStatus.value) {
+  if (filterJobStatus.value === '!Closed') {
+    filtered = filtered.filter(app => app.jobStatus !== 'Closed')
+  } else if (filterJobStatus.value) {
     filtered = filtered.filter(app => app.jobStatus === filterJobStatus.value)
   }
 

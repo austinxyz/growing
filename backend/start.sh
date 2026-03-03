@@ -10,8 +10,15 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Set Java 17 for Maven
-export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home
+# Set Java 17 for Maven (auto-detect by OS)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home
+elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32" ]]; then
+    # Windows (Git Bash / MSYS2)
+    export JAVA_HOME="/c/Program Files/Java/jdk-17"
+    export PATH="/c/Users/lorra/tools/apache-maven-3.9.6/bin:$PATH"
+fi
 
 # Get profile from argument (default: dev)
 PROFILE="${1:-dev}"
