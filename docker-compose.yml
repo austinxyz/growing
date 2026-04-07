@@ -10,7 +10,7 @@ services:
       - backup
     environment:
       # Database configuration
-      DB_HOST: ${DB_HOST:-10.0.0.7}
+      DB_HOST: ${DB_HOST:-10.0.0.20}
       DB_PORT: ${DB_PORT:-37719}
       DB_NAME: ${DB_NAME:-growing}
       DB_USER: ${DB_USER}
@@ -58,7 +58,7 @@ services:
     container_name: growing-backup
     restart: unless-stopped
     environment:
-      - DB_HOST=${DB_HOST:-10.0.0.7}
+      - DB_HOST=${DB_HOST:-10.0.0.20}
       - DB_PORT=${DB_PORT:-37719}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
