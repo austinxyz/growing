@@ -1,0 +1,122 @@
+{
+  "jobApplicationId": 14,
+  "resumeId": 2,
+  "matchScore": 92,
+  "educationMatch": {
+    "hasRequiredDegree": true,
+    "majorRelevance": 0.75,
+    "highestDegree": "Master Degree",
+    "major": "EE/Automation",
+    "score": 85,
+    "explanation": "Master's degree from Zhejiang University in EE/Automation meets and exceeds the Bachelor's degree requirement. EE/Automation is directly relevant to infrastructure and platform engineering work."
+  },
+  "experienceMatch": {
+    "totalYears": 26,
+    "managementYears": 26,
+    "meetsMinimum": true,
+    "requiredYears": "6+ years management, 12+ years infrastructure",
+    "score": 100,
+    "explanation": "26 total years of experience far exceeds 12+ year requirement. Management years from resume_experiences: Mainet PM (2000-2007, 7yr) + eBay Team Lead (2007-2012, 4.7yr) + eBay CCOE SDM (2012-2017, 5yr) + eBay SDM App Lifecycle (2017-2023, 6.5yr) + eBay SDM Cloud Fleet (2023-present, 2.5yr) = 25.7 years management, massively exceeding the 6+ year requirement."
+  },
+  "skillMatch": {
+    "matchedSkills": ["Kubernetes", "CI/CD Pipelines", "REST APIs at Scale", "Provisioning Systems", "Metrics and Monitoring", "SRE/SLO/SLI", "Microservices", "Container Orchestration", "Data Center Automation", "Cloud Native Architecture", "Custom K8s Controllers and Operators", "Service Mesh", "Software Load Balancing", "Infrastructure as Code"],
+    "missingSkills": ["AWS (candidate has private cloud/K8s experience, not explicitly AWS)", "Python and Go (not explicitly mentioned in resume)"],
+    "score": 85,
+    "explanation": "Extremely strong match on core infrastructure and platform skills. Kubernetes expertise is deep: 100+ clusters, 2M+ pods, custom operators/controllers. Owned REST API platform serving 35,000+ deployments/week for thousands of engineers. Built full CI/CD platform with Tekton. Led provisioning systems reducing time from days to minutes. Minor gaps: AWS not explicitly mentioned, and Python/Go not called out."
+  },
+  "responsibilityMatch": {
+    "matchedCount": 8,
+    "totalCount": 8,
+    "matchedKeywords": ["Team Leadership and Mentoring", "Technical Direction and Architecture", "REST API Design and Reliability", "Provisioning and Monitoring", "Automation Initiatives", "Cross-functional Partnership", "Best Practices and Documentation", "Project Planning and Execution"],
+    "score": 95,
+    "explanation": "Near-perfect responsibility match. Led 20+ engineers across US/China teams. Set K8s architectural standards for 5,000+ app migrations. Owned REST API platform for enterprise-scale infrastructure. Built provisioning system reducing time from days to under 10 minutes. Drove 75% deployment time reduction via automation. Coordinated with security, network, product, and capacity stakeholders. Established SRE practices, runbooks, and documentation site."
+  },
+  "softSkillMatch": {
+    "demonstratedSkills": ["Leadership", "Coaching and Mentoring", "Strategic Thinking", "Cross-functional Communication", "Conflict Resolution", "Problem Solving", "Stakeholder Management", "Inclusive Team Building"],
+    "missingSkills": [],
+    "score": 95,
+    "explanation": "Strong soft skills demonstrated throughout. 20+ year management trajectory. Coaching shown in Yiran growing story (senior engineer promoted to staff). Conflict resolution demonstrated in AZ rebalance manager conflict scenario. Strategic thinking evident in cluster automation vision and phased roadmap planning. Built global teams in Europe and India. Regular stakeholder alignment across security, infrastructure, product, and capacity teams."
+  },
+  "strengths": [
+    "Master's degree from Zhejiang University exceeds the Bachelor's requirement",
+    "25+ years of management experience (4x the required 6+) with consistent progression from Team Lead to SDM",
+    "Deep Kubernetes expertise at massive scale: 100+ clusters, 2M+ pods, custom operators/controllers, admission webhooks",
+    "Directly owned infrastructure REST API platform serving 35,000+ deployments/week for thousands of engineers",
+    "Proven large-scale data center automation: reduced provisioning from days to under 10 minutes",
+    "Strong SRE track record: improved system reliability from under 90% to 99%+ in 2-3 months",
+    "Cloud Native migration at enterprise scale: 5,000+ applications migrated to Kubernetes",
+    "Recent global team building: established engineering teams in Europe and India, hired 8+ engineers"
+  ],
+  "improvements": [
+    "Explicitly mention AWS experience if any - JD specifically calls out AWS familiarity",
+    "Add Python and Go to skills section if proficient - JD specifically asks for working knowledge",
+    "Quantify team sizes managed more explicitly across each role",
+    "Highlight JavaScript/UI experience from early eBay DevEx Tools work"
+  ],
+  "customization": {
+    "keywordSuggestions": [
+      {
+        "keyword": "AWS",
+        "section": "About or Skills section",
+        "reason": "JD specifically calls out AWS familiarity - frame cloud platform expertise relative to AWS concepts"
+      },
+      {
+        "keyword": "Python / Go",
+        "section": "Skills or Experience section",
+        "reason": "JD requires working knowledge of Python and Go for design/code review - add if applicable"
+      },
+      {
+        "keyword": "enterprise software engineering platform",
+        "section": "About section",
+        "reason": "JD is specifically about enterprise-scale platform - the about section should mirror this language"
+      }
+    ],
+    "projectOptimizations": [
+      {
+        "projectId": 0,
+        "projectName": "Cloud Native Migration",
+        "suggestions": [
+          "Add specific team size: how many engineers led across US and China?",
+          "Emphasize K8s operator and controller development - directly matches JD's platform engineering focus",
+          "Add REST API details: what APIs were designed/operated and at what scale?"
+        ]
+      },
+      {
+        "projectId": 0,
+        "projectName": "Automated Cluster Lifecycle Management",
+        "suggestions": [
+          "This directly maps to JD's data center automation requirement - lead with this project",
+          "Add specific provisioning time reduction metrics more prominently",
+          "Mention self-service capabilities built for capacity team"
+        ]
+      },
+      {
+        "projectId": 0,
+        "projectName": "API Server Reliability",
+        "suggestions": [
+          "Rename to emphasize REST API Platform Reliability to match JD's language",
+          "Add the scale: how many engineers/teams used these APIs?",
+          "Highlight SLO/SLI framework implementation as it matches JD's monitoring requirements"
+        ]
+      }
+    ],
+    "skillHighlights": [
+      {
+        "skill": "Kubernetes",
+        "currentMention": "Mentioned in various project descriptions",
+        "suggestedMention": "Create dedicated K8s section: operators, controllers, CRDs, admission webhooks, 100+ clusters, 2M+ pods across 3 regions/25 AZs"
+      },
+      {
+        "skill": "REST API",
+        "currentMention": "Implicit in platform work",
+        "suggestedMention": "Explicitly state: designed and operated REST APIs serving thousands of engineers, supporting 35,000+ deployments/week"
+      }
+    ],
+    "structuralSuggestions": [
+      "Lead About section with enterprise software engineering platform language to mirror JD",
+      "Add a Core Competencies section: Kubernetes, Platform Engineering, SRE, CI/CD, Data Center Automation, REST APIs",
+      "Reorder projects to put Cloud Native Migration and Cluster Lifecycle Management first",
+      "Add team sizes to each SDM role in work experience for immediate visibility"
+    ]
+  }
+}

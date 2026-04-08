@@ -1,0 +1,127 @@
+{
+  "jobApplicationId": 15,
+  "resumeId": 2,
+  "matchScore": 90,
+  "educationMatch": {
+    "hasRequiredDegree": true,
+    "majorRelevance": 0.75,
+    "highestDegree": "Master Degree",
+    "major": "EE/Automation",
+    "score": 85,
+    "explanation": "Master's degree from Zhejiang University in EE/Automation satisfies the implied STEM/engineering background requirement. While not explicitly required in JD, the technical depth of the role is well-supported by this background."
+  },
+  "experienceMatch": {
+    "totalYears": 26,
+    "managementYears": 26,
+    "meetsMinimum": true,
+    "requiredYears": "Significant experience managing infrastructure or platform engineering teams",
+    "score": 100,
+    "explanation": "26 total years with 25.7 years in management roles far exceeds the requirement. All management roles are directly in infrastructure/platform engineering: Mainet PM (2000-2007, 7yr) + eBay Team Lead DevEx (2007-2012, 4.7yr) + eBay CCOE SDM Cloud (2012-2017, 5yr) + eBay SDM App Lifecycle (2017-2023, 6.5yr) + eBay SDM Cloud Fleet (2023-present, 2.5yr) = 25.7 years. Every role is infrastructure or platform-focused, which is exactly what the JD requires."
+  },
+  "skillMatch": {
+    "matchedSkills": ["Kubernetes at Scale", "Cluster Lifecycle Management", "Cluster Upgrades", "SLI/SLO/SRE", "Self-healing Systems", "Infrastructure Automation", "Observability (Metrics/Logging/Alerting)", "Distributed Systems", "Container Orchestration", "Fleet Management", "Service Mesh", "CI/CD Pipelines", "Cloud Native Architecture", "Multi-region Deployments"],
+    "missingSkills": ["Terraform (has internal automation tooling but Terraform not explicitly mentioned)", "Istio/Envoy (has service mesh experience but specific tools not called out)", "Cloudflare / Global Load Balancing (not mentioned in resume)"],
+    "score": 82,
+    "explanation": "Extremely strong match on core K8s and infrastructure automation skills. Managed 100+ clusters across 3 regions/25 AZs with 2M+ pods. Built full cluster lifecycle automation (create, upgrade, tech refresh, decommission). Implemented SRE best practices (SLI/SLO, MTTD/MTTR) improving reliability from <90% to 99%+. Built self-healing LOM system for automated recovery. Gaps: Terraform not explicitly mentioned (likely uses internal tooling), Istio/Envoy not specifically named (service mesh in use), Cloudflare not mentioned."
+  },
+  "responsibilityMatch": {
+    "matchedCount": 5,
+    "totalCount": 6,
+    "matchedKeywords": ["Team Building and Growth", "Kubernetes Platform Ownership", "SLI/SLO Reliability Goals", "Infrastructure Automation", "Self-healing and Toil Reduction", "Technical Direction and Execution Discipline"],
+    "score": 92,
+    "explanation": "Near-perfect match. Built and led high-performing teams across US/China/Europe/India. Owned full K8s cluster lifecycle (create, upgrade, decommission) across 100+ clusters. Established SRE practices and SLO frameworks improving reliability from <90% to 99%+. Built self-healing LOM system and automated 35,000+ deployments/week. Set technical direction for cloud-native migration of 5,000+ applications. Minor gap: Terraform specifically not called out, but internal automation tooling covers the same function."
+  },
+  "softSkillMatch": {
+    "demonstratedSkills": ["Infrastructure Leadership", "Coaching and Talent Development", "Strategic Thinking", "Ambiguity Navigation", "Cross-functional Stakeholder Management", "Clarity Creation", "Hiring and Retention"],
+    "missingSkills": [],
+    "score": 95,
+    "explanation": "Exceptional soft skill match. 20+ year track record of leading infrastructure teams in ambiguous, fast-moving environments (multiple eBay platform generation shifts). Demonstrated coaching via Yiran's growth story (senior to staff promotion). Hired 8+ engineers in Europe and India with structured onboarding. Resolved manager conflicts and stakeholder alignment challenges. Created clarity through documented SOPs, runbooks, and structured roadmap planning across complex multi-team programs."
+  },
+  "strengths": [
+    "Direct ownership of Kubernetes platform at massive scale (100+ clusters, 2M+ pods, 3 regions, 25 AZs) - mirrors OpenAI's exact requirement",
+    "Full cluster lifecycle ownership: create, upgrade, tech refresh, decommission - exactly what the JD asks for",
+    "Proven SRE track record: implemented SLI/SLO framework, improved reliability from <90% to 99%+ in 2-3 months across multiple engagements",
+    "Built self-healing and automation systems (LOM) supporting 35,000+ deployments/week - directly addresses toil reduction requirement",
+    "25+ years managing infrastructure and platform engineering teams - matches 'significant experience' requirement completely",
+    "Recent global team expansion: hired 8+ engineers in Europe and India with structured onboarding - strong hiring track record",
+    "Comfortable with ambiguity: led multiple platform generation transitions (VM→OpenStack→K8s) requiring constant strategic pivots"
+  ],
+  "improvements": [
+    "Add Terraform to resume if used - JD explicitly mentions it as part of the tech environment",
+    "Explicitly name Istio or Envoy if used in service mesh work - JD specifically calls these out",
+    "Mention global networking and load balancing experience if applicable - Cloudflare and cloud-native primitives are listed",
+    "Quantify team sizes in each role more explicitly to reinforce hiring and retention track record"
+  ],
+  "customization": {
+    "keywordSuggestions": [
+      {
+        "keyword": "Terraform",
+        "section": "Skills or Experience section",
+        "reason": "JD explicitly mentions Terraform for IaC - add if used, or clarify equivalent internal tooling"
+      },
+      {
+        "keyword": "Istio / Envoy",
+        "section": "Projects or Experience section",
+        "reason": "JD lists service mesh as Istio/Envoy specifically - name the actual tools used"
+      },
+      {
+        "keyword": "safety mechanisms",
+        "section": "About or Experience section",
+        "reason": "JD emphasizes safety in K8s platform - highlight admission webhooks, policy enforcement, PCI cluster management"
+      },
+      {
+        "keyword": "operational toil reduction",
+        "section": "Projects section",
+        "reason": "JD specifically calls out toil reduction - frame LOM and automation work in this language"
+      }
+    ],
+    "projectOptimizations": [
+      {
+        "projectId": 0,
+        "projectName": "Automated Cluster Lifecycle Management",
+        "suggestions": [
+          "This is the highest-value project for this JD - lead with it",
+          "Add Terraform mention if used in any part of the automation",
+          "Quantify toil reduction: how many hours/week saved? How many manual steps eliminated?",
+          "Emphasize safety mechanisms built into cluster lifecycle automation"
+        ]
+      },
+      {
+        "projectId": 0,
+        "projectName": "Cloud Native Migration",
+        "suggestions": [
+          "Mention service mesh by name (Istio/Envoy if applicable)",
+          "Highlight admission webhooks as safety mechanisms - matches JD's safety emphasis",
+          "Add global networking details if relevant (cross-region traffic management)"
+        ]
+      },
+      {
+        "projectId": 0,
+        "projectName": "API Server Reliability",
+        "suggestions": [
+          "Reframe as infrastructure reliability story - matches JD's SLI/SLO requirement",
+          "Add specific SLO targets set and achieved",
+          "Mention observability tooling used (metrics, logging, tracing)"
+        ]
+      }
+    ],
+    "skillHighlights": [
+      {
+        "skill": "Kubernetes",
+        "currentMention": "Various project descriptions",
+        "suggestedMention": "100+ clusters, 2M+ pods, 3 regions, 25 AZs - full lifecycle ownership including safety mechanisms and upgrade automation"
+      },
+      {
+        "skill": "Self-healing Systems",
+        "currentMention": "LOM system mentioned briefly",
+        "suggestedMention": "Emphasize as primary toil reduction mechanism: automated remediation triggered by observability signals, reduced incident recovery from days to hours"
+      }
+    ],
+    "structuralSuggestions": [
+      "Lead with Automated Cluster Lifecycle Management - it's the most direct match to this JD",
+      "Add a Technical Environment section listing: Kubernetes, Service Mesh, Observability Stack, CI/CD - mirroring JD's format",
+      "Frame Cloud Fleet & Apps SDM role explicitly around K8s platform ownership, safety, and reliability",
+      "Add team size to each management role to reinforce the hiring/retention track record"
+    ]
+  }
+}

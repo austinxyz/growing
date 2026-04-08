@@ -1,0 +1,120 @@
+{
+  "jobApplicationId": 16,
+  "resumeId": 2,
+  "matchScore": 72,
+  "educationMatch": {
+    "hasRequiredDegree": true,
+    "majorRelevance": 0.65,
+    "highestDegree": "Master Degree",
+    "major": "EE/Automation",
+    "score": 80,
+    "explanation": "Master's degree from Zhejiang University satisfies educational requirements. EE/Automation provides strong technical foundation well-suited to a platform and architecture-heavy tech lead role."
+  },
+  "experienceMatch": {
+    "totalYears": 26,
+    "managementYears": 26,
+    "meetsMinimum": false,
+    "requiredYears": "4-8 years shipping real product; recent hands-on coding last 1-2 years",
+    "score": 65,
+    "explanation": "26 total years exceeds the 4-8 year target range, creating an overqualification concern for this player-coach role. However, the candidate's recent hands-on development (Spring Boot + Vue.js hobby projects: growing app and finance platform) and active AI-assisted coding with Claude Code demonstrates a genuine commitment to staying hands-on. AI coding tools dramatically increase individual productivity, effectively compressing the stack learning curve. Manager-of-IC experience is fully met. The key question is cultural fit: does the candidate genuinely want to stay 50% hands-on?"
+  },
+  "skillMatch": {
+    "matchedSkills": ["TypeScript (Vue 3 fully TypeScript-native)", "Node.js ecosystem (Vite, npm, same toolchain as Next.js)", "Vue.js (component model directly transferable to React)", "JavaScript", "REST API Design", "System Architecture", "Database Design (MySQL/JPA)", "Docker/K8s deployment", "CI/CD", "AI-assisted development (Claude Code)", "Full-stack product development"],
+    "missingSkills": ["React (Vue.js experience highly transferable; minor syntax differences)", "Next.js (SSR concepts transferable from backend experience; minimal ramp-up with AI coding)", "Prisma ORM (concept same as JPA/Hibernate; syntax learnable quickly)"],
+    "score": 68,
+    "explanation": "Stronger match than surface-level stack comparison suggests. Vue 3 is built on the same TypeScript + Node.js ecosystem as React/Next.js — same toolchain (Vite/npm/ESLint), same TypeScript types, same component-based reactivity paradigm. The candidate builds production systems in Vue 3 + TypeScript today. React is a 1-2 week transition for an experienced Vue developer. With AI-assisted coding (Claude Code), Next.js/Prisma ramp-up is further compressed to days. Strong architectural instincts ensure correct system design decisions regardless of specific framework syntax."
+  },
+  "responsibilityMatch": {
+    "matchedCount": 4,
+    "totalCount": 5,
+    "matchedKeywords": ["System Architecture from First Principles", "PR Reviews and Mentorship", "CTO Partnership and Decision Making", "Build Process from Scratch"],
+    "score": 72,
+    "explanation": "Good match across most responsibilities. Architecture from first principles: strong — designed 3 generations of cloud platforms at eBay from scratch. Mentorship/engineering bar: proven — coached engineers to staff-level promotion. CTO partnership: strong — operated as primary technical decision-maker for eBay cloud platform. Build process not inherit: demonstrated through multiple greenfield platform launches. Gap: 50% hands-on coding in the specific React/Next.js stack requires stack transition, though AI-assisted development significantly reduces the productivity risk. Startup pace vs large-enterprise background is a cultural gap to acknowledge."
+  },
+  "softSkillMatch": {
+    "demonstratedSkills": ["Technical Leadership", "Mentorship and Coaching", "Architectural Thinking", "Strategic Decision Making", "CTO-level Partnership", "Process Building from Scratch", "Team Building in Ambiguous Environments"],
+    "missingSkills": ["Startup/small team fast-moving experience (background is large enterprise)"],
+    "score": 90,
+    "explanation": "Strong soft skills throughout. Technical leadership and mentorship deeply proven. Architectural instincts demonstrated across multiple platform generations. CTO-equivalent decision-making at eBay cloud platform scale. Built teams and processes from scratch multiple times. Minor gap: 5-day in-office startup culture vs large-enterprise eBay background — cultural adjustment possible but manageable."
+  },
+  "strengths": [
+    "Vue 3 + TypeScript experience is directly transferable to React/Next.js — same Node.js ecosystem, same component paradigm, same toolchain",
+    "AI-assisted coding (Claude Code) dramatically accelerates stack transition and individual coding productivity",
+    "Exceptional architectural instincts from designing 3 generations of cloud platforms — can architect any system from first principles",
+    "Strong mentorship and engineering bar-raising: promoted engineers from senior to staff level",
+    "CTO partnership mindset: served as primary technical decision-maker for eBay cloud, natural right-hand fit",
+    "Build-from-scratch track record: built growing app and finance platform solo end-to-end",
+    "Recent hands-on coding demonstrated through independent Spring Boot + Vue.js production systems"
+  ],
+  "improvements": [
+    "Build a small Next.js/React/Prisma project (can use AI coding tools) to explicitly demonstrate stack familiarity before interview",
+    "Address overqualification directly in cover letter: explain why a player-coach role is the right next step, not a step back",
+    "Highlight startup-like experiences within eBay: early CCOE team building, greenfield platform launches, fast-moving decisions",
+    "Clarify 5-day in-office compatibility with current location",
+    "Emphasize AI coding productivity explicitly: frame as force-multiplier that makes 50% coding commitment very achievable"
+  ],
+  "customization": {
+    "keywordSuggestions": [
+      {
+        "keyword": "TypeScript",
+        "section": "Skills section",
+        "reason": "Vue 3 projects use TypeScript — make this explicit rather than implicit"
+      },
+      {
+        "keyword": "player-coach",
+        "section": "About section",
+        "reason": "Role uses this exact term — mirror it to signal cultural fit"
+      },
+      {
+        "keyword": "AI-assisted development",
+        "section": "About or Skills section",
+        "reason": "Demonstrate that AI coding tools make the 50% hands-on requirement highly productive and stack transition fast"
+      },
+      {
+        "keyword": "first principles",
+        "section": "Projects section",
+        "reason": "JD explicitly asks for first-principles architecture — use this framing for platform design work"
+      }
+    ],
+    "projectOptimizations": [
+      {
+        "projectId": 0,
+        "projectName": "Growing App (this app)",
+        "suggestions": [
+          "Feature prominently as evidence of recent solo full-stack development",
+          "Explicitly mention TypeScript usage in Vue 3 frontend",
+          "Highlight AI-assisted development workflow with Claude Code",
+          "Frame as: architected and shipped production system independently from first principles"
+        ]
+      },
+      {
+        "projectId": 0,
+        "projectName": "Finance Platform",
+        "suggestions": [
+          "Emphasize end-to-end solo product shipping: Spring Boot + Vue.js + MySQL + Docker + K8s",
+          "Highlight Chart.js, Tailwind CSS — frontend UI depth",
+          "Mention TypeScript in Vue 3 components if applicable",
+          "Speed of delivery: how fast was it shipped? Demonstrates startup-pace capability"
+        ]
+      }
+    ],
+    "skillHighlights": [
+      {
+        "skill": "Vue.js / React transferability",
+        "currentMention": "Vue.js in hobby projects",
+        "suggestedMention": "Vue 3 (TypeScript, Composition API) — directly transferable to React; same Node.js ecosystem, same component model"
+      },
+      {
+        "skill": "AI-assisted coding",
+        "currentMention": "Claude tools mentioned in work experience",
+        "suggestedMention": "Active Claude Code user for spec-driven development — significantly multiplies hands-on coding productivity and stack adaptability"
+      }
+    ],
+    "structuralSuggestions": [
+      "Add 'Recent Hands-on Development' section to make coding drive immediately visible",
+      "Rewrite About section with player-coach framing: 'I lead teams AND write code — here's evidence of both'",
+      "Consider a pre-application Next.js/Prisma demo project to close the stack gap visibly",
+      "Lead cover letter with specific examples of shipping product, not just managing teams"
+    ]
+  }
+}
