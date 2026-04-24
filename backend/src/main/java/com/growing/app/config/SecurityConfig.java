@@ -73,7 +73,8 @@ public class SecurityConfig {
             "http://localhost:5173",
             "http://10.0.0.7:3001",   // Docker deployment
             "http://10.0.0.13:3001",  // Network access (port 3001)
-            "http://10.0.0.13:3004"   // Network access (Vite dev port)
+            "http://10.0.0.13:3004",  // Network access (Vite dev port)
+            "http://10.0.0.20:3001"   // Docker deployment (NAS)
         ));
 
         // 允许的 HTTP 方法
