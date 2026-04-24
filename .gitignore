@@ -7,6 +7,9 @@ frontend/.env.production
 .env.local
 .env.*.local
 
+# Claude Code local settings (may contain credentials)
+.claude/settings.local.json
+
 # IDE files
 .idea/
 .vscode/
