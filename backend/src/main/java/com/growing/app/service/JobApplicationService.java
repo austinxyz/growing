@@ -2,20 +2,26 @@ package com.growing.app.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.growing.app.dto.ActiveProgressDTO;
 import com.growing.app.dto.JobApplicationDTO;
 import com.growing.app.dto.InterviewStageDTO;
 import com.growing.app.dto.InterviewRecordDTO;
+import com.growing.app.dto.PriorityLevel;
 import com.growing.app.dto.RecruiterInsightsDTO;
 import com.growing.app.entity.*;
 import com.growing.app.repository.*;
+import com.growing.app.service.progress.ProgressCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +40,124 @@ public class JobApplicationService {
     private InterviewRecordRepository interviewRecordRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // Includes English canonical names, legacy names, and Chinese values found in production data.
+    // ProgressCalculator.normalizeStatus() handles the mapping to canonical for all derived logic.
+    private static final List<String> ACTIVE_STATUSES = List.of(
+            "Applied", "Screening", "Interviewing", "Offer",
+            "PhoneScreen", "Onsite",                   // legacy English
+            "已投递", "筛选中", "面试中"                 // Chinese variants stored in DB
+    );
+
+    private static final List<String> CLOSED_STATUSES = List.of(
+            "Rejected", "Withdrawn",
+            "已拒绝", "已撤回"
+    );
+
+    /**
+     * 面试进展看板：返回当前 active 申请，附带派生字段，按 priority+days 排序。
+     */
+    public List<ActiveProgressDTO> getActiveProgress(Long userId) {
+        return loadProgressForStatuses(userId, ACTIVE_STATUSES);
+    }
+
+    /**
+     * 已结案申请（Rejected / Withdrawn / 已拒绝 / 已撤回），用于"显示已结案" toggle 的复盘视图。
+     * 复用 ActiveProgressDTO 形状；前端通过 applicationStatus 判定是否做 muted 视觉处理。
+     */
+    public List<ActiveProgressDTO> getClosedProgress(Long userId) {
+        return loadProgressForStatuses(userId, CLOSED_STATUSES);
+    }
+
+    private List<ActiveProgressDTO> loadProgressForStatuses(Long userId, List<String> statuses) {
+        List<JobApplication> apps = jobApplicationRepository
+                .findByUserIdAndApplicationStatusInOrderByCreatedAtDesc(userId, statuses);
+        if (apps.isEmpty()) return List.of();
+
+        List<Long> appIds = apps.stream().map(JobApplication::getId).toList();
+        Map<Long, List<InterviewStage>> stagesByApp = interviewStageRepository
+                .findByJobApplicationIdInOrderByStageOrder(appIds).stream()
+                .collect(Collectors.groupingBy(InterviewStage::getJobApplicationId));
+        Map<Long, List<InterviewRecord>> recordsByApp = interviewRecordRepository
+                .findByJobApplicationIdInOrderByInterviewDateDesc(appIds).stream()
+                .collect(Collectors.groupingBy(InterviewRecord::getJobApplicationId));
+        // Batch-fetch companies to avoid N+1 (was 1 SELECT per active application)
+        List<Long> companyIds = apps.stream()
+                .map(JobApplication::getCompanyId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, String> companyNameById = companyRepository.findAllById(companyIds).stream()
+                .collect(Collectors.toMap(Company::getId, Company::getCompanyName));
+
+        return apps.stream()
+                .map(a -> toActiveProgressDTO(a,
+                        stagesByApp.getOrDefault(a.getId(), List.of()),
+                        recordsByApp.getOrDefault(a.getId(), List.of()),
+                        companyNameById.get(a.getCompanyId())))
+                .sorted(Comparator
+                        .comparingInt((ActiveProgressDTO d) -> d.priorityLevel().ordinal())
+                        .thenComparing(Comparator.comparingInt(ActiveProgressDTO::daysSinceApplied).reversed()))
+                .toList();
+    }
+
+    private ActiveProgressDTO toActiveProgressDTO(
+            JobApplication app, List<InterviewStage> stages, List<InterviewRecord> records,
+            String companyName) {
+        int daysApplied = ProgressCalculator.daysSinceApplied(app, objectMapper);
+        java.time.LocalDateTime latestRecordActivity = records.stream()
+                .map(InterviewRecord::getUpdatedAt)
+                .filter(java.util.Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+        int daysSinceUpdate = ProgressCalculator.daysSinceLastUpdate(app, latestRecordActivity);
+        LocalDate nextDate = nextFutureInterviewDate(records);
+        String nextStageName = nextDate == null ? null : resolveStageNameForRecord(
+                records.stream()
+                        .filter(r -> r.getInterviewDate() != null
+                                && nextDate.equals(r.getInterviewDate().toLocalDate()))
+                        .findFirst().orElse(null),
+                stages);
+        PriorityLevel priority = ProgressCalculator.computePriority(
+                app.getApplicationStatus(), app.getOfferDeadline(), daysSinceUpdate, nextDate);
+        String microLabel = ProgressCalculator.buildMicroStageLabel(
+                app.getApplicationStatus(), stages.size(), records.size(),
+                latestRecordStageName(records, stages));
+        ProgressCalculator.NextAction action = ProgressCalculator.buildNextAction(
+                priority, app.getOfferDeadline(), nextDate, nextStageName);
+
+        return new ActiveProgressDTO(
+                app.getId(), app.getCompanyId(), companyName, app.getPositionName(),
+                ProgressCalculator.normalizeStatus(app.getApplicationStatus()),
+                ProgressCalculator.macroStageStep(app.getApplicationStatus()),
+                microLabel, daysApplied, daysSinceUpdate,
+                priority, action.type(), action.label(), action.date());
+    }
+
+    private LocalDate nextFutureInterviewDate(List<InterviewRecord> records) {
+        LocalDate today = LocalDate.now();
+        return records.stream()
+                .map(r -> r.getInterviewDate() == null ? null : r.getInterviewDate().toLocalDate())
+                .filter(d -> d != null && !d.isBefore(today))
+                .min(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    private String latestRecordStageName(List<InterviewRecord> records, List<InterviewStage> stages) {
+        // records arrive sorted by interviewDate DESC, so first one is latest
+        return records.stream().findFirst()
+                .map(r -> resolveStageNameForRecord(r, stages))
+                .orElse(null);
+    }
+
+    private String resolveStageNameForRecord(InterviewRecord record, List<InterviewStage> stages) {
+        if (record == null || record.getInterviewStageId() == null) return null;
+        return stages.stream()
+                .filter(s -> record.getInterviewStageId().equals(s.getId()))
+                .map(InterviewStage::getStageName)
+                .findFirst()
+                .orElse(null);
+    }
 
     // 获取用户所有求职申请
     public List<JobApplicationDTO> getAllApplicationsByUserId(Long userId) {

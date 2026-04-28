@@ -43,4 +43,10 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
      * 统计用户的职位申请数量
      */
     Long countByUserId(Long userId);
+
+    /**
+     * 面试进展看板：按用户 + 状态集合一次取出
+     */
+    List<JobApplication> findByUserIdAndApplicationStatusInOrderByCreatedAtDesc(
+            Long userId, List<String> applicationStatuses);
 }

@@ -238,6 +238,18 @@
 - **What Happened**: User clicked "Edit resume X" → page loaded but showed default resume instead
 - **Root Cause**: Auto-select logic didn't check URL state first
 - **Fix**: Conditional auto-select only when no `resumeId` in URL
+
+**Mistake #15 (Phase 8 — Interview Progress)**: Navigation source assumes destination consumes the query param
+- **Problem**: `ProgressCard.vue` navigated with `router.push({ name: 'JobApplicationList', query: { id: app.id } })`, but `JobApplicationList.vue` only imported `useRouter` (not `useRoute`) and never read `route.query.id` — `loadApplications()` always selected `applications[0]`
+- **What Happened**: Clicking a card on 面试进展 page opened `/job-search/applications?id=18` correctly, but the page showed the default first job instead of id=18
+- **Root Cause**: Verified the navigation source sent the param; never verified the destination consumed it. This is the *reverse* of Mistake #14 — same root cause (auto-select ignoring URL state) but discovered from the *sending* side rather than the *receiving* side
+- **Fix**: Added `useRoute()` to `JobApplicationList.vue`, made `loadApplications()` prefer `route.query.id` over default, added `watch(() => route.query.id, ...)` so subsequent navigations without unmount also re-select
+- **🛡️ Prevention Checklist** (before adding cross-page navigation with query params):
+  1. [ ] Open the destination component file
+  2. [ ] Confirm it imports `useRoute` (not just `useRouter`)
+  3. [ ] Grep for `route.query.<param>` in the destination — if missing, add auto-select-from-URL logic THERE before calling navigation done
+  4. [ ] Add `watch(() => route.query.<param>, ...)` so the destination re-syncs when re-navigated without unmount
+  5. [ ] Smoke test path: source page → click → URL changes → destination shows the *right* item (don't assume URL change implies correct selection)
 - **🛡️ Prevention Checklist** (before any auto-select/auto-action):
   1. [ ] Check: "Can user arrive here with context (URL params, query, route state)?"
   2. [ ] If YES: Parse URL state FIRST, then conditionally auto-select
@@ -265,19 +277,20 @@
 ---
 
 **📊 Quality Metrics (Updated)**:
-| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 | Phase 7 |
-|--------|---------|---------|---------|---------|---------|
-| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
-| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ | **0** ✅ |
-| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
-| Field name bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
-| Logic bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
-| **Clone/copy bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
-| **API method bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
-| **Route bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
-| **Auto-select bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ |
-| Code reuse | 30% | 50% | 70% | 80% | **85%** |
-| Development efficiency | - | - | - | - | **+24-32%** ⚡ |
+| Metric | Phase 3 | Phase 4 | Phase 5 | Phase 6 | Phase 7 | Phase 8 |
+|--------|---------|---------|---------|---------|---------|---------|
+| Axios bugs | 2 | 1 | **0** ✅ | **0** ✅ | **0** ✅ | **0** ✅ |
+| DTO bugs | 1 | 1 | **0** ✅ | **0** ✅ | **0** ✅ | **0** ✅ |
+| Backend API bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ | **0** ✅ |
+| Field name bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ | **0** ✅ |
+| Logic bugs | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ | **0** ✅ |
+| **Clone/copy bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| **API method bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| **Route bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ | **0** ✅ |
+| **Auto-select bugs** | 0 | 0 | 0 | 0 | **1** ⚠️ | **1** ⚠️ |
+| **Status enum mismatch** | 0 | 0 | 0 | 0 | 0 | **1** ⚠️ |
+| Code reuse | 30% | 50% | 70% | 80% | 85% | **90%** |
+| Development efficiency | - | - | - | - | +24-32% | **+30-40%** ⚡ |
 
 **Phase 6 Lessons**:
 - ✅ Axios/DTO bugs成功避免（预防性检查清单有效）
@@ -293,6 +306,16 @@
   2. API调用必须先读API文件定义
   3. 路由导航应优先使用named routes
   4. 所有auto-action需要检查URL状态
+
+**Phase 8 Lessons (面试进展看板)**:
+- ✅ Phase 7的clone / API method / route 错误全部避免
+- ⚠️ 仍出现 1 个 auto-select bug（这次在*目标页*而不是源页 — Mistake #15），表明检查清单需要扩到"导航的两端"
+- ⚠️ 新出现 status enum 不一致 bug — 设计文档假设状态值是英文 canonical（Applied/PhoneScreen/Onsite/Offer），但 DB 实际存的是中文 + Screening/Interviewing 等多种变体；用 `normalizeStatus()` 归一化解决
+- ✅ TDD 严格执行（46 个后端测试，均 RED → GREEN → REFACTOR）
+- **教训**:
+  1. 设计文档的 enum 值必须以 *实际数据* 为准，不是设计者的想象 — 写设计前先 `SELECT DISTINCT` 一下
+  2. 多用户系统下，smoke test 必须用代表性的用户账号（不能只测 admin/test 账号）
+  3. 跨页导航的 query param 契约是 *双向的*：源页发送 + 目标页消费，两边都要验证
 
 **🚨 UPDATED Pre-Development Checklist** (with Phase 7 patterns):
 ```

@@ -1,5 +1,6 @@
 package com.growing.app.controller;
 
+import com.growing.app.dto.ActiveProgressDTO;
 import com.growing.app.dto.JobApplicationDTO;
 import com.growing.app.service.AuthService;
 import com.growing.app.service.JobApplicationService;
@@ -23,6 +24,28 @@ public class JobApplicationController {
 
     @Autowired
     private AuthService authService;
+
+    // 面试进展看板：active 申请 + 派生字段 + 默认排序
+    @GetMapping("/active-progress")
+    public ResponseEntity<List<ActiveProgressDTO>> getActiveProgress(
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        return ResponseEntity.ok(jobApplicationService.getActiveProgress(userId));
+    }
+
+    // 已结案申请（Rejected/Withdrawn/已拒绝/已撤回）— 配合"显示已结案"toggle，复盘用
+    @GetMapping("/closed-progress")
+    public ResponseEntity<List<ActiveProgressDTO>> getClosedProgress(
+            @RequestHeader("Authorization") String authHeader) {
+
+        String username = authService.getUsernameFromToken(authHeader.replace("Bearer ", ""));
+        Long userId = authService.getUserIdByUsername(username);
+
+        return ResponseEntity.ok(jobApplicationService.getClosedProgress(userId));
+    }
 
     // 获取用户所有求职申请
     @GetMapping

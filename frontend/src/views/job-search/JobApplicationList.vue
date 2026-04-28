@@ -1674,7 +1674,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { jobApplicationApi } from '@/api/jobApplicationApi'
 import { interviewStageApi } from '@/api/interviewStageApi'
 import { interviewRecordApi } from '@/api/interviewRecordApi'
@@ -1687,6 +1687,7 @@ import MarkdownIt from 'markdown-it'
 import PreparationChecklistMerged from '@/components/job-search/PreparationChecklistMerged.vue'
 
 const router = useRouter()
+const route = useRoute()
 const md = new MarkdownIt()
 
 const applications = ref([])
@@ -2225,13 +2226,27 @@ const loadApplications = async () => {
     const data = await jobApplicationApi.getAllJobApplications()
     applications.value = data || []
     if (applications.value.length > 0 && !selectedApplicationId.value) {
-      // 调用 selectApplication 以加载所有相关数据（AI分析、定制简历等）
-      await selectApplication(applications.value[0].id)
+      // Auto-select logic: URL query > Default > First item (防 Phase 7 Mistake #14)
+      const urlId = route.query.id ? Number(route.query.id) : null
+      const target = urlId && applications.value.find(a => a.id === urlId)
+        ? urlId
+        : applications.value[0].id
+      await selectApplication(target)
     }
   } catch (error) {
     console.error('加载职位申请失败:', error)
   }
 }
+
+// Re-select when navigated with a new ?id= (e.g., from interview-progress card click)
+watch(() => route.query.id, async (newId) => {
+  if (!newId) return
+  const wantId = Number(newId)
+  if (selectedApplicationId.value !== wantId
+      && applications.value.some(a => a.id === wantId)) {
+    await selectApplication(wantId)
+  }
+})
 
 const loadInterviewStages = async (jobId) => {
   try {

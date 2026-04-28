@@ -9,6 +9,16 @@ export const jobApplicationApi = {
     return api.get('/job-applications')
   },
 
+  // 面试进展看板：active 申请 + 派生字段
+  getActiveProgress() {
+    return api.get('/job-applications/active-progress')
+  },
+
+  // 已结案申请（Rejected/Withdrawn/已拒绝/已撤回）— 仅在用户切换"显示已结案"时拉取
+  getClosedProgress() {
+    return api.get('/job-applications/closed-progress')
+  },
+
   // 获取公司的所有职位
   getJobsByCompany(companyId) {
     return api.get(`/job-applications/company/${companyId}`)

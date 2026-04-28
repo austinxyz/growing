@@ -32,4 +32,10 @@ public interface InterviewRecordRepository extends JpaRepository<InterviewRecord
      * 删除指定职位的所有面试记录
      */
     void deleteByJobApplicationId(Long jobApplicationId);
+
+    /**
+     * 批量加载多个职位申请的所有面试记录（用于面试进展看板，避免 N+1）
+     */
+    List<InterviewRecord> findByJobApplicationIdInOrderByInterviewDateDesc(
+            List<Long> jobApplicationIds);
 }

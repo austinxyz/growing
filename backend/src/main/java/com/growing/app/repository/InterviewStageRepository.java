@@ -27,4 +27,9 @@ public interface InterviewStageRepository extends JpaRepository<InterviewStage, 
      * 删除指定职位的所有面试阶段
      */
     void deleteByJobApplicationId(Long jobApplicationId);
+
+    /**
+     * 批量加载多个职位申请的所有阶段（用于面试进展看板，避免 N+1）
+     */
+    List<InterviewStage> findByJobApplicationIdInOrderByStageOrder(List<Long> jobApplicationIds);
 }

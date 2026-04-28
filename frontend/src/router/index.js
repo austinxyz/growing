@@ -172,7 +172,7 @@ const routes = [
   {
     path: '/job-search/dashboard',
     name: 'JobSearchDashboard',
-    component: () => import('../views/job-search/JobSearchDashboard.vue'),
+    component: () => import('../views/job-search/InterviewProgress.vue'),
     meta: { requiresAuth: true }
   },
   {
