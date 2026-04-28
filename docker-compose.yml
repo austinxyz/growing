@@ -10,13 +10,13 @@ services:
       - backup
     environment:
       # Database configuration
-      DB_HOST: ${DB_HOST:-10.0.0.20}
-      DB_PORT: ${DB_PORT:-37719}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-growing}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      # JWT Secret
-      JWT_SECRET: /+Eyl6BRHw+WcxklOJYKe1mN0GVU1CAj745+E4Um1qY=
+      # JWT Secret — must be set in .env (generate with: openssl rand -base64 32)
+      JWT_SECRET: ${JWT_SECRET}
       # Spring Profile - Production mode (minimal logs, optimized performance)
       SPRING_PROFILES_ACTIVE: prod
       # Spring configuration
@@ -58,8 +58,8 @@ services:
     container_name: growing-backup
     restart: unless-stopped
     environment:
-      - DB_HOST=${DB_HOST:-10.0.0.20}
-      - DB_PORT=${DB_PORT:-37719}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-3306}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME:-growing}

@@ -5,10 +5,10 @@ services:
     build: .
     container_name: growing-backup
     environment:
-      - DB_HOST=${DB_HOST:-10.0.0.20}
-      - DB_PORT=${DB_PORT:-37719}
-      - DB_USER=${DB_USER:-austinxu}
-      - DB_PASSWORD=${DB_PASSWORD:-helloworld}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME:-growing}
       - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
       - BACKUP_RETENTION_WEEKS=${BACKUP_RETENTION_WEEKS:-4}

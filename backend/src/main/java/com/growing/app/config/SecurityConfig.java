@@ -1,5 +1,6 @@
 package com.growing.app.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,11 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    // Comma-separated list of CORS-allowed origins (e.g. set CORS_ALLOWED_ORIGINS in .env
+    // to "http://localhost:3001,http://192.168.1.10:3001"). Default covers local dev only.
+    @Value("${cors.allowed-origins:http://localhost:3001,http://localhost:3004,http://localhost:5173}")
+    private List<String> allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -66,16 +72,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 允许的源
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3001",
-            "http://localhost:3004",  // Vite dev server (alternative port)
-            "http://localhost:5173",
-            "http://10.0.0.7:3001",   // Docker deployment
-            "http://10.0.0.13:3001",  // Network access (port 3001)
-            "http://10.0.0.13:3004",  // Network access (Vite dev port)
-            "http://10.0.0.20:3001"   // Docker deployment (NAS)
-        ));
+        // 允许的源 — driven by cors.allowed-origins property (override via env var
+        // CORS_ALLOWED_ORIGINS for deployments that need additional LAN/Docker hosts)
+        configuration.setAllowedOrigins(allowedOrigins);
 
         // 允许的 HTTP 方法
         configuration.setAllowedMethods(Arrays.asList(

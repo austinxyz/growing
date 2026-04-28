@@ -127,7 +127,7 @@ cd frontend && npm run dev
 ## Prerequisites
 
 ### For all skills:
-- Must run from project root directory: `/Users/yanzxu/claude/growing/`
+- Must run from the project root directory of your local clone
 
 ### For git-commit-push:
 - Git installed and configured
@@ -144,7 +144,7 @@ cd frontend && npm run dev
 - MySQL client: `brew install mysql-client`
 - Database credentials in `backend/.env`:
   ```
-  DB_URL=jdbc:mysql://10.0.0.7:37719/growing?useSSL=false&serverTimezone=UTC
+  DB_URL=jdbc:mysql://your-db-host:3306/growing?useSSL=false&serverTimezone=UTC
   DB_USERNAME=root
   DB_PASSWORD=your_password
   ```

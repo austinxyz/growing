@@ -756,11 +756,11 @@ backend/src/main/resources/db/migration/
 
 `backend/.env`:
 ```
-DB_HOST=10.0.0.7
-DB_PORT=37719
+DB_HOST=your-db-host
+DB_PORT=3306
 DB_NAME=growing
-DB_USER=austinxu
-DB_PASSWORD=helloworld
+DB_USER=your_db_username
+DB_PASSWORD=your_db_password
 JWT_SECRET=...
 ```
 

@@ -63,9 +63,9 @@ environment:
 - `JWT_SECRET` - JWT密钥（建议64字符+）
 
 **可选变量**：
-- `DB_HOST` - 默认10.0.0.7
-- `DB_PORT` - 默认37719
-- `DB_NAME` - 默认growing
+- `DB_HOST` - 默认 localhost
+- `DB_PORT` - 默认 3306
+- `DB_NAME` - 默认 growing
 - `JAVA_OPTS` - 默认-Xms512m -Xmx1024m
 
 ## 🚀 部署流程

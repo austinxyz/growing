@@ -67,7 +67,7 @@
 ```bash
 # 使用 mysql-exec skill 执行 SQL
 # 或使用命令:
-/opt/homebrew/opt/mysql-client/bin/mysql -h 10.0.0.7 -P 37719 -u austinxu -phelloworld growing < database/schema.sql
+mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < database/schema.sql
 ```
 
 ### 2.3 验收标准
@@ -736,7 +736,7 @@ Backend:
 
 **准备工作**:
 - [ ] 安装 Postman (用于测试后端 API)
-- [ ] 准备测试账号 (使用现有 `austinxu` 管理员账号)
+- [ ] 准备测试账号 (use any admin user from the registered users)
 - [ ] 创建 `/docs/Phase7-设计文档.md` (从详细需求复制)
 
 ---

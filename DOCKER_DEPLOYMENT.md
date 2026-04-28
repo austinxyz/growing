@@ -29,11 +29,11 @@ cp .env.production.example .env
 
 ```bash
 # 数据库配置
-DB_HOST=10.0.0.7
-DB_PORT=37719
+DB_HOST=your-db-host
+DB_PORT=3306
 DB_NAME=growing
-DB_USER=austinxu
-DB_PASSWORD=your_actual_password  # 修改为实际密码
+DB_USER=your_db_username
+DB_PASSWORD=your_db_password
 
 # JWT密钥（必须修改为强随机字符串）
 JWT_SECRET=your_super_secret_jwt_key_change_this_in_production

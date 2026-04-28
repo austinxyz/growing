@@ -351,7 +351,7 @@ router.beforeEach((to, from, next) => {
 ┌──────────────────────────────────┐
 │  用户信息区                       │
 │  ┌────┐ Austin Xu [管理员]        │
-│  │ A  │ austinxu@example.com     │
+│  │ A  │ exampleuser@example.com     │
 │  └────┘                [登出]    │
 ├──────────────────────────────────┤
 │  📚 Growing                       │
@@ -388,7 +388,7 @@ Content-Type: application/json
 
 Request Body:
 {
-  "username": "austinxu",  // 或邮箱
+  "username": "exampleuser",  // 或邮箱
   "password": "password123"
 }
 
@@ -397,7 +397,7 @@ Response (200):
   "token": "eyJhbGciOiJIUzM4NCJ9...",
   "user": {
     "id": 1,
-    "username": "austinxu",
+    "username": "exampleuser",
     "email": "austin@example.com",
     "fullName": "Austin Xu",
     "role": "admin",
@@ -452,7 +452,7 @@ Authorization: Bearer {token}
 Response (200):
 {
   "id": 1,
-  "username": "austinxu",
+  "username": "exampleuser",
   "email": "austin@example.com",
   "fullName": "Austin Xu",
   "role": "admin",
@@ -476,7 +476,7 @@ Response (200):
   "data": [
     {
       "id": 1,
-      "username": "austinxu",
+      "username": "exampleuser",
       "email": "austin@example.com",
       "fullName": "Austin Xu",
       "role": "admin",
@@ -599,7 +599,7 @@ Header:
 
 Payload:
 {
-  "sub": "austinxu",           // 用户名
+  "sub": "exampleuser",           // 用户名
   "iat": 1734700000,           // 签发时间
   "exp": 1734786400,           // 过期时间（24小时后）
   "provider": "local"          // 登录方式（local/google）
@@ -774,11 +774,11 @@ google.client.id=85048175163-25v00bc8dflnpfq04hgsc5brls1fv4h2.apps.googleusercon
 
 **backend/.env** (本地开发):
 ```bash
-DB_HOST=10.0.0.7
-DB_PORT=37719
+DB_HOST=your-db-host
+DB_PORT=3306
 DB_NAME=growing
-DB_USER=austinxu
-DB_PASSWORD=helloworld
+DB_USER=your_db_username
+DB_PASSWORD=your_db_password
 JWT_SECRET=your-jwt-secret-key-change-in-production
 ```
 

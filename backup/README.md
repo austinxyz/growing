@@ -13,10 +13,10 @@ docker build -t growing-backup:local .
 # 2. 运行容器
 docker run -d \
   --name growing-backup \
-  -e DB_HOST=10.0.0.7 \
-  -e DB_PORT=37719 \
-  -e DB_USER=austinxu \
-  -e DB_PASSWORD=helloworld \
+  -e DB_HOST=your-db-host \
+  -e DB_PORT=3306 \
+  -e DB_USER=your_db_username \
+  -e DB_PASSWORD=your_db_password \
   -e DB_NAME=growing \
   -v $(pwd)/backups:/backups \
   -p 5001:5000 \

@@ -30,8 +30,8 @@ class JobApplicationControllerProgressTest {
 
     @BeforeEach
     void stubAuth() {
-        when(authService.getUsernameFromToken("token")).thenReturn("austinxu");
-        when(authService.getUserIdByUsername("austinxu")).thenReturn(100L);
+        when(authService.getUsernameFromToken("token")).thenReturn("testuser");
+        when(authService.getUserIdByUsername("testuser")).thenReturn(100L);
     }
 
     @Test

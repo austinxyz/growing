@@ -7,7 +7,7 @@
 ## 2. Backend — Repository
 
 - [x] 2.1 Add active-progress repo query — shipped as derived `findByUserIdAndApplicationStatusInOrderByCreatedAtDesc(userId, statuses)` (no JOIN FETCH because JobApplication has no @OneToMany to Stage/Record); avoided N+1 with batch loaders `findByJobApplicationIdInOrderByStageOrder(ids)` and `findByJobApplicationIdInOrderByInterviewDateDesc(ids)` on the respective repos. Status list expanded to 9 variants (canonical English + legacy `PhoneScreen`/`Onsite` + Chinese `已投递`/`筛选中`/`面试中`)
-- [x] 2.2 Closed-applications support implemented end-to-end via `loadProgressForStatuses(userId, statuses)` refactor that both `getActiveProgress` and `getClosedProgress` call. New `CLOSED_STATUSES` constant covers `Rejected`/`Withdrawn` + Chinese `已拒绝`/`已撤回`. New endpoint `GET /api/job-applications/closed-progress` returns the same `ActiveProgressDTO` shape (no DTO duplication). Smoke test against austin.xyz returned 3 已拒绝 cards correctly
+- [x] 2.2 Closed-applications support implemented end-to-end via `loadProgressForStatuses(userId, statuses)` refactor that both `getActiveProgress` and `getClosedProgress` call. New `CLOSED_STATUSES` constant covers `Rejected`/`Withdrawn` + Chinese `已拒绝`/`已撤回`. New endpoint `GET /api/job-applications/closed-progress` returns the same `ActiveProgressDTO` shape (no DTO duplication). Smoke test against test-user returned 3 已拒绝 cards correctly
 
 ## 3. Backend — Service Logic (TDD)
 
@@ -56,7 +56,7 @@
 ## 9. End-to-End Smoke
 
 - [x] 9.1 Backend (`./backend/start.sh prod`) + frontend (`npm run dev`) running on :8082 / :3001
-- [x] 9.2 Logged in as `austin.xyz` (more representative than `austinxu`; `austinxu` only has 2 apps, `austin.xyz` has 20)
+- [x] 9.2 Logged in as `test-user` (more representative than `other-test-user`; `other-test-user` only has 2 apps, `test-user` has 20)
 - [x] 9.3 InterviewProgress view renders 10 active cards (8 Applied + 1 Interviewing + 1 Screening) — required status normalization fix to recognize Chinese DB values (`已投递`/`筛选中`/`面试中`)
 - [x] 9.4 Card click navigates to `JobApplicationList?id=N` AND auto-selects the right job — required adding `useRoute()` + URL-aware auto-select to `JobApplicationList.vue` (Mistake #15 in CLAUDE.md)
 - [x] 9.5 Sort mode toggle re-orders client-side; backend computed default order, frontend sort modes do not re-fetch (verified by code path inspection in `InterviewProgress.vue` `displayed` computed; no `loadProgress()` call on sortMode change)

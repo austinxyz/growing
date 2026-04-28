@@ -16,7 +16,9 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret:growing-secret-key-for-jwt-token-generation-minimum-256-bits}")
+    // No default — startup fails fast if jwt.secret is missing from env (security: prevents
+    // signing tokens with a hardcoded fallback that would be visible in source).
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}") // 默认24小时

@@ -1,7 +1,7 @@
 # Growing App - Claude Code Guide
 
 > **Context Recovery**: Read this first when resuming work.
-> **Project Root**: `/Users/yanzxu/claude/growing/`
+> **Project Root**: `<your-clone-of-growing>/`
 
 ## Critical Guardrails
 
@@ -401,10 +401,8 @@ docker-compose logs backend | grep "profiles are active"
 ```
 
 ### Database
-- **Host**: 10.0.0.7:37719
-- **Database**: `growing`
-- **User**: `austinxu` / `helloworld`
-- **Credentials**: In `backend/.env` (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
+- **Host / Port / DB / User / Password**: configured via `backend/.env` — see `.env.example`
+- All credentials are env-var driven; no values are committed to the repo
 
 ### Database Backup
 
@@ -431,12 +429,9 @@ curl http://localhost:5001/backup/list
 ```
 
 ### Test Admin Account
-```
-Username: austinxu
-Email: austin@example.com
-Password: helloworld
-Role: admin
-```
+Create your own via the registration UI or the bcrypt seed in `database/init_data.sql`.
+The first registered user is automatically `admin`. Use a strong password — none are
+seeded into the repo.
 
 ## Tech Stack
 
@@ -482,7 +477,7 @@ Role: admin
 
 **Database connection fails**:
 - Check all vars in `backend/.env` match MySQL server settings
-- Verify MySQL is running on 10.0.0.7:37719
+- Verify MySQL is running on the host configured in `backend/.env`
 
 **Frontend data not showing** (Phase 3 bug):
 - Check browser console for `undefined` errors

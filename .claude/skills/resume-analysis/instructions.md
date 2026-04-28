@@ -1,4 +1,4 @@
-Base directory for this skill: /Users/yanzxu/claude/growing/.claude/skills/resume-analysis
+Base directory for this skill: <project-root>/.claude/skills/resume-analysis
 
 # AI Resume Analysis Skill
 
@@ -380,10 +380,10 @@ management_experiences:
 
 ## Database Connection
 
-- **Host**: 10.0.0.7:37719
+- **Host / Port**: from `backend/.env` (DB_HOST, DB_PORT)
 - **Database**: growing
 - **Credentials**: From `backend/.env` (DB_USER, DB_PASSWORD)
-- **MySQL Client**: Use Homebrew installation path
+- **MySQL Client**: install per your OS (e.g. `brew install mysql-client` on macOS)
 
 ## Output Format
 

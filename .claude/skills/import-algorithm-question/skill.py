@@ -36,7 +36,9 @@ FOCUS_AREA_MAP = {
     'Classic Interview': 52
 }
 
-AUSTIN_USER_ID = 3  # austin.xyz user
+# User to attribute imported questions to. Override via env (IMPORT_USER_ID).
+import os as _os
+DEFAULT_OWNER_USER_ID = int(_os.environ.get('IMPORT_USER_ID', '1'))
 
 def load_db_config():
     """从.env文件加载数据库配置"""
@@ -164,7 +166,7 @@ def insert_question(cursor, question_data):
 
     cursor.execute(insert_note_sql, (
         question_id,
-        AUSTIN_USER_ID,
+        DEFAULT_OWNER_USER_ID,
         question_data['note_content'],
         question_data['core_strategy']
     ))
