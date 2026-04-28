@@ -67,7 +67,7 @@
 - [x] 10.1 code-reviewer agent run — 4 HIGH findings: (1) **N+1 company lookup → fixed** (batch via `companyRepository.findAllById`); (2) **frontend `daysUntil` UTC-vs-local off-by-one → fixed** (parse ISO date as local-midnight); (3) ObjectMapper instantiated with `new` → pre-existing project pattern, kept (would require touching unrelated code); (4) in-place `Array.sort` in `displayed` computed → not a live bug per reviewer's own analysis, kept for now
 - [x] 10.2 security-reviewer agent run — endpoint **PASSES** for user-scoping, PII, JSON parser DoS. Identified 2 CRITICAL items as pre-existing project-wide issues (out of scope for this change): SecurityConfig `permitAll()` and hardcoded JWT secret default — see "Out-of-scope security findings" note below
 - [x] 10.3 CLAUDE.md updated — added Mistake #15 (cross-page query-param contracts), Quality Metrics Phase 8 column, Phase 8 Lessons section
-- [ ] 10.4 ~~Commit~~ — pending user instruction
+- [x] 10.4 Committed as `f96a3fc` on `main` — `feat(job-search): replace dashboard with interview progress summary` (36 files, +4746/−421). Pushed to `origin/main`. Pre-existing `backup/*` working-tree changes correctly excluded.
 
 ## 11. Verification
 
