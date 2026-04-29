@@ -60,6 +60,9 @@ public class JobApplication {
     @Column(name = "application_status", length = 50)
     private String applicationStatus = "NotApplied";
 
+    @Column(name = "submission_type", length = 50, nullable = false)
+    private String submissionType = "Direct";
+
     @Column(name = "status_updated_at")
     private LocalDateTime statusUpdatedAt;
 

@@ -40,7 +40,7 @@ class JobApplicationControllerProgressTest {
                 1L, 50L, "Adobe", "Sr EM, AI Platform", "Onsite",
                 3, "Onsite · 2/4 (Tech Round 1 已完成)", 25, 9,
                 PriorityLevel.WAITING, NextActionType.WAITING_FEEDBACK,
-                "⏳ 等待反馈", null);
+                "⏳ 等待反馈", null, "Direct");
         when(jobApplicationService.getActiveProgress(100L)).thenReturn(List.of(dto));
 
         ResponseEntity<List<ActiveProgressDTO>> response =
@@ -70,7 +70,7 @@ class JobApplicationControllerProgressTest {
         ActiveProgressDTO dto = new ActiveProgressDTO(
                 10L, 60L, "BrickCorp", "Engineer", "Rejected",
                 0, "已拒绝", 90, 30,
-                PriorityLevel.WAITING, NextActionType.WAITING_FEEDBACK, "—", null);
+                PriorityLevel.WAITING, NextActionType.WAITING_FEEDBACK, "—", null, "Direct");
         when(jobApplicationService.getClosedProgress(100L)).thenReturn(List.of(dto));
 
         ResponseEntity<List<ActiveProgressDTO>> response =

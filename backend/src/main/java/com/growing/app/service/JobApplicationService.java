@@ -49,6 +49,19 @@ public class JobApplicationService {
             "已投递", "筛选中", "面试中"                 // Chinese variants stored in DB
     );
 
+    private static final java.util.Set<String> ALLOWED_SUBMISSION_TYPES =
+            java.util.Set.of("Direct", "Referral", "RecruiterInbound", "Other");
+
+    private static String validateSubmissionType(String value) {
+        String v = (value == null || value.isBlank()) ? "Direct" : value;
+        if (!ALLOWED_SUBMISSION_TYPES.contains(v)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "submissionType 不合法: " + value
+                            + " (allowed: " + ALLOWED_SUBMISSION_TYPES + ")");
+        }
+        return v;
+    }
+
     private static final List<String> CLOSED_STATUSES = List.of(
             "Rejected", "Withdrawn",
             "已拒绝", "已撤回"
@@ -131,7 +144,8 @@ public class JobApplicationService {
                 ProgressCalculator.normalizeStatus(app.getApplicationStatus()),
                 ProgressCalculator.macroStageStep(app.getApplicationStatus()),
                 microLabel, daysApplied, daysSinceUpdate,
-                priority, action.type(), action.label(), action.date());
+                priority, action.type(), action.label(), action.date(),
+                app.getSubmissionType());
     }
 
     private LocalDate nextFutureInterviewDate(List<InterviewRecord> records) {
@@ -231,6 +245,7 @@ public class JobApplicationService {
         application.setQualifications(dto.getQualifications());
         application.setResponsibilities(dto.getResponsibilities());
         application.setApplicationStatus(dto.getApplicationStatus() != null ? dto.getApplicationStatus() : "NotApplied");
+        application.setSubmissionType(validateSubmissionType(dto.getSubmissionType()));
         application.setOfferDecision(dto.getOfferDecision());
         application.setOfferNotes(dto.getOfferNotes());
         application.setRejectedStage(dto.getRejectedStage());
@@ -292,6 +307,7 @@ public class JobApplicationService {
         application.setQualifications(dto.getQualifications());
         application.setResponsibilities(dto.getResponsibilities());
         application.setApplicationStatus(dto.getApplicationStatus());
+        application.setSubmissionType(validateSubmissionType(dto.getSubmissionType()));
         application.setOfferDecision(dto.getOfferDecision());
         application.setOfferNotes(dto.getOfferNotes());
         application.setRejectedStage(dto.getRejectedStage());
@@ -358,6 +374,7 @@ public class JobApplicationService {
         dto.setQualifications(application.getQualifications());
         dto.setResponsibilities(application.getResponsibilities());
         dto.setApplicationStatus(application.getApplicationStatus());
+        dto.setSubmissionType(application.getSubmissionType());
         dto.setStatusUpdatedAt(application.getStatusUpdatedAt());
         dto.setOfferReceivedAt(application.getOfferReceivedAt());
         dto.setBaseSalary(application.getBaseSalary());

@@ -58,6 +58,8 @@
             </div>
             <div class="flex items-center gap-3 text-xs text-gray-500">
               <span v-if="app.positionLevel">{{ app.positionLevel }}</span>
+              <span v-if="app.submissionType === 'Referral'" class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-medium">内推</span>
+              <span v-else-if="app.submissionType === 'RecruiterInbound'" class="px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 text-[10px] font-medium">Recruiter</span>
               <span v-if="app.interviewStageCount">{{ app.interviewStageCount }} 个阶段</span>
               <span v-if="app.interviewRecordCount">{{ app.interviewRecordCount }} 条记录</span>
             </div>
@@ -558,6 +560,8 @@
                               </div>
                             </div>
                             <div class="flex items-center gap-2">
+                              <span v-if="record.result === 'Passed'" class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs">✅ 通过</span>
+                              <span v-else-if="record.result === 'Failed'" class="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs">❌ 未通过</span>
                               <span v-if="record.interviewFormat" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
                                 {{ getInterviewFormatText(record.interviewFormat) }}
                               </span>
@@ -1353,6 +1357,18 @@
             </div>
           </div>
 
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">本轮结果</label>
+            <select
+              v-model="interviewRecordFormData.result"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="Pending">⏳ 等待结果</option>
+              <option value="Passed">✅ 通过</option>
+              <option value="Failed">❌ 未通过</option>
+            </select>
+          </div>
+
           <div class="border-t pt-4">
             <h4 class="text-sm font-semibold text-gray-900 mb-3">评分 (1-10分)</h4>
             <div class="grid grid-cols-2 gap-4">
@@ -1736,7 +1752,8 @@ const interviewRecordFormData = ref({
   technicalDepth: null,
   communication: null,
   problemSolving: null,
-  selfSummary: ''
+  selfSummary: '',
+  result: 'Pending'
 })
 
 const recruiterInsightsFormData = ref({
@@ -2284,7 +2301,8 @@ const addInterviewRecord = (stageId) => {
     technicalDepth: null,
     communication: null,
     problemSolving: null,
-    selfSummary: ''
+    selfSummary: '',
+    result: 'Pending'
   }
   showInterviewRecordModal.value = true
 }
@@ -2301,7 +2319,8 @@ const editInterviewRecord = (record) => {
     technicalDepth: record.technicalDepth,
     communication: record.communication,
     problemSolving: record.problemSolving,
-    selfSummary: record.selfSummary || ''
+    selfSummary: record.selfSummary || '',
+    result: record.result || 'Pending'
   }
   showInterviewRecordModal.value = true
 }

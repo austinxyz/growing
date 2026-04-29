@@ -148,6 +148,32 @@ class JobApplicationServiceProgressTest {
     }
 
     @Test
+    void getActiveProgress_passesSubmissionTypeThrough() {
+        JobApplication referredApp = app(1L, 50L, "Pos R", "Applied", 5, 5);
+        referredApp.setSubmissionType("Referral");
+        JobApplication directApp = app(2L, 51L, "Pos D", "Applied", 5, 5);
+        directApp.setSubmissionType("Direct");
+
+        when(jobApplicationRepository.findByUserIdAndApplicationStatusInOrderByCreatedAtDesc(
+                eq(100L), anyList()))
+                .thenReturn(List.of(referredApp, directApp));
+        when(companyRepository.findAllById(anyList()))
+                .thenReturn(List.of(company(50L, "R"), company(51L, "D")));
+        when(interviewStageRepository.findByJobApplicationIdInOrderByStageOrder(anyList()))
+                .thenReturn(List.of());
+        when(interviewRecordRepository.findByJobApplicationIdInOrderByInterviewDateDesc(anyList()))
+                .thenReturn(List.of());
+
+        List<ActiveProgressDTO> result = service.getActiveProgress(100L);
+
+        assertEquals(2, result.size());
+        assertEquals("Referral",
+                result.stream().filter(d -> d.id() == 1L).findFirst().orElseThrow().submissionType());
+        assertEquals("Direct",
+                result.stream().filter(d -> d.id() == 2L).findFirst().orElseThrow().submissionType());
+    }
+
+    @Test
     void getActiveProgress_doesNotIssuePerRowQueries() {
         // Regression guard for N+1: each repository must be called at most once,
         // batched. Specifically guards against companyRepository.findById per row,

@@ -100,6 +100,37 @@ describe('ProgressCard', () => {
     expect(wrapper.classes()).toContain('opacity-60')
   })
 
+  it('shows 内推 chip when submissionType is Referral', () => {
+    const wrapper = mount(ProgressCard, {
+      props: { app: { ...baseApp, submissionType: 'Referral' } },
+    })
+    expect(wrapper.text()).toContain('内推')
+  })
+
+  it('shows Recruiter chip when submissionType is RecruiterInbound', () => {
+    const wrapper = mount(ProgressCard, {
+      props: { app: { ...baseApp, submissionType: 'RecruiterInbound' } },
+    })
+    expect(wrapper.text()).toContain('Recruiter')
+  })
+
+  it('shows 直投 chip for Direct (less prominent than 内推)', () => {
+    const wrapper = mount(ProgressCard, {
+      props: { app: { ...baseApp, submissionType: 'Direct' } },
+    })
+    expect(wrapper.text()).toContain('直投')
+    expect(wrapper.text()).not.toContain('内推')
+  })
+
+  it('shows nothing when submissionType missing/unknown', () => {
+    const wrapper = mount(ProgressCard, {
+      props: { app: { ...baseApp, submissionType: null } },
+    })
+    expect(wrapper.text()).not.toContain('内推')
+    expect(wrapper.text()).not.toContain('直投')
+    expect(wrapper.text()).not.toContain('Recruiter')
+  })
+
   it('navigates to JobApplicationList with id query when clicked', async () => {
     pushMock.mockClear()
     const wrapper = mount(ProgressCard, { props: { app: baseApp } })

@@ -19,5 +19,6 @@ public record ActiveProgressDTO(
         PriorityLevel priorityLevel,
         NextActionType nextActionType,
         String nextActionLabel,
-        LocalDate nextActionDate
+        LocalDate nextActionDate,
+        String submissionType
 ) {}

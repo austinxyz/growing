@@ -106,6 +106,7 @@ public class InterviewRecordService {
         record.setCommunication(dto.getCommunication());
         record.setProblemSolving(dto.getProblemSolving());
         record.setSelfSummary(dto.getSelfSummary());
+        record.setResult(validateResult(dto.getResult()));
 
         record = interviewRecordRepository.save(record);
         return convertToDTO(record);
@@ -144,6 +145,7 @@ public class InterviewRecordService {
         record.setCommunication(dto.getCommunication());
         record.setProblemSolving(dto.getProblemSolving());
         record.setSelfSummary(dto.getSelfSummary());
+        record.setResult(validateResult(dto.getResult()));
 
         record = interviewRecordRepository.save(record);
         return convertToDTO(record);
@@ -164,6 +166,18 @@ public class InterviewRecordService {
         }
 
         interviewRecordRepository.delete(record);
+    }
+
+    private static final java.util.Set<String> ALLOWED_RESULTS =
+            java.util.Set.of("Pending", "Passed", "Failed");
+
+    private static String validateResult(String value) {
+        String v = (value == null || value.isBlank()) ? "Pending" : value;
+        if (!ALLOWED_RESULTS.contains(v)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "result 不合法: " + value + " (allowed: " + ALLOWED_RESULTS + ")");
+        }
+        return v;
     }
 
     // DTO Conversion
@@ -190,6 +204,7 @@ public class InterviewRecordService {
         dto.setCommunication(record.getCommunication());
         dto.setProblemSolving(record.getProblemSolving());
         dto.setSelfSummary(record.getSelfSummary());
+        dto.setResult(record.getResult());
         dto.setCreatedAt(record.getCreatedAt());
         dto.setUpdatedAt(record.getUpdatedAt());
         return dto;

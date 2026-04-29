@@ -64,6 +64,9 @@ public class InterviewRecord {
     @Column(name = "self_summary", columnDefinition = "TEXT")
     private String selfSummary;
 
+    @Column(name = "result", length = 20, nullable = false)
+    private String result = "Pending";
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

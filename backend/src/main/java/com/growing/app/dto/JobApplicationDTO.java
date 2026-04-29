@@ -25,6 +25,7 @@ public class JobApplicationDTO {
 
     // Application Status
     private String applicationStatus;  // NotApplied, Applied, PhoneScreen, Onsite, Offer, Rejected
+    private String submissionType;     // Direct / Referral / RecruiterInbound / Other (default: Direct)
     private LocalDateTime statusUpdatedAt;
     private List<StatusHistoryDTO> statusHistory;  // From JobApplication.statusHistory JSON
 

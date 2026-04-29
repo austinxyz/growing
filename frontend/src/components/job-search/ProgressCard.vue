@@ -16,10 +16,16 @@
         <div class="text-sm text-gray-600 truncate">{{ app.positionName }}</div>
         <div class="text-xs text-gray-500 italic mt-0.5">{{ app.microStageLabel }}</div>
       </div>
-      <span
-        v-if="!badgeText"
-        :class="['shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full', pillClass]"
-      >{{ statusDisplayLabel }}</span>
+      <div class="flex flex-col items-end gap-1 shrink-0">
+        <span
+          v-if="!badgeText"
+          :class="['text-xs font-semibold px-2 py-0.5 rounded-full', pillClass]"
+        >{{ statusDisplayLabel }}</span>
+        <span
+          v-if="submissionChip"
+          :class="['text-[10px] font-medium px-1.5 py-0.5 rounded', submissionChip.cls]"
+        >{{ submissionChip.text }}</span>
+      </div>
     </div>
 
     <!-- 4 步进度条 -->
@@ -92,6 +98,21 @@ const badgeClass = computed(() => {
   return props.app.priorityLevel === 'STALLED'
     ? 'bg-rose-100 text-rose-700'
     : 'bg-emerald-100 text-emerald-700'
+})
+
+// Submission source chip — 直投也显示但视觉权重更低（gray vs indigo）
+// Other / null / unknown → no chip (避免噪声)
+const submissionChip = computed(() => {
+  switch (props.app.submissionType) {
+    case 'Referral':
+      return { text: '内推',      cls: 'bg-indigo-50 text-indigo-700' }
+    case 'RecruiterInbound':
+      return { text: 'Recruiter', cls: 'bg-violet-50 text-violet-700' }
+    case 'Direct':
+      return { text: '直投',      cls: 'bg-gray-100 text-gray-500' }
+    default:
+      return null
+  }
 })
 
 // 状态 pill (右上角小标签) — 后端已返回 canonical (Applied/Screening/Interviewing/Offer)

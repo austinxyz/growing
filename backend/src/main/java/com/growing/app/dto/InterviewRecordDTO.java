@@ -26,6 +26,9 @@ public class InterviewRecordDTO {
     private Integer problemSolving;
     private String selfSummary;
 
+    // Round outcome (Pending / Passed / Failed)
+    private String result;
+
     // Nested collections (DTO Completeness Checklist: all collections populated)
     private List<InterviewQuestionDTO> questions;
     private List<InterviewFeedbackDTO> feedback;

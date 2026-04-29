@@ -49,13 +49,16 @@ const sample = [
   // Server returns priority order; tests verify front-end re-sort doesn't refetch
   { id: 1, companyName: 'A', positionName: 'p1', applicationStatus: 'Applied',
     macroStageStep: 1, microStageLabel: '', daysSinceApplied: 5, daysSinceLastUpdate: 5,
-    priorityLevel: 'WAITING', nextActionType: 'WAITING_FEEDBACK', nextActionLabel: '', nextActionDate: null },
+    priorityLevel: 'WAITING', nextActionType: 'WAITING_FEEDBACK', nextActionLabel: '', nextActionDate: null,
+    submissionType: 'Direct' },
   { id: 2, companyName: 'B', positionName: 'p2', applicationStatus: 'Interviewing',
     macroStageStep: 3, microStageLabel: '', daysSinceApplied: 20, daysSinceLastUpdate: 20,
-    priorityLevel: 'STALLED', nextActionType: 'FOLLOW_UP', nextActionLabel: '', nextActionDate: null },
+    priorityLevel: 'STALLED', nextActionType: 'FOLLOW_UP', nextActionLabel: '', nextActionDate: null,
+    submissionType: 'Referral' },
   { id: 3, companyName: 'C', positionName: 'p3', applicationStatus: 'Offer',
     macroStageStep: 4, microStageLabel: '', daysSinceApplied: 35, daysSinceLastUpdate: 5,
-    priorityLevel: 'OFFER_DEADLINE', nextActionType: 'OFFER_DEADLINE', nextActionLabel: '', nextActionDate: null },
+    priorityLevel: 'OFFER_DEADLINE', nextActionType: 'OFFER_DEADLINE', nextActionLabel: '', nextActionDate: null,
+    submissionType: 'Direct' },
 ]
 
 describe('InterviewProgress', () => {
