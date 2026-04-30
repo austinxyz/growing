@@ -35,6 +35,8 @@ growing 是 Spring Boot 3.2 + Vue 3 的求职管理应用，已在 NAS 上 Docke
 
 **理由**：A 是 Spring 官方集成，注解风格（`@Tool` 之类），跟 Tomcat 自动绑定；B 要自己写 Servlet/Filter 接管 `/mcp` 路径。A 在已是 Spring Boot 的项目里几乎是 zero-config。代价：版本绑定 Spring AI 1.0+。
 
+**实施备注（2026-04-29 实测）**：Spring AI 1.0.0 starter 只支持 **SSE transport**（不是新的 Streamable HTTP；后者预计 1.1+）。属性是 `spring.ai.mcp.server.sse-endpoint` 和 `sse-message-endpoint`。Claude Desktop 兼容 SSE 远程 MCP，所以这不影响功能，但客户端配置的 URL 是 SSE 端点（不是单一 POST 端点）。
+
 ### D2: 嵌入 backend 同进程，不开新 container
 **选项**：
 - A. 嵌入 Spring Boot（**采纳**）
@@ -42,12 +44,16 @@ growing 是 Spring Boot 3.2 + Vue 3 的求职管理应用，已在 NAS 上 Docke
 
 **理由**：A 复用现有 deploy 流程（`./deploy.sh` 一条命令）、单 JVM、tool 直接 inject service。B 增加一个 Docker 镜像 + 服务间 JWT。Java MCP SDK 已 GA，成熟度足够。
 
-### D3: 同端口 8082 + 路径 `/mcp`
+### D3: 同端口 8082 + 路径前缀 `/mcp/*`
 **选项**：
-- A. 复用 8082，新路径 `/mcp`（**采纳**）
+- A. 复用 8082，路径前缀 `/mcp`（**采纳**）
 - B. 新端口 8083 专给 MCP
 
-**理由**：A 不改 docker-compose（不用加 published port）、不改 NAS 防火墙、不改 Tailscale 路由。Spring AI starter 默认就把 endpoint 挂在主端口。代价：必须确保 `/mcp` 路径不跟现有 controller 冲突——已确认无冲突。
+**理由**：A 不改 docker-compose、不改 NAS 防火墙、不改 Tailscale 路由。代价：必须确保 `/mcp/*` 路径不跟现有 controller 冲突——已确认无冲突。
+
+**实际路径（SSE transport）**：
+- `GET /mcp/sse` — SSE 事件流（client 长连接拿 server-to-client 消息）
+- `POST /mcp/message?sessionId=<id>` — client-to-server JSON-RPC 消息（sessionId 由 SSE 握手时返回）
 
 ### D4: Auth 复用 growing JWT，手工验证
 **选项**：

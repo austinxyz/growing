@@ -1,17 +1,22 @@
 ## ADDED Requirements
 
-### Requirement: MCP Streamable HTTP Endpoint
+### Requirement: MCP SSE Transport Endpoint
 
-The system SHALL expose a streamable-http MCP transport endpoint at `POST /mcp` on the existing Spring Boot HTTP listener (port 8082). The endpoint MUST conform to the Model Context Protocol streamable-http transport specification.
+The system SHALL expose a Server-Sent Events MCP transport on the existing Spring Boot HTTP listener (port 8082). The transport consists of two endpoints, conforming to MCP's SSE transport specification:
 
-#### Scenario: MCP client receives initialize response
-- **WHEN** an MCP client POSTs an `initialize` request to `/mcp` with valid JSON-RPC envelope and a valid Bearer JWT
-- **THEN** the response status is 200
-- **AND** the response body is a JSON-RPC initialize response containing the server capabilities
+- `GET /mcp/sse` — long-lived SSE stream; on connection open, the server emits an `endpoint` event whose `data` field is the per-session message URL `/mcp/message?sessionId=<uuid>`.
+- `POST /mcp/message?sessionId=<uuid>` — client-to-server JSON-RPC messages for the session.
 
-#### Scenario: MCP endpoint advertises three tools
-- **WHEN** an MCP client POSTs a `tools/list` request to `/mcp` with a valid Bearer JWT
-- **THEN** the response includes exactly three tools: `list_applications`, `get_application_detail`, `get_active_progress`
+(Spring AI 1.0 starter ships only SSE; Streamable HTTP arrives in 1.1+.)
+
+#### Scenario: SSE handshake advertises session message URL
+- **WHEN** a client opens `GET /mcp/sse`
+- **THEN** the response status is 200 with `Content-Type: text/event-stream`
+- **AND** the first event is `event: endpoint` with `data: /mcp/message?sessionId=<uuid>`
+
+#### Scenario: tools/list returns the three tools
+- **WHEN** a client POSTs a `tools/list` JSON-RPC request to `/mcp/message?sessionId=<id>` after handshake
+- **THEN** the response (delivered over the SSE stream) lists exactly three tools: `list_applications`, `get_application_detail`, `get_active_progress`
 
 ### Requirement: Bearer JWT Authentication
 
