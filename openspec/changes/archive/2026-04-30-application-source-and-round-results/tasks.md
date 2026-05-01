@@ -61,4 +61,4 @@
 - [x] 11.2 `npm test` GREEN: **25/25 frontend tests** across 4 spec files
 - [x] 11.3 No `console.log` in new files; no hardcoded credentials
 - [x] 11.4 `openspec status` shows `isComplete: true` for all 4 artifacts
-- [ ] 11.5 Commit with message `feat(job-search): add submission type on application + result on interview record` — pending user authorization
+- [x] 11.5 Commit with message `feat(job-search): add submission type on application + result on interview record` — pending user authorization
