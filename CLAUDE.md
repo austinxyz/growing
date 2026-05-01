@@ -3,6 +3,21 @@
 > **Context Recovery**: Read this first when resuming work.
 > **Project Root**: `<your-clone-of-growing>/`
 
+## Behavior Guidelines
+
+**Think before coding.** State assumptions explicitly. If multiple interpretations exist, present them — don't pick silently. If something is unclear, stop and ask before implementing.
+
+**Simplicity first.** Write the minimum code that solves the problem. No speculative features, no abstractions for single-use code, no "flexibility" that wasn't requested. If it can be 50 lines, don't write 200.
+
+**Surgical changes.** Touch only what the request requires. Don't "improve" adjacent code, comments, or formatting. Match existing style. Remove only imports/variables made unused by *your* changes — not pre-existing dead code.
+
+**Goal-driven execution.** Transform tasks into verifiable goals before starting:
+- "Fix the bug" → write a test that reproduces it, then make it pass
+- "Add validation" → write tests for invalid inputs, then make them pass
+- "Refactor X" → ensure tests pass before and after
+
+---
+
 ## Critical Guardrails
 
 ### 🚨 NEVER Do This
