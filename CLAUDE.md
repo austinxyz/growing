@@ -229,7 +229,8 @@ curl http://localhost:5001/backup/list     # list backups
 | `/docs/MCP_SETUP.md` | Claude Desktop 集成、token 获取、故障排查 | 活跃 |
 | `/docs/BACKUP_SYSTEM.md` | 备份服务配置与操作 | 活跃 |
 | `/docs/DOCKER_DEPLOYMENT.md` | 生产 Docker 部署 | 活跃 |
-| `/openspec/specs/*/spec.md` | **Phase 8+ 活的行为规范**（BDD，可测试） | 活跃 |
+| `/openspec/specs/README.md` | **Phase 8+ capability 索引**（功能概要 + 变更溯源） | 活跃 |
+| `/openspec/specs/*/spec.md` | 各 capability 的 BDD 行为规范（可测试） | 活跃 |
 | `/openspec/changes/archive/` | 已归档变更历史（proposal/design/tasks） | 只读 |
 | `/requirement/需求概要.md` | 全量功能模块概览 + Phase 1–8 交付状态 | Phase 1–8 冻结 |
 | `/requirement/Phase{N}-详细需求.md` | Phase 1–7 详细需求（用户故事级） | 冻结历史档案 |
