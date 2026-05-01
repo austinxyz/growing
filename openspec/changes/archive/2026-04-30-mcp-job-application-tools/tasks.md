@@ -38,7 +38,7 @@
 
 ## 4. Integration test (Spring Boot Test + MockMvc)
 
-- [ ] 4.1-4.6 ~~Spring Boot IT for `/mcp/sse` + `/mcp/message`~~ — **Deferred**. The full SSE long-poll flow is hard to assert from a Spring MockMvc test (server-to-client messages arrive on the streamed connection while requests come from a separate mock thread). Trade-off: the 20 unit tests + the live curl smoke (Group 5.2-5.3) provide equivalent coverage of behavior. If a regression surfaces in production, an IT can be added then with a real MCP test client.
+- [x] 4.1-4.6 `McpSseIntegrationTest` — `@SpringBootTest(RANDOM_PORT)` + H2 in-memory DB + `@MockBean AuthService/JobApplicationService`. 4 tests: unauthenticated GET /mcp/sse → 401; authenticated → 200 + text/event-stream; SSE stream contains sessionId; POST /mcp/message with valid JWT not rejected (non-401). 79/79 GREEN.
 
 ## 5. README + smoke
 

@@ -38,7 +38,7 @@
 
 ---
 
-### `mcp-server` *(spec 待同步)*
+### `mcp-server`
 **功能**：MCP Server — Claude Desktop / Claude Code 直接查询求职数据。
 
 **核心行为**：
@@ -47,7 +47,9 @@
 - 传输协议：SSE（Spring AI 1.0.x）— `GET /mcp/sse` + `POST /mcp/message?sessionId=X`
 - 用户隔离：每个 tool 调用自动 scoped 到 token 对应的 userId
 
-**来自变更**：[`mcp-job-application-tools`](../changes/mcp-job-application-tools/proposal.md)（活跃，尚未归档）
+**行为规范**：[`spec.md`](mcp-server/spec.md)
+
+**来自变更**：[`2026-04-30-mcp-job-application-tools`](../changes/archive/2026-04-30-mcp-job-application-tools/proposal.md)（已归档）
 
 **配置文档**：[`docs/MCP_SETUP.md`](../../docs/MCP_SETUP.md)
 
@@ -59,7 +61,7 @@
 |--------|----------------|------|
 | [`2026-04-28-interview-progress-summary`](../changes/archive/2026-04-28-interview-progress-summary/) | interview-progress | 2026-04-28 |
 | [`2026-04-30-application-source-and-round-results`](../changes/archive/2026-04-30-application-source-and-round-results/) | application-tracking + interview-progress | 2026-04-30 |
-| [`mcp-job-application-tools`](../changes/mcp-job-application-tools/) *(活跃)* | mcp-server | 2026-04-30 |
+| [`2026-04-30-mcp-job-application-tools`](../changes/archive/2026-04-30-mcp-job-application-tools/) | mcp-server | 2026-04-30 |
 
 ---
 
