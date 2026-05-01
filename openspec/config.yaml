@@ -23,6 +23,23 @@ context: |
     - Component path uses hyphen (job-search/), not camelCase
     - DB migrations are plain SQL files named V{N}_<topic>.sql
 
+  MCP server (backend/src/main/java/com/growing/app/mcp/):
+    - Spring AI 1.0.x is SSE-only (GET /mcp/sse + POST /mcp/message?sessionId=X).
+      Streamable HTTP requires Spring AI 1.1+. Check spring-ai-bom version in
+      pom.xml before proposing a transport type.
+    - @Tool methods execute on a Reactor thread, NOT the HTTP request thread.
+      ThreadLocal is unreliable. Correct pattern: McpAuthFilter registers
+      sessionId→userId in McpSessionStore on POST; @Tool methods call
+      McpRequestContext.requireUserId(toolContext, mcpSessionStore).
+    - McpServerSession.getId() != external sessionId in POST URL. Use
+      McpRequestContext.extractSessionId(exchange) to get the correct key.
+    - @Tool method params: only @ToolParam business params + ToolContext.
+      HttpServletRequest cannot be injected.
+    - @Tool beans need an explicit MethodToolCallbackProvider bean in
+      McpToolsConfig. Verify startup log: "Registered tools: N" (N > 0).
+    - jwt.expiration must be >= 2592000000 (30 days) for MCP clients.
+    - Full pitfall list + prevention checklists: CLAUDE.md Category 7.
+
   Superpowers integration:
     - This project pairs OpenSpec with Anthropic superpowers skills.
     - /opsx:propose triggers superpowers:brainstorming BEFORE artifact

@@ -317,7 +317,102 @@
   2. 多用户系统下，smoke test 必须用代表性的用户账号（不能只测 admin/test 账号）
   3. 跨页导航的 query param 契约是 *双向的*：源页发送 + 目标页消费，两边都要验证
 
-**🚨 UPDATED Pre-Development Checklist** (with Phase 7 patterns):
+---
+
+**🔌 Category 7: MCP Server Error Patterns** (Spring AI + growing)
+
+**Mistake #16**: Spring AI 1.0 only ships SSE transport, not Streamable HTTP
+- **Problem**: Design proposed "Streamable HTTP" endpoint; Spring AI 1.0.0 实际只有 SSE transport（Streamable HTTP 预计 1.1+）
+- **What Happened**: 部署后发现 `spring.ai.mcp.server.streamable-http-endpoint` 不存在，必须改用 `sse-endpoint` + `sse-message-endpoint`
+- **Fix**: 两个端点 — `GET /mcp/sse`（事件流）+ `POST /mcp/message?sessionId=X`（JSON-RPC）
+- **🛡️ Prevention**: Propose 阶段写 transport 类型前，先确认 Spring AI 版本支持：
+  - Spring AI 1.0.x → **SSE only** (`/mcp/sse` + `/mcp/message?sessionId=X`)
+  - Spring AI 1.1+ → Streamable HTTP 可用
+  - Claude Desktop 兼容 SSE，功能不受影响
+
+**Mistake #17**: `@Tool` methods run on a different thread — ThreadLocal userId is always null
+- **Problem**: `McpAuthFilter` 在 HTTP 请求线程设置 `ThreadLocal<Long> userId`；`@Tool` 方法在 Spring AI 的 Reactor `.block()` 调度线程执行，读不到 ThreadLocal
+- **What Happened**: 所有 tool 调用都得到 "No authenticated user" 错误，MCP 连接成功但工具返回 401
+- **Fix**: `McpSessionStore`（ConcurrentHashMap）—— filter 在 POST 时存 `sessionId→userId`，tool 通过 `ToolContext` 查 sessionId 再取 userId
+- **正确模式**:
+  ```java
+  // McpAuthFilter: on POST /mcp/message?sessionId=X
+  if (sessionId != null) mcpSessionStore.register(sessionId, userId);
+
+  // @Tool method signature:
+  public String listApplications(@ToolParam(...) String status, ToolContext toolContext) {
+      Long userId = McpRequestContext.requireUserId(toolContext, mcpSessionStore);
+      ...
+  }
+  ```
+- **🛡️ Prevention**: MCP `@Tool` 方法**永远不能**用 ThreadLocal 或 `RequestContextHolder` 取 userId。必须通过 `ToolContext` + `McpSessionStore`。
+
+**Mistake #18**: `McpServerSession.getId()` ≠ external sessionId in POST URL
+- **Problem**: 想用 `exchange.getSession().getId()` 取 sessionId 去查 store，但这个 ID 是 Spring AI 内部 UUID，与 POST URL `?sessionId=X` 中的值不同
+- **What Happened**: 查 store 永远找不到，userId 为 null
+- **Fix**: 必须走私有字段链提取 transport 层的 sessionId：
+  ```java
+  // McpRequestContext.extractSessionId():
+  // exchange.exchange → McpAsyncServerExchange
+  //   .session → McpServerSession
+  //     .transport → WebMvcMcpSessionTransport
+  //       .sessionId  ← 这才是 POST URL 里的 sessionId
+  ```
+- **🛡️ Prevention**: 提取 sessionId 时直接用 `McpRequestContext.requireUserId(toolContext, mcpSessionStore)`，不要自己从 exchange 取 session ID。
+
+**Mistake #19**: JWT 24h expiry is too short for MCP clients
+- **Problem**: Web UI 用户每天登录自然刷新 token；Claude Desktop 配置文件里的 token 不自动刷新，24h 过期后所有工具调用返回 401，用户必须手动更新 config 文件
+- **Fix**: `jwt.expiration=2592000000`（30天）in `application.properties`；Claude Desktop 配置里加注释提醒到期时间
+- **🛡️ Prevention**: MCP token 建议设 ≥ 30天。如果保持 24h，必须在 `docs/MCP_SETUP.md` 醒目标注，并在 CLAUDE.md 提示用户。
+
+**Mistake #20**: `@Tool` methods cannot receive `HttpServletRequest`
+- **Problem**: 初始设计想在 tool 方法里直接接收 `HttpServletRequest` 参数来取 auth header，就像 Controller 一样
+- **What Happened**: Spring AI 框架不将 `HttpServletRequest` 注入 `@Tool` 方法；参数只支持 `@ToolParam` 注解的业务参数 + `ToolContext`
+- **Fix**: 完全通过 `McpAuthFilter`（处理 HTTP 请求）+ `McpSessionStore`（跨线程传递 userId）解耦
+- **🛡️ Prevention**: `@Tool` 方法签名只能有：① `@ToolParam` 业务参数；② `ToolContext toolContext`（可选）。不能有 `HttpServletRequest`、`@RequestHeader` 等。
+
+**Mistake #21**: Tools are not auto-registered — need explicit `MethodToolCallbackProvider` bean
+- **Problem**: 写了 `@Tool` 方法但 Spring AI 没有自动扫描注册
+- **What Happened**: Backend 启动日志显示 `Registered tools: 0`，MCP 客户端 `tools/list` 返回空
+- **Fix**: 在 `McpToolsConfig` 显式注册：
+  ```java
+  @Bean
+  public MethodToolCallbackProvider mcpJobToolsProvider(McpJobTools tools) {
+      return MethodToolCallbackProvider.builder().toolObjects(tools).build();
+  }
+  ```
+- **🛡️ Prevention**: 每次新增 `@Tool` bean，先检查 startup log 的 `Registered tools: N`，确认 N 符合预期。
+
+---
+
+**MCP Development Checklist** (添加任何 MCP 功能前必查):
+```
+Spring AI Transport:
+[ ] 确认 Spring AI 版本 (pom.xml 中 spring-ai-bom 版本)?
+[ ] 1.0.x → 使用 SSE 配置 (sse-endpoint + sse-message-endpoint)
+[ ] 1.1+ → 可用 Streamable HTTP
+
+Thread Safety:
+[ ] @Tool 方法 userId 来源是 McpSessionStore (not ThreadLocal)?
+[ ] @Tool 方法签名只含 @ToolParam 参数 + ToolContext (no HttpServletRequest)?
+[ ] sessionId 提取用 McpRequestContext.requireUserId() (not session.getId())?
+
+Registration:
+[ ] McpToolsConfig 有显式 MethodToolCallbackProvider bean?
+[ ] 启动日志确认 "Registered tools: N" (N > 0)?
+
+Auth:
+[ ] McpAuthFilter 在 POST /mcp/message 时调用 mcpSessionStore.register()?
+[ ] jwt.expiration ≥ 2592000000 (30天) in application.properties?
+
+Smoke Test:
+[ ] curl unauthenticated GET /mcp/sse → 401?
+[ ] curl authenticated GET /mcp/sse → text/event-stream with sessionId?
+[ ] POST /mcp/message?sessionId=X (initialize) → 200?
+[ ] Backend log shows tool calls with correct userId?
+```
+
+**🚨 UPDATED Pre-Development Checklist** (with Phase 7 + MCP patterns):
 ```
 Frontend API Calls:
 [ ] Read /frontend/src/api/index.js (lines 4, 27-29)?
@@ -353,6 +448,13 @@ Clone/Copy Operations:
 [ ] Copy ALL non-nullable fields?
 [ ] Update foreign key fields to point to new parent?
 [ ] Test: clone then save, verify no null constraint violations?
+
+MCP Server (when touching backend/src/main/java/com/growing/app/mcp/):
+[ ] Spring AI version checked for SSE vs Streamable HTTP support?
+[ ] @Tool methods use ToolContext + McpSessionStore (not ThreadLocal)?
+[ ] McpToolsConfig has MethodToolCallbackProvider bean?
+[ ] Startup log confirms "Registered tools: N > 0"?
+[ ] jwt.expiration >= 30 days?
 ```
 
 ## Quick Start
