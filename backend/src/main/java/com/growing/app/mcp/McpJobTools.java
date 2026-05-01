@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.growing.app.dto.ActiveProgressDTO;
 import com.growing.app.dto.JobApplicationDTO;
 import com.growing.app.service.JobApplicationService;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,10 @@ import java.util.Map;
  * MCP tools exposing the user's job-application data to MCP clients
  * (Claude Desktop / Claude Code) via the streamable transport endpoint.
  *
- * <p>The userId is read from {@link McpRequestContext}, which is populated
- * by {@link McpAuthFilter} on the request thread. Tools never accept a userId
+ * <p>Each tool receives a Spring AI {@link ToolContext} that contains the
+ * {@code McpSyncServerExchange}. {@link McpRequestContext} uses that exchange
+ * to look up the userId from {@link McpSessionStore}, which was populated by
+ * {@link McpAuthFilter} when the HTTP POST arrived. Tools never accept a userId
  * argument from the MCP client — every query is automatically scoped to the
  * caller's identity.
  */
@@ -29,11 +32,14 @@ import java.util.Map;
 public class McpJobTools {
 
     private final JobApplicationService jobApplicationService;
+    private final McpSessionStore mcpSessionStore;
     private final ObjectMapper objectMapper;
 
     public McpJobTools(JobApplicationService jobApplicationService,
+                       McpSessionStore mcpSessionStore,
                        ObjectMapper objectMapper) {
         this.jobApplicationService = jobApplicationService;
+        this.mcpSessionStore = mcpSessionStore;
         this.objectMapper = objectMapper;
     }
 
@@ -47,8 +53,9 @@ public class McpJobTools {
     public String listApplications(
             @ToolParam(required = false,
                        description = "Optional applicationStatus filter; omit for all")
-            String status) {
-        Long userId = McpRequestContext.requireUserId();
+            String status,
+            ToolContext toolContext) {
+        Long userId = McpRequestContext.requireUserId(toolContext, mcpSessionStore);
         try {
             List<JobApplicationDTO> apps = (status == null || status.isBlank())
                     ? jobApplicationService.getAllApplicationsByUserId(userId)
@@ -68,8 +75,9 @@ public class McpJobTools {
                   + "authenticated user, including stages, interview records, qualifications, "
                   + "responsibilities, recruiter insights, and notes.")
     public String getApplicationDetail(
-            @ToolParam(description = "Application id") Long id) {
-        Long userId = McpRequestContext.requireUserId();
+            @ToolParam(description = "Application id") Long id,
+            ToolContext toolContext) {
+        Long userId = McpRequestContext.requireUserId(toolContext, mcpSessionStore);
         try {
             JobApplicationDTO dto = jobApplicationService.getApplicationById(id, userId);
             return objectMapper.writeValueAsString(dto);
@@ -88,8 +96,9 @@ public class McpJobTools {
     public String getActiveProgress(
             @ToolParam(required = false,
                        description = "When true, append closed (Rejected/Withdrawn) applications. Default false.")
-            Boolean includeClosed) {
-        Long userId = McpRequestContext.requireUserId();
+            Boolean includeClosed,
+            ToolContext toolContext) {
+        Long userId = McpRequestContext.requireUserId(toolContext, mcpSessionStore);
         boolean closed = Boolean.TRUE.equals(includeClosed);
         try {
             List<ActiveProgressDTO> active = jobApplicationService.getActiveProgress(userId);

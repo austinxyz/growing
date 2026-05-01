@@ -7,6 +7,9 @@ frontend/.env.production
 .env.local
 .env.*.local
 
+# MCP server config (contains JWT token)
+.mcp.json
+
 # Claude Code local settings (may contain credentials)
 .claude/settings.local.json
 

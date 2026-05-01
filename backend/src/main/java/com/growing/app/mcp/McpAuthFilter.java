@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -13,19 +15,26 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 
 /**
- * Servlet filter that authenticates incoming MCP requests by Bearer JWT and stores
- * the resolved userId in {@link McpRequestContext} for the duration of the
- * request thread. Tools running on the same thread (SYNC mode) can then read the
- * userId without needing direct access to the request.
+ * Servlet filter that validates the Bearer JWT on MCP requests and rejects
+ * unauthenticated connections early (before any tool code runs).
+ *
+ * <p>For POST {@code /mcp/message?sessionId=X} requests it also registers the
+ * resolved userId in {@link McpSessionStore} so that {@link McpRequestContext}
+ * can look it up inside {@code @Tool} methods, which may run on a thread that
+ * does not have access to Spring's {@code RequestContextHolder}.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class McpAuthFilter extends OncePerRequestFilter {
 
-    private final McpAuthService mcpAuthService;
+    private static final Logger log = LoggerFactory.getLogger(McpAuthFilter.class);
 
-    public McpAuthFilter(McpAuthService mcpAuthService) {
+    private final McpAuthService mcpAuthService;
+    private final McpSessionStore mcpSessionStore;
+
+    public McpAuthFilter(McpAuthService mcpAuthService, McpSessionStore mcpSessionStore) {
         this.mcpAuthService = mcpAuthService;
+        this.mcpSessionStore = mcpSessionStore;
     }
 
     @Override
@@ -38,20 +47,23 @@ public class McpAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain)
             throws ServletException, IOException {
-        Long userId;
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        String authHeader = request.getHeader("Authorization");
+        String sessionId = request.getParameter("sessionId");
+        log.info("[McpAuthFilter] {} {} | sessionId={} | hasAuth={}", method, uri, sessionId, authHeader != null);
         try {
-            userId = mcpAuthService.getUserIdFromRequest(request);
+            Long userId = mcpAuthService.getUserIdFromRequest(request);
+            log.info("[McpAuthFilter] userId={} | registering sessionId={}", userId, sessionId);
+            if (sessionId != null && !sessionId.isBlank()) {
+                mcpSessionStore.register(sessionId, userId);
+            }
         } catch (ResponseStatusException e) {
+            log.warn("[McpAuthFilter] Auth failed: {} {}", e.getStatusCode().value(), e.getReason());
             response.sendError(e.getStatusCode().value(),
                     e.getReason() != null ? e.getReason() : "Unauthorized");
             return;
         }
-
-        McpRequestContext.setUserId(userId);
-        try {
-            chain.doFilter(request, response);
-        } finally {
-            McpRequestContext.clear();
-        }
+        chain.doFilter(request, response);
     }
 }

@@ -88,6 +88,39 @@ The frontend will start on http://localhost:3000
 
 To enable Google Sign-In, follow the guide in [docs/GOOGLE_OAUTH_SETUP.md](docs/GOOGLE_OAUTH_SETUP.md)
 
+## MCP Server (Claude Desktop Integration)
+
+growing ships a built-in MCP server so Claude Desktop / Claude Code can query
+your job-application data directly — no browser needed.
+
+Three read-only tools are exposed:
+- `list_applications` — list applications, optionally filter by status
+- `get_application_detail` — full detail (stages, records, notes, offer fields)
+- `get_active_progress` — dashboard-style priority + next-action summary
+
+**Quick setup** (local dev):
+
+1. Log into growing UI and copy your JWT from DevTools → Local Storage → `token`.
+2. Add to `claude_desktop_config.json`:
+
+```jsonc
+{
+  "mcpServers": {
+    "growing": {
+      "url": "http://localhost:8082/mcp/sse",
+      "headers": { "Authorization": "Bearer <your-jwt>" }
+    }
+  }
+}
+```
+
+3. Restart Claude Desktop. growing tools appear in the tools picker.
+
+JWT expires after **24 hours** — re-login to growing and paste a fresh token when tools return 401.
+
+For NAS deployment, multi-account setup, and troubleshooting, see
+**[docs/MCP_SETUP.md](docs/MCP_SETUP.md)**.
+
 ## Claude Code Skills
 
 This project includes several Claude Code skills for development automation:
