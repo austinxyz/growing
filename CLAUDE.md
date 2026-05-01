@@ -220,12 +220,17 @@ curl http://localhost:5001/backup/list     # list backups
 
 ## Documentation
 
-| File | Content |
-|------|---------|
-| `/CLAUDE.md` | Guardrails + quick start (you are here) |
-| `/docs/ARCHITECTURE.md` | Data model, API design, security, all phases |
-| `/docs/MCP_SETUP.md` | Claude Desktop integration, token setup, troubleshooting |
-| `/docs/BACKUP_SYSTEM.md` | Backup service setup and operations |
-| `/docs/DOCKER_DEPLOYMENT.md` | Production Docker deployment |
-| `/docs/Phase{N}-设计文档.md` | Per-phase design decisions |
-| `/requirement/Phase{N}-详细需求.md` | Per-phase requirements |
+**需求规范分两个时代（Phase 1–7 用需求文档；Phase 8+ 用 OpenSpec specs）：**
+
+| 文件 | 内容 | 状态 |
+|------|------|------|
+| `/CLAUDE.md` | Guardrails + quick start（此文件） | 活跃 |
+| `/docs/ARCHITECTURE.md` | 数据模型、API 设计、安全、各 Phase 架构 | 活跃 |
+| `/docs/MCP_SETUP.md` | Claude Desktop 集成、token 获取、故障排查 | 活跃 |
+| `/docs/BACKUP_SYSTEM.md` | 备份服务配置与操作 | 活跃 |
+| `/docs/DOCKER_DEPLOYMENT.md` | 生产 Docker 部署 | 活跃 |
+| `/openspec/specs/*/spec.md` | **Phase 8+ 活的行为规范**（BDD，可测试） | 活跃 |
+| `/openspec/changes/archive/` | 已归档变更历史（proposal/design/tasks） | 只读 |
+| `/requirement/需求概要.md` | 全量功能模块概览 + Phase 1–8 交付状态 | Phase 1–8 冻结 |
+| `/requirement/Phase{N}-详细需求.md` | Phase 1–7 详细需求（用户故事级） | 冻结历史档案 |
+| `/docs/Phase{N}-设计文档.md` | Phase 1–7 设计决策 | 冻结历史档案 |
