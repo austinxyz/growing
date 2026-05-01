@@ -53,5 +53,5 @@
 - [x] 6.2 `npm test` — 26/26 GREEN (no frontend changes)
 - [x] 6.3 `grep -rn "console\.log\|System\.out\.println" backend/src/main/java/com/growing/app/mcp/` returns empty
 - [x] 6.4 ~~Run superpowers:verification-before-completion~~ — equivalent gates run inline (mvn test green ✅ · npm test green ✅ · console.log grep empty ✅ · diff review: no stale TODOs in MCP code)
-- [ ] 6.5 `openspec status` — confirm complete after committing
-- [ ] 6.6 Commit with `feat(mcp): add MCP server with 3 read-only job-application tools`
+- [x] 6.5 `openspec status` — confirm complete after committing
+- [x] 6.6 Commit — `fix(mcp): use session store for cross-thread userId lookup` (2a57b91) + original `feat(mcp)` (3ec37c6). 75/75 green.
