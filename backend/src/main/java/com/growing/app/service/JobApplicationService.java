@@ -175,16 +175,40 @@ public class JobApplicationService {
 
     // 获取用户所有求职申请
     public List<JobApplicationDTO> getAllApplicationsByUserId(Long userId) {
-        return jobApplicationRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return toListDTOs(jobApplicationRepository.findByUserIdOrderByCreatedAtDesc(userId));
     }
 
     // 按状态获取
     public List<JobApplicationDTO> getApplicationsByStatus(Long userId, String status) {
-        return jobApplicationRepository.findByUserIdAndApplicationStatusOrderByCreatedAtDesc(userId, status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return toListDTOs(jobApplicationRepository.findByUserIdAndApplicationStatusOrderByCreatedAtDesc(userId, status));
+    }
+
+    // Batch-safe list conversion: 4 queries total regardless of list size (was 1 + 3N)
+    private List<JobApplicationDTO> toListDTOs(List<JobApplication> apps) {
+        if (apps.isEmpty()) return List.of();
+
+        List<Long> appIds = apps.stream().map(JobApplication::getId).toList();
+        List<Long> companyIds = apps.stream().map(JobApplication::getCompanyId)
+                .filter(java.util.Objects::nonNull).distinct().toList();
+
+        Map<Long, String> companyNameById = companyRepository.findAllById(companyIds).stream()
+                .collect(Collectors.toMap(Company::getId, Company::getCompanyName));
+        Map<Long, Integer> stageCounts = interviewStageRepository
+                .findByJobApplicationIdInOrderByStageOrder(appIds).stream()
+                .collect(Collectors.groupingBy(InterviewStage::getJobApplicationId,
+                        Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+        Map<Long, Integer> recordCounts = interviewRecordRepository
+                .findByJobApplicationIdInOrderByInterviewDateDesc(appIds).stream()
+                .collect(Collectors.groupingBy(InterviewRecord::getJobApplicationId,
+                        Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+
+        return apps.stream().map(a -> {
+            JobApplicationDTO dto = mapApplicationFields(a);
+            dto.setCompanyName(companyNameById.get(a.getCompanyId()));
+            dto.setInterviewStageCount(stageCounts.getOrDefault(a.getId(), 0));
+            dto.setInterviewRecordCount(recordCounts.getOrDefault(a.getId(), 0));
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     // 按公司获取
@@ -214,14 +238,21 @@ public class JobApplicationService {
 
         JobApplicationDTO dto = convertToDTO(application);
 
-        // DTO Completeness Checklist: all collections populated
-        dto.setStages(interviewStageRepository.findByJobApplicationIdOrderByStageOrder(id).stream()
-                .map(this::convertToStageDTO)
-                .collect(Collectors.toList()));
+        // Fetch stages once, build map to avoid N+1 in convertToInterviewDTO
+        List<InterviewStage> stages = interviewStageRepository.findByJobApplicationIdOrderByStageOrder(id);
+        Map<Long, String> stageNameById = stages.stream()
+                .collect(Collectors.toMap(InterviewStage::getId, InterviewStage::getStageName));
 
-        dto.setInterviews(interviewRecordRepository.findByJobApplicationIdOrderByInterviewDateDesc(id).stream()
-                .map(this::convertToInterviewDTO)
-                .collect(Collectors.toList()));
+        List<InterviewRecordDTO> interviews = interviewRecordRepository
+                .findByJobApplicationIdOrderByInterviewDateDesc(id).stream()
+                .map(r -> convertToInterviewDTO(r, stageNameById))
+                .collect(Collectors.toList());
+
+        dto.setStages(stages.stream().map(this::convertToStageDTO).collect(Collectors.toList()));
+        dto.setInterviews(interviews);
+        // Override counts with exact sizes — avoids redundant COUNT queries from convertToDTO
+        dto.setInterviewStageCount(stages.size());
+        dto.setInterviewRecordCount(interviews.size());
 
         return dto;
     }
@@ -356,16 +387,13 @@ public class JobApplicationService {
     }
 
     // DTO Conversion
-    private JobApplicationDTO convertToDTO(JobApplication application) {
+
+    // Pure field mapping — no DB queries. Used by both single and batch paths.
+    private JobApplicationDTO mapApplicationFields(JobApplication application) {
         JobApplicationDTO dto = new JobApplicationDTO();
         dto.setId(application.getId());
         dto.setUserId(application.getUserId());
         dto.setCompanyId(application.getCompanyId());
-
-        // Populate company name
-        companyRepository.findById(application.getCompanyId())
-                .ifPresent(company -> dto.setCompanyName(company.getCompanyName()));
-
         dto.setPositionName(application.getPositionName());
         dto.setPositionLevel(application.getPositionLevel());
         dto.setPostedDate(application.getPostedDate());
@@ -391,7 +419,6 @@ public class JobApplicationService {
         dto.setCreatedAt(application.getCreatedAt());
         dto.setUpdatedAt(application.getUpdatedAt());
 
-        // Parse JSON fields
         try {
             if (application.getStatusHistory() != null) {
                 dto.setStatusHistory(objectMapper.readValue(application.getStatusHistory(),
@@ -401,22 +428,26 @@ public class JobApplicationService {
                 dto.setRejectionReasons(objectMapper.readValue(application.getRejectionReasons(),
                         new TypeReference<List<String>>() {}));
             }
-            // DTO Completeness Checklist: Parse recruiterInsights
             if (application.getRecruiterInsights() != null) {
                 dto.setRecruiterInsights(objectMapper.readValue(application.getRecruiterInsights(),
                         RecruiterInsightsDTO.class));
             }
         } catch (Exception e) {
-            // If JSON parsing fails, set empty lists/null
             dto.setStatusHistory(Collections.emptyList());
             dto.setRejectionReasons(Collections.emptyList());
             dto.setRecruiterInsights(null);
         }
 
-        // Populate statistics (for list view)
+        return dto;
+    }
+
+    // Single-entity path: used for create / update / getByCompany (3 extra queries acceptable for 1 item)
+    private JobApplicationDTO convertToDTO(JobApplication application) {
+        JobApplicationDTO dto = mapApplicationFields(application);
+        companyRepository.findById(application.getCompanyId())
+                .ifPresent(company -> dto.setCompanyName(company.getCompanyName()));
         dto.setInterviewStageCount(interviewStageRepository.countByJobApplicationId(application.getId()));
         dto.setInterviewRecordCount(interviewRecordRepository.countByJobApplicationId(application.getId()));
-
         return dto;
     }
 
@@ -432,16 +463,14 @@ public class JobApplicationService {
         return dto;
     }
 
-    private InterviewRecordDTO convertToInterviewDTO(InterviewRecord record) {
+    private InterviewRecordDTO convertToInterviewDTO(InterviewRecord record, Map<Long, String> stageNameById) {
         InterviewRecordDTO dto = new InterviewRecordDTO();
         dto.setId(record.getId());
         dto.setJobApplicationId(record.getJobApplicationId());
         dto.setInterviewStageId(record.getInterviewStageId());
 
-        // Populate stage name
         if (record.getInterviewStageId() != null) {
-            interviewStageRepository.findById(record.getInterviewStageId())
-                    .ifPresent(stage -> dto.setStageName(stage.getStageName()));
+            dto.setStageName(stageNameById.get(record.getInterviewStageId()));
         }
 
         dto.setInterviewDate(record.getInterviewDate());
