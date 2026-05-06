@@ -49,6 +49,7 @@
     <div class="mt-3 pt-2.5 border-t border-dashed border-gray-200 flex justify-between items-center gap-2">
       <div class="text-xs text-gray-600">
         已 <strong class="text-gray-900">{{ app.daysSinceApplied }} 天</strong>
+        <span v-if="appliedAtLabel" class="text-gray-400"> · {{ appliedAtLabel }}</span>
         <span v-if="showLastUpdate"> · 上次更新 {{ app.daysSinceLastUpdate }}d</span>
       </div>
       <span
@@ -167,6 +168,13 @@ const showLastUpdate = computed(() =>
   props.app.daysSinceLastUpdate != null
   && props.app.daysSinceLastUpdate !== props.app.daysSinceApplied
 )
+
+// Format appliedAt (YYYY-MM-DD) as "M/D"
+const appliedAtLabel = computed(() => {
+  if (!props.app.appliedAt) return null
+  const [, m, d] = props.app.appliedAt.split('-').map(Number)
+  return `${m}/${d}`
+})
 
 // Compare ISO dates as local-midnight to avoid UTC-vs-local off-by-one:
 // `new Date("2026-05-05")` parses as UTC midnight; comparing against local-midnight

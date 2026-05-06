@@ -47,6 +47,13 @@ public final class ProgressCalculator {
         return (int) ChronoUnit.DAYS.between(startTs, LocalDateTime.now());
     }
 
+    /** Returns the actual calendar date of the first Applied event (or createdAt as fallback). */
+    public static LocalDate appliedAtDate(JobApplication app, ObjectMapper mapper) {
+        LocalDateTime startTs = parseStatusHistoryAppliedAt(app.getStatusHistory(), mapper);
+        if (startTs == null) startTs = app.getCreatedAt();
+        return startTs != null ? startTs.toLocalDate() : null;
+    }
+
     static LocalDateTime parseStatusHistoryAppliedAt(String json, ObjectMapper mapper) {
         if (json == null || json.isBlank()) return null;
         try {

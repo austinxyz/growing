@@ -15,6 +15,7 @@ public record ActiveProgressDTO(
         Integer macroStageStep,
         String microStageLabel,
         Integer daysSinceApplied,
+        LocalDate appliedAt,
         Integer daysSinceLastUpdate,
         PriorityLevel priorityLevel,
         NextActionType nextActionType,

@@ -139,11 +139,13 @@ public class JobApplicationService {
         ProgressCalculator.NextAction action = ProgressCalculator.buildNextAction(
                 priority, app.getOfferDeadline(), nextDate, nextStageName);
 
+        LocalDate appliedAt = ProgressCalculator.appliedAtDate(app, objectMapper);
+
         return new ActiveProgressDTO(
                 app.getId(), app.getCompanyId(), companyName, app.getPositionName(),
                 ProgressCalculator.normalizeStatus(app.getApplicationStatus()),
                 ProgressCalculator.macroStageStep(app.getApplicationStatus()),
-                microLabel, daysApplied, daysSinceUpdate,
+                microLabel, daysApplied, appliedAt, daysSinceUpdate,
                 priority, action.type(), action.label(), action.date(),
                 app.getSubmissionType());
     }
