@@ -33,6 +33,11 @@ public class McpSessionStore {
         return userId;
     }
 
+    /** Returns the userId for this sessionId, or null if not yet registered. */
+    public Long lookup(String sessionId) {
+        return sessions.get(sessionId);
+    }
+
     public void remove(String sessionId) {
         sessions.remove(sessionId);
     }
